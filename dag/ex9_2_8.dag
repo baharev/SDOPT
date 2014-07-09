@@ -1,0 +1,33 @@
+<N> m 'ex9_2_8'
+<N> V 3
+<3> s C=M0,P=TaF,N=FFTE,I=F,A=0,B=3,G=1,D=2,S=0: b [0,0]: d 0: +
+<0> s C=L0,P=TaF,N=FFTE,I=F,A=0,B=0,G=1,D=1,S=0: b [0,20]: V 0
+<E> 3 0 1
+<2> s C=L0,P=TaF,N=FFTE,I=F,A=0,B=2,G=1,D=1,S=0: b [0,I]: V 2
+<E> 3 2 -1
+<4> s C=M0,P=TaF,N=FFTE,I=F,A=0,B=4,G=1,D=2,S=0: b [1,1]: d 0: +
+<1> s C=L0,P=TaF,N=FFTE,I=F,A=0,B=1,G=1,D=1,S=0: b [0,20]: V 1
+<E> 4 1 1
+<E> 4 2 1
+<N> M 2 min
+<N> N 0 'x4'
+<N> N 1 'x5'
+<N> N 2 'x3'
+<N> F 'x2' 0.25
+<N> F 'x6' 0
+<N> F 'x7' 0
+<N> S 'e6'
+<N> S 'e4'
+<N> S 'e5'
+<N> c 2 0
+<N> C 2 '%c2'
+<N> c 3 1
+<N> C 3 '%c3'
+<N> c 4 2
+<N> C 4 '%c4'
+<N> c 0 3
+<N> C 0 'e2'
+<N> c 1 4
+<N> C 1 'e3'
+<N> O 'obj': d 1.5, 2
+<H> o 0 0,1,0,0,0.25,0
