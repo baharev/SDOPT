@@ -65,13 +65,20 @@ def parse(f):
     print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
 
     for end_node, con_num in con_ends_num.iteritems():
-        print 'con #{0} ending in node {1} depends on:'.format(con_num, end_node),
+        print 'con #{} ending in node {} depends on:'.format(con_num, end_node)
         deps = ancestors(dag, end_node)
-        print topological_sort(dag.subgraph(deps), reverse=True)
+        deps.add(end_node)
+        con_dag = dag.subgraph(deps)
+        eval_order = topological_sort(con_dag)
+        print_con(con_dag, eval_order)
 
     nx.draw_networkx(dag, labels=nx.get_node_attributes(dag, 'content'))
     plt.show()
 
+def print_con(sub_dag, order):
+    attribs = nx.get_node_attributes(sub_dag, 'content')
+    for node_id in order:
+        print '{0} = {1} {2}'.format(node_id, attribs[node_id], sub_dag.predecessors(node_id))
 
 def read_dag(filename):
     try:
