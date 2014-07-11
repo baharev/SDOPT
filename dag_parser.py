@@ -1,18 +1,68 @@
 import fileinput
 import matplotlib.pyplot as plt
 import networkx as nx
+import weakref
+from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from autoenum import AutoNumber
 from networkx.algorithms.dag import ancestors, topological_sort
 
 class NodeAttr(AutoNumber):
     bounds    = ()
-    constant  = ()
+    con_num   = ()
     d         = ()
-    n         = ()
-    var_num   = ()
-    operation = ()
     display   = ()
+    itself    = ()
+    n         = ()
+    node_id   = ()
+    number    = ()
+    operation = ()
+    var_num   = ()
+
+class Node:
+    __metaclass__ = ABCMeta
+    def __init__(self, attr_dict_owned_by_DiGraph):
+        self.attr = weakref.ref(attr_dict_owned_by_DiGraph)
+    @abstractmethod
+    def display(self):
+        pass
+
+class Constraint(Node):
+    def display(self):
+        pass
+
+class Variable(Node):
+    def display(self):
+        pass
+
+class Number(Node):
+    def display(self):
+        pass
+
+class Operation(Node):
+    @abstractmethod
+    def display(self):
+        pass
+
+class Div(Operation):
+    def display(self):
+        pass
+
+class Exp(Operation):
+    def display(self):
+        pass
+
+class Log(Operation):
+    def display(self):
+        pass
+
+class Mul(Operation):
+    def display(self):
+        pass
+
+class Sum(Operation):
+    def display(self):
+        pass
 
 Bounds = namedtuple('Bounds', 'l u')
 
@@ -46,31 +96,56 @@ class edge_line:
 class node_line:
     def __init__(self, problem):
         self.p = problem
+        self.lookup_table = {  'b':   self.bounds,
+                               'V':   self.var_number,
+                               'C':   self.constant,
+                               'd':   self.d_term,
+                               'n':   self.n_term,
+                               '+':   self.sum,
+                               '*':   self.mul,
+                               '/':   self.div,
+                               'exp': self.exp,
+                               'log': self.log }
     def __call__(self, elems):
         node_id = elems.pop()
         self.p.dag.add_node(node_id, self.parse_attributes(node_id, elems))
-    def parse_attributes(self, node_id, elems):
-        attr_dict = { }
-        for e in elems: # Clean up when it is clear what can / cannot happen
-            kind = e[0]
-            if   kind=='b': # b [0,I]
-                lb, ub = e[1][1:-1].replace('I','inf').split(',')
-                attr_dict[NodeAttr.bounds] = Bounds(float(lb), float(ub))
-            elif kind=='V': # V 2
-                attr_dict[NodeAttr.var_num] = int(e[1])
-            elif kind=='C': # C 0.1
-                attr_dict[NodeAttr.constant] = float(e[1])
-            elif kind=='d': # d 0.1; lambda*x1 + d or d/(lambda*x1)
-                attr_dict[NodeAttr.d] = float(e[1])
-            elif kind=='n': # n 3; (lamba*x)^n
-                attr_dict[NodeAttr.n] = int(e[1])
-            elif kind in {'+', '*', '/', 'exp', 'log'}:
-                attr_dict[NodeAttr.operation] = kind
-            else:
-                pass
-        attr_dict[NodeAttr.display] = '?'
-        print 'node_id', node_id, 'attributes', attr_dict
-        return attr_dict
+    def parse_attributes(self, node_id, line_as_list):
+        attr = { NodeAttr.node_id : node_id}
+        for elems in line_as_list:
+            kind = elems[0]
+            func = self.lookup_table.get(kind, self.unimplemented)
+            func(elems, attr)
+        attr[NodeAttr.display] = '?'
+        print 'node_id', node_id, 'attributes', attr
+        return attr
+    def bounds(self, elems, attr):
+        # b [0,I]
+        lb, ub = elems[1][1:-1].replace('I','inf').split(',')
+        attr[NodeAttr.bounds] = Bounds(float(lb), float(ub))
+    def var_number(self, elems, attr):
+        # V 2
+        attr[NodeAttr.var_num] = int(elems[1])
+    def constant(self, elems, attr):
+        # C 0.1
+        attr[NodeAttr.number] = float(elems[1])
+    def d_term(self, elems, attr):
+        # d 0.1; lambda*x1 + d or d/(lambda*x1)
+        attr[NodeAttr.d] = float(elems[1])
+    def n_term(self, elems, attr):
+        # n 3; (lamba*x)^n
+        attr[NodeAttr.n] = int(elems[1])
+    def sum(self, elems, attr):
+        attr[NodeAttr.operation] = '+'
+    def mul(self, elems, attr):
+        attr[NodeAttr.operation] = '*'
+    def div(self, elems, attr):
+        attr[NodeAttr.operation] = '/'
+    def exp(self, elems, attr):
+        attr[NodeAttr.operation] = 'exp'
+    def log(self, elems, attr):
+        attr[NodeAttr.operation] = 'log'
+    def unimplemented(self, elems, attr):
+        print 'Unimplemented: ', elems
 
 class Problem:
     def __init__(self):
@@ -86,8 +161,8 @@ class Problem:
         print self.var_num_name
         for node_id, data in self.dag.nodes_iter(data=True):
             print node_id, data
-            if   NodeAttr.constant in data:
-                data[disp] = str(data[NodeAttr.constant])
+            if   NodeAttr.number in data:
+                data[disp] = str(data[NodeAttr.number])
             elif NodeAttr.var_num in data:
                 var_num = data[NodeAttr.var_num]
                 name = self.var_num_name.get(var_num, 'V{}'.format(var_num))
