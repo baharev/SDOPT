@@ -4,8 +4,8 @@ import networkx as nx
 import edge_line
 import info_line
 import node_line
-from problem_representation.problem_repr import Problem
-from nodes.node_attributes import NodeAttr
+from representation.problem import Problem
+from nodes.attributes import NodeAttr
 
 def lines(iterable):
     for line in iterable:

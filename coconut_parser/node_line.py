@@ -1,5 +1,5 @@
 from nodes import *
-from nodes.node_attributes import NodeAttr, Bounds
+from nodes.attributes import NodeAttr, Bounds
 
 def parse(problem, elems):
     node_id = elems.pop()
@@ -23,11 +23,11 @@ def bounds(unused1, elems, attr):
 
 def d_term(unused1, elems, attr):
     # d 0.1; lambda*x1 + d or d/(lambda*x1)
-    attr[NodeAttr.d] = float(elems[1])
+    attr[NodeAttr.d_term] = float(elems[1])
 
 def n_term(unused1, elems, attr):
     # n 3; (lamba*x)^n
-    attr[NodeAttr.n] = int(elems[1])
+    attr[NodeAttr.n_term] = int(elems[1])
 
 def var_number(node_id, elems, attr):
     # V 2

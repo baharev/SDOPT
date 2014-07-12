@@ -1,6 +1,6 @@
 import networkx as nx
 import weakref
-from nodes.node_attributes import NodeAttr
+from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 
 class Problem:
