@@ -1,4 +1,4 @@
 from node_attributes import NodeAttr
 
-def setup(unused1, node, unused2):
-    node[NodeAttr.display] = str(node[NodeAttr.number])
+def setup(unused1, d, unused2):
+    d[NodeAttr.display] = str(d[NodeAttr.number])

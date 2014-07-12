@@ -36,10 +36,8 @@ def parse(f):
     print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
     print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
 
-    p.set_node_display()
-
+    p.setup_nodes()
     print 'Constraint dependencies\n'
-
     p.setup_constraints()
 
     nx.draw_networkx(dag, labels=nx.get_node_attributes(dag, NodeAttr.display))
