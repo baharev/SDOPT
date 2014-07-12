@@ -24,8 +24,10 @@ class Problem:
         for node_id, d in self.dag.nodes_iter(data=True):
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
+        self.setup_constraints()
 
     def setup_constraints(self):
+        print 'Constraint dependencies\n'
         dag = self.dag
         for end_node_id in self.con_ends_num:
             d = self.dag.node[end_node_id]

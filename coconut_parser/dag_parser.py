@@ -21,15 +21,13 @@ def parse(f):
     funcs = { 'N': info_line.parse,
               'I': node_line.parse,
               'E': edge_line.parse }
-
     p = Problem()
-
     for kind, elems in lines(f):
         func = funcs.get(kind)
         if func:
             func(p, elems)
-
     dag = p.dag
+
     print 'Finished reading the dag file'
     print 'Some sanity checks'
     #print 'Is connected?', nx.is_connected(dag.to_undirected())
@@ -37,10 +35,18 @@ def parse(f):
     print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
 
     p.setup_nodes()
-    print 'Constraint dependencies\n'
-    p.setup_constraints()
 
-    nx.draw_networkx(dag, labels=nx.get_node_attributes(dag, NodeAttr.display))
+    node_labels = nx.get_node_attributes(dag, NodeAttr.display)
+
+    # Why does this crash?
+    #dag_copy = dag.to_directed()
+    #for _, d in dag_copy.nodes_iter(data=True):
+    for _, d in dag.nodes_iter(data=True):
+        d.clear()
+    # Why does this try to copy attributes that it cannot?
+    positions = nx.graphviz_layout(dag, prog='dot')
+
+    nx.draw_networkx(dag, pos=positions, labels=node_labels)
     plt.show()
 
 def read_dag(filename):
