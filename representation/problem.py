@@ -29,7 +29,7 @@ class Problem:
         dag = self.dag
         for end_node_id in self.con_ends_num:
             d = self.dag.node[end_node_id]
-            print 'd =',d
+            #print 'd =',d
             print d[NodeAttr.name]
             deps = ancestors(dag, end_node_id)
             deps.add(end_node_id)
@@ -40,9 +40,9 @@ class Problem:
     def print_con(self, sub_dag, order):
         for node_id in order:
             predec = sub_dag.predecessors(node_id)
+            d = sub_dag.node[node_id]
             if len(predec) > 0:
-                            # used to be disp[node_id]
-                print node_id, '=', node_id, predec
+                print node_id, '=', d[NodeAttr.display], predec
             else:
-                print node_id, '=', node_id
+                print node_id, '=', d[NodeAttr.display]
         print
