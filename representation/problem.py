@@ -24,17 +24,18 @@ class Problem:
         for node_id, d in self.dag.nodes_iter(data=True):
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
-        self.setup_constraints()
+        self.assert_var_num_equals_node_id_for_named_vars()
+        self.print_constraints()
 
-    def setup_constraints(self):
+    def print_constraints(self):
         print 'Constraint dependencies\n'
         dag = self.dag
         for end_node_id in self.con_ends_num:
+            deps = ancestors(dag, end_node_id)
             d = self.dag.node[end_node_id]
             #print 'd =',d
-            deps = ancestors(dag, end_node_id)
-            if len(deps)==0: # something silly, var bounds
-                print d[NodeAttr.display], 'in', d.get(NodeAttr.bounds, '?'),'\n'
+            if len(deps)==0: # something silly, apparently just var bounds
+                print d[NodeAttr.display], 'in', d[NodeAttr.bounds],'\n'
                 continue
             print d[NodeAttr.name]
             deps.add(end_node_id)
@@ -59,3 +60,14 @@ class Problem:
         else:
             print '{} <= node {} <= {}'.format(lb, node_id, ub)
         print
+
+    def assert_var_num_equals_node_id_for_named_vars(self):
+        for var_num in self.var_num_name:
+            # assumption: var_num == node_id
+            assert var_num in self.dag, 'var_num %d should be a node id' % var_num
+            d = self.dag.node[var_num]
+            assert d.has_key(NodeAttr.var_num), 'expected a var node, found %s' % d
+            assert d.has_key(NodeAttr.name), 'expected a named var, found %s' % d
+            var_num_on_node = d[NodeAttr.var_num]
+            assert var_num_on_node==var_num, 'var_num on node %d, expected %d; %s' % \
+                                             (var_num_on_node, var_num, d)
