@@ -1,8 +1,10 @@
 from collections import namedtuple
 from util.autoenum import AutoNumber
 
-# Shouldn't this be a class or something?
-Bounds = namedtuple('Bounds', 'l u')
+class Bounds(namedtuple('Bounds', 'l u')):
+        __slots__ = ()
+        def __str__(self):
+            return '[%g,%g]' % (self.l, self.u)
 
 class NodeAttr(AutoNumber):
     bounds    = ()

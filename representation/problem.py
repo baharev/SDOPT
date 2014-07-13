@@ -32,19 +32,30 @@ class Problem:
         for end_node_id in self.con_ends_num:
             d = self.dag.node[end_node_id]
             #print 'd =',d
-            print d[NodeAttr.name]
             deps = ancestors(dag, end_node_id)
+            if len(deps)==0: # something silly, var bounds
+                print d[NodeAttr.display], 'in', d.get(NodeAttr.bounds, '?'),'\n'
+                continue
+            print d[NodeAttr.name]
             deps.add(end_node_id)
             con_dag = dag.subgraph(deps)
             eval_order = topological_sort(con_dag)
-            self.print_con(con_dag, eval_order)
+            self.print_con(con_dag, eval_order, end_node_id)
 
-    def print_con(self, sub_dag, order):
+    def print_con(self, sub_dag, order, end_node_id):
         for node_id in order:
             predec = sub_dag.predecessors(node_id)
             d = sub_dag.node[node_id]
             if len(predec) > 0:
                 print node_id, '=', d[NodeAttr.display], predec
             else:
-                print node_id, '=', d[NodeAttr.display]
+                print node_id, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, '')
+        # print the residual
+        lb, ub = d[NodeAttr.bounds]
+        if lb == ub == 0.0:
+            print 'res = node {}'.format(node_id)
+        elif lb == ub:
+            print 'res = node {} - {}'.format(node_id, lb)
+        else:
+            print '{} <= node {} <= {}'.format(lb, node_id, ub)
         print
