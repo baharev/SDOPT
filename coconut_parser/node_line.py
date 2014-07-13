@@ -3,7 +3,10 @@ from nodes.attributes import NodeAttr, Bounds
 
 def parse(problem, elems):
     node_id = elems.pop()
-    problem.dag.add_node(node_id, create_node(node_id, elems))
+    node_dict = create_node(node_id, elems)
+    if node_dict[NodeAttr.type] == var_node:
+        problem.var_node_ids.add(node_id)
+    problem.dag.add_node(node_id, node_dict)
 
 def create_node(node_id, line_as_list):
     attr = { NodeAttr.node_id : node_id}

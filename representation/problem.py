@@ -10,6 +10,7 @@ class Problem:
         self.con_ends_num = { } # con root node -> con num (in AMPL)
         self.con_num_name = { } # con num -> con name (in AMPL)
         self.var_num_name = { } # var num (in AMPL) -> var name (in AMPL)
+        self.var_node_ids = set()
         self.model_name = '(none)'
         self.nvars = int(-1)
 
@@ -25,7 +26,31 @@ class Problem:
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
         self.assert_var_num_equals_node_id_for_named_vars()
+        self.remove_spurious_vars()
         self.print_constraints()
+
+    def remove_spurious_vars(self):
+        # FIXME hack 5
+        for node_id in self.var_node_ids:
+            d = self.dag.node[node_id]
+            var_num =  d[NodeAttr.var_num]
+            if node_id > 5 and var_num <= 5:
+                self.reparent(var_num, node_id)
+        # del self.var_node_ds
+
+    # delete node_id and connect all children to var_num, with edge dict
+    def reparent(self, var_num, node_id):
+        out_edges = self.dag.edge[node_id]
+        print
+        print var_num, node_id, out_edges
+        assert self.is_leaf(node_id), '%s' % self.dag.node[node_id]
+        assert self.is_leaf(var_num), '%s' % self.dag.node[var_num]
+        self.dag.remove_node(node_id)
+        for child_id, edge_dict in out_edges.iteritems():
+            self.dag.add_edge(var_num, child_id, edge_dict)
+
+    def is_leaf(self, node_id):
+        return len(self.dag.pred[node_id])==0
 
     def print_constraints(self):
         print 'Constraint dependencies\n'
