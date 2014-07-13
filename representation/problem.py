@@ -16,7 +16,7 @@ class Problem:
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
             d = self.dag.node[node_id]
-            d[NodeAttr.name] = self.con_num_name[con_num]
+            d[NodeAttr.name] = self.con_num_name.get(con_num, '_c{}'.format(con_num))
             d[NodeAttr.con_num] = con_num
 
     def setup_nodes(self):

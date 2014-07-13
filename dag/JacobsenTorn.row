@@ -1,0 +1,16 @@
+def_x_N_minus_1
+component_balance[6]
+component_balance[5]
+component_balance[4]
+component_balance[3]
+component_balance[2]
+component_balance[1]
+component_balance[0]
+heat_balance[6]
+heat_balance[5]
+heat_balance[4]
+heat_balance[3]
+heat_balance[2]
+heat_balance[1]
+heat_balance[0]
+spec_Lw

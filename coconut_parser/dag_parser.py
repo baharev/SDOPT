@@ -30,6 +30,7 @@ def parse(f):
 
     print 'Finished reading the dag file'
     print 'Some sanity checks'
+    # Why does this crash?
     #print 'Is connected?', nx.is_connected(dag.to_undirected())
     print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
     print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
