@@ -37,6 +37,7 @@ def parse(f):
     p.setup_nodes()
 
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
+    edge_labels = nx.get_edge_attributes(dag, 'weight')
 
     # Why does this crash?
     #dag_copy = dag.to_directed()
@@ -46,6 +47,7 @@ def parse(f):
     # Why does this try to copy attributes that it cannot?
     positions = nx.graphviz_layout(dag, prog='dot')
 
+    nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
     nx.draw_networkx(dag, pos=positions, labels=node_labels)
     plt.show()
 
