@@ -10,6 +10,7 @@ def iter_attr(G, nbunch, name):
 def is_leaf(dag, node_id):
     return len(dag.pred[node_id])==0
 
+# FIXME Must respect children order
 def reparent(dag, var_num, node_id):
     # delete node_id and connect all children to var_num, with edge dict
     out_edges = dag.edge[node_id]
@@ -44,18 +45,24 @@ class Problem:
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
         assert_var_num_equals_node_id_for_named_vars(self.dag, self.var_num_name)
+        # removed named vars, we know they are nodes 0:nvars
+        self.var_node_ids.difference_update( xrange(self.nvars) )
+        # the rest assumes that named var nodes are no longer in var_node_ids
         self.remove_var_aliases()
         self.print_constraints()
 
     def remove_var_aliases(self):
-        for node_id, var_num in self.get_var_aliases().iteritems():
+        var_aliases = self.get_var_aliases()
+        for node_id, var_num in var_aliases.iteritems():
             reparent(self.dag, var_num, node_id)
+        self.var_node_ids -= var_aliases.viewkeys()
 
     def get_var_aliases(self):
         var_aliases = { } # alias node id -> named var aliased
+        # this new dict is needed as we remove nodes from the dag as we reparent
         nvars = self.nvars
         for node_id, var_num in iter_attr(self.dag, self.var_node_ids, NodeAttr.var_num):
-            if node_id >= nvars and var_num < nvars:
+            if var_num < nvars: # true if referencing a named var; false for CSE
                 var_aliases[node_id] = var_num
         return var_aliases
 

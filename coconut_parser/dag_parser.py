@@ -49,7 +49,9 @@ def parse(f):
     positions = nx.graphviz_layout(dag, prog='dot')
 
     nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
-    nx.draw_networkx(dag, pos=positions, labels=node_labels)
+    nx.draw_networkx(dag, pos=positions, labels=node_labels, node_size=800)
+    mng = plt.get_current_fig_manager()
+    mng.resize(1865,1025)
     plt.show()
 
 def read_dag(filename):
