@@ -4,7 +4,7 @@ import networkx as nx
 import edge_line
 import info_line
 import node_line
-from representation.problem import Problem
+from representation.problem import Problem, dbg_info
 from nodes.attributes import NodeAttr
 
 def lines(iterable):
@@ -29,11 +29,8 @@ def parse(f):
     dag = p.dag
 
     print 'Finished reading the dag file'
-    print 'Some sanity checks'
-    # TODO Why does this crash?
-    #print 'Is connected?', nx.is_connected(dag.to_undirected())
-    print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
-    print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
+
+    dbg_info(dag)
 
     p.setup_nodes()
 
