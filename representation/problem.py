@@ -30,13 +30,13 @@ class Problem:
         self.print_constraints()
 
     def remove_spurious_vars(self):
-        # FIXME hack 5
+        nvars = self.nvars
         for node_id in self.var_node_ids:
             d = self.dag.node[node_id]
             var_num =  d[NodeAttr.var_num]
-            if node_id > 5 and var_num <= 5:
+            if node_id >= nvars and var_num < nvars:
                 self.reparent(var_num, node_id)
-        # del self.var_node_ds
+        del self.var_node_ids
 
     # delete node_id and connect all children to var_num, with edge dict
     def reparent(self, var_num, node_id):
