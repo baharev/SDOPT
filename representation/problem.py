@@ -3,6 +3,24 @@ import weakref
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 
+def iter_attr(G, nbunch, name):
+    for n in nbunch:
+        yield n, G.node[n][name]
+
+def is_leaf(dag, node_id):
+    return len(dag.pred[node_id])==0
+
+def reparent(dag, var_num, node_id):
+    # delete node_id and connect all children to var_num, with edge dict
+    out_edges = dag.edge[node_id]
+    # print
+    # print var_num, node_id, out_edges
+    assert is_leaf(dag, node_id), '%s' % dag.node[node_id]
+    assert is_leaf(dag, var_num), '%s' % dag.node[var_num]
+    dag.remove_node(node_id)
+    for child_id, edge_dict in out_edges.iteritems():
+        dag.add_edge(var_num, child_id, edge_dict)
+
 class Problem:
 
     def __init__(self):
@@ -25,32 +43,21 @@ class Problem:
         for node_id, d in self.dag.nodes_iter(data=True):
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
-        self.assert_var_num_equals_node_id_for_named_vars()
-        self.remove_spurious_vars()
+        assert_var_num_equals_node_id_for_named_vars(self.dag, self.var_num_name)
+        self.remove_var_aliases()
         self.print_constraints()
 
-    def remove_spurious_vars(self):
+    def remove_var_aliases(self):
+        for node_id, var_num in self.get_var_aliases().iteritems():
+            reparent(self.dag, var_num, node_id)
+
+    def get_var_aliases(self):
+        var_aliases = { } # alias node id -> named var aliased
         nvars = self.nvars
-        for node_id in self.var_node_ids:
-            d = self.dag.node[node_id]
-            var_num =  d[NodeAttr.var_num]
+        for node_id, var_num in iter_attr(self.dag, self.var_node_ids, NodeAttr.var_num):
             if node_id >= nvars and var_num < nvars:
-                self.reparent(var_num, node_id)
-        del self.var_node_ids
-
-    # delete node_id and connect all children to var_num, with edge dict
-    def reparent(self, var_num, node_id):
-        out_edges = self.dag.edge[node_id]
-        print
-        print var_num, node_id, out_edges
-        assert self.is_leaf(node_id), '%s' % self.dag.node[node_id]
-        assert self.is_leaf(var_num), '%s' % self.dag.node[var_num]
-        self.dag.remove_node(node_id)
-        for child_id, edge_dict in out_edges.iteritems():
-            self.dag.add_edge(var_num, child_id, edge_dict)
-
-    def is_leaf(self, node_id):
-        return len(self.dag.pred[node_id])==0
+                var_aliases[node_id] = var_num
+        return var_aliases
 
     def print_constraints(self):
         print 'Constraint dependencies\n'
@@ -76,7 +83,7 @@ class Problem:
                 print node_id, '=', d[NodeAttr.display], predec
             else:
                 print node_id, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, '')
-        # print the residual
+        # finally show the residual
         lb, ub = d[NodeAttr.bounds]
         if lb == ub == 0.0:
             print 'res = node {}'.format(node_id)
@@ -86,13 +93,12 @@ class Problem:
             print '{} <= node {} <= {}'.format(lb, node_id, ub)
         print
 
-    def assert_var_num_equals_node_id_for_named_vars(self):
-        for var_num in self.var_num_name:
-            # assumption: var_num == node_id
-            assert var_num in self.dag, 'var_num %d should be a node id' % var_num
-            d = self.dag.node[var_num]
-            assert d.has_key(NodeAttr.var_num), 'expected a var node, found %s' % d
-            assert d.has_key(NodeAttr.name), 'expected a named var, found %s' % d
-            var_num_on_node = d[NodeAttr.var_num]
-            assert var_num_on_node==var_num, 'var_num on node %d, expected %d; %s' % \
-                                             (var_num_on_node, var_num, d)
+def assert_var_num_equals_node_id_for_named_vars(dag, var_num_name):
+    for var_num in var_num_name:
+        assert var_num in dag, 'var_num %d should be a node id' % var_num
+        d = dag.node[var_num]
+        assert d.has_key(NodeAttr.var_num), 'expected a var node,  found %s' % d
+        assert d.has_key(NodeAttr.name),    'expected a named var, found %s' % d
+        var_num_on_node = d[NodeAttr.var_num]
+        assert var_num_on_node==var_num, 'var_num on node %d, expected %d; %s' % \
+                                         (var_num_on_node, var_num, d)

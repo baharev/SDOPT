@@ -16,7 +16,6 @@ def create_node(node_id, line_as_list):
         func(node_id, elems, attr)
     attr[NodeAttr.display] = '?'
     attr[NodeAttr.node_id] = node_id
-    #print 'node_id', node_id, 'attributes', attr
     return attr
 
 def bounds(unused1, elems, attr):

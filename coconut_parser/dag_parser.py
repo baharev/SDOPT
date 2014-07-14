@@ -30,7 +30,7 @@ def parse(f):
 
     print 'Finished reading the dag file'
     print 'Some sanity checks'
-    # Why does this crash?
+    # TODO Why does this crash?
     #print 'Is connected?', nx.is_connected(dag.to_undirected())
     print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
     print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
@@ -40,12 +40,12 @@ def parse(f):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
 
-    # Why does this crash?
+    # TODO Why does this crash?
     #dag_copy = dag.to_directed()
     #for _, d in dag_copy.nodes_iter(data=True):
     for _, d in dag.nodes_iter(data=True):
         d.clear()
-    # Why does this try to copy attributes that it cannot?
+    # TODO Why does this try to copy attributes that it cannot?
     positions = nx.graphviz_layout(dag, prog='dot')
 
     nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
