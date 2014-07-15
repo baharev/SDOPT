@@ -91,3 +91,9 @@ def assert_CSE_defining_constraints(dag, con_ends, named_vars):
                                  'expected a var_node, found: %s' % def_var
         assert n+1 not in named_vars,'expected an unnamed var, found %s' % def_var
         assert n in dag.edge[n+1],'Nodes not connected:\n %s \n %s'%(d,def_var)
+
+def assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node):
+        for var_node in var_node_ids:
+            var_num = dag.node[var_node][NodeAttr.var_num]
+            assert var_num in var_num_def_node,'var_num: %d' % var_num
+

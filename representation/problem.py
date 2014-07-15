@@ -66,6 +66,7 @@ class Problem:
         dag = self.dag
         du.assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
 
+        # Eliminates defined vars: def var := defining constraint
         print 'cons: ', sorted(self.con_ends_num.viewkeys())
         # FIXME See the comment at the above assert function w.r.t. reversing
         #       the edge
@@ -77,31 +78,30 @@ class Problem:
             self.con_ends_num.pop(n)
         print 'cons: ', sorted(self.con_ends_num.viewkeys())
 
-        # replace all bogus references of defined with defined var
+        self.remove_CSE_aliases(con_ends)
 
-        # var_num -> defining node
-        var_num_def_node = { dag.node[n+1][NodeAttr.var_num] : n+1 for n in con_ends }
-        print 'defined vars, var num -> defining node:\n  %s\n' % var_num_def_node
-
-        # TODO Move this block to assert; it checks if ALL unnamed var_nodes are
-        #      defined vars
-        for var_node in self.var_node_ids:
-            var_num = dag.node[var_node][NodeAttr.var_num]
-            assert var_num in var_num_def_node,'var_num: %d' % var_num
-
-        for var_node in self.var_node_ids:
-            var_num = dag.node[var_node][NodeAttr.var_num]
-            def_node = var_num_def_node[var_num]
-            if def_node!=var_node: # this is a true bogus reference
-                du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
-
-        # TODO self.var_node_ids -= var_aliases.viewkeys()
         return
 
 
     def get_unnamed_constraints(self):
         return [ n for n in self.con_ends_num   \
                          if self.con_ends_num[n] not in self.con_num_name ]
+
+    def remove_CSE_aliases(self, con_ends):
+        dag = self.dag
+        # var_num -> defining node
+        var_num_def_node = { dag.node[n+1][NodeAttr.var_num] : n+1 \
+                                 for n in con_ends }
+        print 'defined vars, var num -> defining node:\n  %s\n' % var_num_def_node
+        var_node_ids = self.var_node_ids
+        du.assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node)
+        for var_node in var_node_ids:
+            var_num = dag.node[var_node][NodeAttr.var_num]
+            def_node = var_num_def_node[var_num]
+            if def_node!=var_node: # this is a true bogus reference
+                du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
+        # TODO var_node_ids -= var_aliases.viewkeys()
+        #      There should only be CSEs left in the var_node_ids?
 
     def print_constraints(self):
         print 'Constraint dependencies\n'
