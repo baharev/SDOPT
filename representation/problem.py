@@ -1,29 +1,8 @@
-import networkx as nx
 import weakref
-import nodes
+import networkx as nx
+import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
-
-def iter_attr(G, nbunch, name):
-    for n in nbunch:
-        yield n, G.node[n][name]
-
-def is_leaf(dag, node_id):
-    return len(dag.pred[node_id])==0
-
-# FIXME Respect children order! Wrap: add_edge, remove_node, remove_edge,
-#                                     reverse_edge
-def reparent(dag, var_num, node_id, new_parent_is_leaf=True):
-    # delete node_id and connect all children to var_num, with edge dict
-    out_edges = dag.edge[node_id]
-    # print
-    # print var_num, node_id, out_edges
-    assert is_leaf(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
-    if new_parent_is_leaf: # TODO Clean up
-        assert is_leaf(dag, var_num), 'node %d %s' % (var_num, dag.node[var_num])
-    dag.remove_node(node_id)
-    for child_id, edge_dict in out_edges.iteritems():
-        dag.add_edge(var_num, child_id, edge_dict)
 
 class Problem:
 
@@ -36,6 +15,26 @@ class Problem:
         self.model_name = '(none)'
         self.nvars = int(-1)
 
+    def setup(self):
+        dag = self.dag
+        du.dbg_info(dag)
+        self.setup_constraint_names()
+        self.setup_nodes()
+        # The followings are simplifications
+        #------------------------------------------
+        # remove bogus named var aliasing
+        du.assert_var_num_equals_node_id_for_named_vars(dag, self.var_num_name)
+        # remove named vars from var_node_ids, we asserted just above that
+        # they are nodes 0:nvars
+        self.var_node_ids.difference_update( xrange(self.nvars) )
+        # the rest assumes that named var nodes are no longer in var_node_ids!
+        self.remove_var_aliases()
+        #------------------------------------------
+        # nl2dag erroneously turns defined vars into constraints
+        self.reconstruct_CSEs()
+        #-------------------------------------------
+        self.print_constraints()
+
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
             d = self.dag.node[node_id]
@@ -43,35 +42,21 @@ class Problem:
             d[NodeAttr.con_num] = con_num
 
     def setup_nodes(self):
-        self.setup_constraint_names()
         for node_id, d in self.dag.nodes_iter(data=True):
             d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
-        #-------------------------------------------
-        # remove bogus named var aliasing
-        assert_var_num_equals_node_id_for_named_vars(self.dag, self.var_num_name)
-        # remove named vars from var_node_ids, we asserted just above that
-        # they are nodes 0:nvars
-        self.var_node_ids.difference_update( xrange(self.nvars) )
-        # the rest assumes that named var nodes are no longer in var_node_ids!
-        self.remove_var_aliases()
-        #-------------------------------------------
-        # nl2dag erroneously turns defined vars into constraints
-        self.reconstruct_CSEs()
-        #-------------------------------------------
-        self.print_constraints()
 
     def remove_var_aliases(self):
         var_aliases = self.get_var_aliases()
         for node_id, var_num in var_aliases.iteritems():
-            reparent(self.dag, var_num, node_id)
+            du.reparent(self.dag, var_num, node_id)
         self.var_node_ids -= var_aliases.viewkeys()
 
     def get_var_aliases(self):
         var_aliases = { } # alias node id -> named var aliased
         # this new dict is needed as we remove nodes from the dag as we reparent
         nvars = self.nvars
-        for node_id, var_num in iter_attr(self.dag, self.var_node_ids, NodeAttr.var_num):
+        for node_id, var_num in du.itr_var_num(self.dag, self.var_node_ids):
             if var_num < nvars: # true if referencing a named var; false for CSE
                 var_aliases[node_id] = var_num
         return var_aliases
@@ -79,7 +64,7 @@ class Problem:
     def reconstruct_CSEs(self):
         con_ends = self.get_unnamed_constraints()
         dag = self.dag
-        assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
+        du.assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
 
         print 'cons: ', sorted(self.con_ends_num.viewkeys())
         # FIXME See the comment at the above assert function w.r.t. reversing
@@ -108,10 +93,9 @@ class Problem:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
             if def_node!=var_node: # this is a true bogus reference
-                reparent(dag, def_node, var_node, new_parent_is_leaf=False)
+                du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
 
         # TODO self.var_node_ids -= var_aliases.viewkeys()
-
         return
 
 
@@ -134,7 +118,7 @@ class Problem:
             con_dag = dag.subgraph(deps)
             eval_order = topological_sort(con_dag)
             self.print_con(con_dag, eval_order, end_node_id)
-        dbg_info(dag)
+        du.dbg_info(dag)
 
     def print_con(self, sub_dag, order, end_node_id):
         for node_id in order:
@@ -154,49 +138,3 @@ class Problem:
         else:
             print '{} <= node {} <= {}'.format(lb, node_id, ub)
         print
-        
-def dbg_info(dag):
-    print 
-    # TODO Why does this crash?
-    #print 'Is connected?', nx.is_connected(dag.to_undirected())
-    print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
-    print 'Weakly connected components:', nx.number_weakly_connected_components(dag)
-    print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
-        
-
-def assert_var_num_equals_node_id_for_named_vars(dag, var_num_name):
-    for var_num in var_num_name:
-        assert var_num in dag, 'var_num %d should be a node id' % var_num
-        d = dag.node[var_num]
-        assert d.has_key(NodeAttr.var_num), 'expected a var node,  found %s' % d
-        assert d.has_key(NodeAttr.name),    'expected a named var, found %s' % d
-        var_num_on_node = d[NodeAttr.var_num]
-        assert var_num_on_node==var_num, 'var_num on node %d, expected %d; %s' % \
-                                         (var_num_on_node, var_num, d)
-
-# FIXME When reversing edge, the rhs should be changed accordingly
-#       lambda * <var node> + <some sum> + d = bounds
-#       <var node> = (-1/lambda) * ( <some sum> + d - bounds)
-#       Apparently: reverse edge, update multiplier to -1/lambda,
-#       d := d - bounds, delete bounds, and evaluate sum node as before
-def assert_CSE_defining_constraints(dag, con_ends, named_vars):
-    # A constraint (sum) node immediately followed by an unnamed var node; with
-    # an edge from the var node to the sum node; and the rhs of the constraint
-    # is a real number, not an interval.
-    # Basically: lambda * <var node> + <some sum> + d = bounds
-    # <N> c 20 145
-    # <145> b [0,0]: +
-    # <146> V 20
-    # <E> 145 146 -1
-    for n in con_ends:
-        d = dag.node[n]
-        assert d[NodeAttr.type]==nodes.sum_node,'expected a sum_node, found: %s' % d
-        assert NodeAttr.bounds in d,'Should have bounds, node: %s' % d
-        lb, ub = d[NodeAttr.bounds]
-        assert lb==ub,'rhs expected to be a constant, node: %s' % d
-        assert n+1 in dag,'expected a var node; not CSE defining constraint: %s' % d
-        def_var = dag.node[n+1]
-        assert def_var[NodeAttr.type]==nodes.var_node, \
-                                 'expected a var_node, found: %s' % def_var
-        assert n+1 not in named_vars,'expected an unnamed var, found %s' % def_var
-        assert n in dag.edge[n+1],'Nodes not connected:\n %s \n %s'%(d,def_var)
