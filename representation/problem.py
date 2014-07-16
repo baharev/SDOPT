@@ -65,11 +65,20 @@ class Problem:
         con_ends = self.get_unnamed_constraints()
         dag = self.dag
         du.assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
+        self.eliminate_def_vars(con_ends)
+        self.remove_CSE_aliases(con_ends)
+        return
 
-        # Eliminates defined vars: def var := defining constraint
+    def get_unnamed_constraints(self):
+        return [ n for n in self.con_ends_num   \
+                         if self.con_ends_num[n] not in self.con_num_name ]
+
+    def eliminate_def_vars(self, con_ends):
+        # Eliminates defined variables: def var := defining constraint
         print 'cons: ', sorted(self.con_ends_num.viewkeys())
-        # FIXME See the comment at the above assert function w.r.t. reversing
-        #       the edge
+        # FIXME See the comment at assert_CSE_defining_constraints w.r.t.
+        #       reversing the edge
+        dag = self.dag
         for n in con_ends:
             # reverse edge
             dag.add_edge(n, n+1, dag[n+1][n]) # multiplier, children order, etc not updated!
@@ -77,15 +86,6 @@ class Problem:
             # TODO Removed from constraints without updating the defining sum nodes
             self.con_ends_num.pop(n)
         print 'cons: ', sorted(self.con_ends_num.viewkeys())
-
-        self.remove_CSE_aliases(con_ends)
-
-        return
-
-
-    def get_unnamed_constraints(self):
-        return [ n for n in self.con_ends_num   \
-                         if self.con_ends_num[n] not in self.con_num_name ]
 
     def remove_CSE_aliases(self, con_ends):
         dag = self.dag
