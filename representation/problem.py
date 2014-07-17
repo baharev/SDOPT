@@ -44,6 +44,8 @@ class Problem:
         #-------------------------------------------
         self.remove_unused_def_vars()
         #-------------------------------------------
+        self.collect_constraint_topological_orders()
+        #-------------------------------------------
         self.print_constraints()
 
     def setup_constraint_names(self):
@@ -125,6 +127,19 @@ class Problem:
         for n in reverse_order:
             if du.is_sink(dag, n):
                 dag.remove_node(n)
+
+    def collect_constraint_topological_orders(self):
+        dag = self.dag
+        for con_sink in self.con_ends_num:
+            dependecies = ancestors(dag, con_sink)
+            dependecies.add(con_sink)
+            eval_order = topological_sort(dag, dependecies)
+            self.con_top_ord[con_sink] = eval_order
+            #self.print_con(dag.subgraph(eval_order), eval_order, con_sink)
+            assert False, 'continue from here'
+            # FIXME Defined var topological orders should be stored as well
+            #       Not clear how to avoid recomputations, maybe removing 
+            #       aliases wasn't the best idea?
 
     def print_constraints(self):
         print('Constraint dependencies\n')
