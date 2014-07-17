@@ -13,6 +13,7 @@ class Problem:
         self.con_num_name = { } # con num -> con name (in AMPL)
         self.var_num_name = { } # var num (in AMPL) -> var name (in AMPL)
         self.var_node_ids = set()
+        self.defined_vars = [ ] # after elimination, only for debugging for now
         self.model_name = '(none)'
         self.nvars = int(-1)
 
@@ -75,12 +76,14 @@ class Problem:
                          if self.con_ends_num[n] not in self.con_num_name ]
 
     def eliminate_def_vars(self, con_ends):
-        #  def var := defining constraint
+        #  defined variable := its defining constraint
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
         dag = self.dag
         for sum_node_id in con_ends:
-            du.reverse_edge_to_get_def_var(dag, sum_node_id)
-            self.con_ends_num.pop(sum_node_id)
+            var_node_id = sum_node_id + 1
+            du.reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id)
+            self.con_ends_num.pop(sum_node_id) # safe: iterating on a copy
+            self.defined_vars.append(var_node_id)
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
 
     def remove_CSE_aliases(self, con_ends):
@@ -91,13 +94,13 @@ class Problem:
         print('defined vars, var num -> defining node:\n  %s\n'%var_num_def_node)
         var_node_ids = self.var_node_ids
         du.assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node)
-        for var_node in var_node_ids:
+        var_aliases = var_node_ids - set(self.defined_vars)
+        for var_node in var_aliases:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
-            if def_node!=var_node: # true if var_node is a bogus reference
-                du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
-        # TODO var_node_ids -= var_aliases.viewkeys()
-        #      There should only be CSEs left in the var_node_ids?
+            assert def_node!=var_node, '%d, %d' % (def_node, var_node)
+            du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
+        self.var_node_ids.clear() # after eliminating the CSEs, we don't need it
 
     def print_constraints(self):
         print('Constraint dependencies\n')

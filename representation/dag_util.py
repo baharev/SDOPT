@@ -64,13 +64,12 @@ def reparent(dag, new_parent, node_to_del, new_parent_is_leaf=True):
         dag.add_edge(new_parent, child_id, edge_dict)
         replace(dag.node[child_id][NodeAttr.input_ord], node_to_del, new_parent)
 
-def reverse_edge_to_get_def_var(dag, sum_node_id):
+def reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id):
     # lambda * <var node> + <lin. comb.> + d = bounds
     #   node id:   n+1            n
     # <var node> = (-1/lambda) * ( <lin. comb.> + d - bounds)
     #
     # add the new reversed edge
-    var_node_id = sum_node_id+1
     e = dag[var_node_id][sum_node_id]
     e['weight'] = -1.0/e['weight']
     add_edge(dag, sum_node_id, var_node_id, e)
