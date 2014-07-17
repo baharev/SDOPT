@@ -112,7 +112,7 @@ class Problem:
             if len(deps)==0: # something silly, apparently just var bounds
                 print(d[NodeAttr.display], 'in', d[NodeAttr.bounds],'\n')
                 continue
-            print([NodeAttr.name])
+            print(d[NodeAttr.name])
             deps.add(end_node_id)
             con_dag = dag.subgraph(deps)
             eval_order = topological_sort(con_dag)
