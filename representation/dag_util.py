@@ -1,15 +1,16 @@
+from __future__ import print_function
 import networkx as nx
 import nodes
 from nodes.attributes import NodeAttr
 from matplotlib import pyplot as plt
 
 def dbg_info(dag):
-    print
+    print()
     # TODO Why does this crash?
-    #print 'Is connected?', nx.is_connected(dag.to_undirected())
-    print 'Is DAG?', nx.is_directed_acyclic_graph(dag)
-    print 'Weakly connected components:', nx.number_weakly_connected_components(dag)
-    print 'Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag)
+    #print('Is connected?', nx.is_connected(dag.to_undirected()))
+    print('Is DAG?', nx.is_directed_acyclic_graph(dag))
+    print('Weakly connected components:', nx.number_weakly_connected_components(dag))
+    print('Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag))
 
 def is_leaf(dag, node_id):
     return len(dag.pred[node_id])==0
@@ -46,8 +47,8 @@ def plot(dag):
 def reparent(dag, var_num, node_id, new_parent_is_leaf=True):
     # delete node_id and connect all children to var_num, with edge dict
     out_edges = dag.edge[node_id]
-    # print
-    # print var_num, node_id, out_edges
+    # print()
+    # print(var_num, node_id, out_edges)
     assert is_leaf(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
     if new_parent_is_leaf: # TODO Clean up
         assert is_leaf(dag, var_num), 'node %d %s' % (var_num, dag.node[var_num])

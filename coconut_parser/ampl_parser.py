@@ -1,9 +1,10 @@
+from __future__ import print_function
 import fileinput
 import numpy as np
 
 def check_if_text_format(first_line):
     if not first_line.startswith('g'):
-        print 'First line: \'{}\''.format(first_line)
+        print('First line: \'{}\''.format(first_line))
         raise RuntimeError('only ASCII format files can be parsed (specify the g flag to AMPL)')
 
 def extract_length(line):
@@ -69,7 +70,7 @@ def extract_problem_info(second_line):
     ncols = data[0]
     neqns = data[4]
     if nrows!=neqns:
-        print 'WARNING: Not all constraints are equality constraints!'
+        print('WARNING: Not all constraints are equality constraints!')
     return nrows, ncols
 
 def parse(f):
@@ -83,12 +84,12 @@ def parse(f):
         func = funcs.get(first_char)
         if func:
             func(f, line)
-    print 'Finished reading the nl file'
-    print 'k segment'
-    print funcs['k'].col_len
-    print funcs['J'].jacobian
-    print funcs['S'].rows
-    print funcs['S'].cols
+    print('Finished reading the nl file')
+    print('k segment')
+    print(funcs['k'].col_len)
+    print(funcs['J'].jacobian)
+    print(funcs['S'].rows)
+    print(funcs['S'].cols)
     return funcs['J'].jacobian, funcs['k'].col_len
 
 def read_flattened_ampl(filename):
@@ -96,7 +97,7 @@ def read_flattened_ampl(filename):
         f = fileinput.input(filename, mode='r')
         return parse(f)
     finally:
-        print 'Read', f.lineno(), 'lines'
+        print('Read', f.lineno(), 'lines')
         f.close()
 
 if __name__ == '__main__':

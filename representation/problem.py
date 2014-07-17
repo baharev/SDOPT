@@ -1,3 +1,4 @@
+from __future__ import print_function
 import weakref
 import networkx as nx
 import dag_util as du
@@ -75,7 +76,7 @@ class Problem:
 
     def eliminate_def_vars(self, con_ends):
         # Eliminates defined variables: def var := defining constraint
-        print 'cons: ', sorted(self.con_ends_num.viewkeys())
+        print('cons: ', sorted(self.con_ends_num.viewkeys()))
         # FIXME See the comment at assert_CSE_defining_constraints w.r.t.
         #       reversing the edge
         dag = self.dag
@@ -85,14 +86,14 @@ class Problem:
             dag.remove_edge(n+1, n)
             # TODO Removed from constraints without updating the defining sum nodes
             self.con_ends_num.pop(n)
-        print 'cons: ', sorted(self.con_ends_num.viewkeys())
+        print('cons: ', sorted(self.con_ends_num.viewkeys()))
 
     def remove_CSE_aliases(self, con_ends):
         dag = self.dag
         # var_num -> defining node
         var_num_def_node = { dag.node[n+1][NodeAttr.var_num] : n+1 \
                                  for n in con_ends }
-        print 'defined vars, var num -> defining node:\n  %s\n' % var_num_def_node
+        print('defined vars, var num -> defining node:\n  %s\n'%var_num_def_node)
         var_node_ids = self.var_node_ids
         du.assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node)
         for var_node in var_node_ids:
@@ -104,16 +105,16 @@ class Problem:
         #      There should only be CSEs left in the var_node_ids?
 
     def print_constraints(self):
-        print 'Constraint dependencies\n'
+        print('Constraint dependencies\n')
         dag = self.dag
         for end_node_id in self.con_ends_num:
             deps = ancestors(dag, end_node_id)
             d = self.dag.node[end_node_id]
-            #print 'd =',d
+            #print('d =',d)
             if len(deps)==0: # something silly, apparently just var bounds
-                print d[NodeAttr.display], 'in', d[NodeAttr.bounds],'\n'
+                print(d[NodeAttr.display], 'in', d[NodeAttr.bounds],'\n')
                 continue
-            print d[NodeAttr.name]
+            print([NodeAttr.name])
             deps.add(end_node_id)
             con_dag = dag.subgraph(deps)
             eval_order = topological_sort(con_dag)
@@ -126,15 +127,15 @@ class Problem:
             d = sub_dag.node[node_id]
             assert NodeAttr.display in d, 'node: %d %s' % (node_id, d)
             if len(predec) > 0:
-                print node_id, '=', d[NodeAttr.display], predec
+                print(node_id, '=', d[NodeAttr.display], predec)
             else:
-                print node_id, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, '')
+                print(node_id, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
         # finally show the residual
         lb, ub = d[NodeAttr.bounds]
         if lb == ub == 0.0:
-            print 'res = node {}'.format(node_id)
+            print('res = node {}'.format(node_id))
         elif lb == ub:
-            print 'res = node {} - {}'.format(node_id, lb)
+            print('res = node {} - {}'.format(node_id, lb))
         else:
-            print '{} <= node {} <= {}'.format(lb, node_id, ub)
-        print
+            print('{} <= node {} <= {}'.format(lb, node_id, ub))
+        print()

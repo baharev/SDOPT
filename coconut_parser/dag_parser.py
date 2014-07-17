@@ -1,3 +1,4 @@
+from __future__ import print_function
 import fileinput
 import edge_line
 import info_line
@@ -24,7 +25,7 @@ def parse(f):
         func = funcs.get(kind)
         if func:
             func(p, elems)
-    print 'Finished reading the dag file'
+    print('Finished reading the dag file')
     p.setup()
     plot(p.dag)
 
@@ -33,5 +34,5 @@ def read_dag(filename):
         f = fileinput.input(filename, mode='r')
         return parse(f)
     finally:
-        print 'Read', f.lineno(), 'lines'
+        print('Read', f.lineno(), 'lines')
         f.close()
