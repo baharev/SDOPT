@@ -1,4 +1,5 @@
 from __future__ import print_function
+from array import array
 import networkx as nx
 import nodes
 from nodes.attributes import NodeAttr
@@ -44,21 +45,38 @@ def plot(dag):
 
 def add_edge(dag, src, dest, mult):
     dag.add_edge(src, dest, weight=mult)
-    dag.node[dest].setdefault(NodeAttr.input_ord, []).append(src)
+    dag.node[dest].setdefault(NodeAttr.input_ord, array('l')).append(src)
 
 # FIXME Respect children order! Wrap: add_edge, remove_node, remove_edge,
 #                                     reverse_edge
-def reparent(dag, var_num, node_id, new_parent_is_leaf=True):
-    # delete node_id and connect all children to var_num, with edge dict
-    out_edges = dag.edge[node_id]
+def reparent(dag, new_parent, node_to_del, new_parent_is_leaf=True):
+    # delete node_to_del and connect all children to new_parent, with edge dict;
+    # update each child's input order array to contain the new parent
+    out_edges = dag.edge[node_to_del]
     # print()
-    # print(var_num, node_id, out_edges)
-    assert is_leaf(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
-    if new_parent_is_leaf: # TODO Clean up
-        assert is_leaf(dag, var_num), 'node %d %s' % (var_num, dag.node[var_num])
-    dag.remove_node(node_id)
+    # print(new_parent, node_to_del, out_edges)
+    assert_leaf(dag, node_to_del)
+    if new_parent_is_leaf:
+        assert_leaf(dag, new_parent)
+    dag.remove_node(node_to_del)
     for child_id, edge_dict in out_edges.iteritems():
-        dag.add_edge(var_num, child_id, edge_dict)
+        dag.add_edge(new_parent, child_id, edge_dict)
+        update_child_input_ord(dag, new_parent, node_to_del, child_id)
+
+def update_child_input_ord(dag, new_parent, node_to_del, child_id):
+    in_ord = dag.node[child_id][NodeAttr.input_ord]
+    replace(in_ord, node_to_del, new_parent)
+
+def reverse_edge_to_get_def_var():
+    pass
+
+def replace(arr, old_value, new_value):
+    for index, item in enumerate(arr):
+        if item==old_value:
+            arr[index] = new_value
+
+def assert_leaf(dag, node_id):
+    assert is_leaf(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
 
 def assert_var_num_equals_node_id_for_named_vars(dag, var_num_name):
     for var_num in var_num_name:
