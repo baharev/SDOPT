@@ -17,8 +17,8 @@ def dbg_info(dag):
     sink_types   = group_node_ids_by_kind(itr_sinktype_nodeid(  dag))
     print('Sources:', source_types.items())
     print('Sink:',    sink_types.items())
-    
-def group_node_ids_by_kind(itr_kind_nodeid_pairs):    
+
+def group_node_ids_by_kind(itr_kind_nodeid_pairs):
     types = defaultdict(list)
     for kind, n in itr_kind_nodeid_pairs:
         types[kind].append(n)
@@ -48,6 +48,9 @@ def iter_attr(G, nbunch, name):
 def itr_var_num(G, var_node_ids):
     for n in var_node_ids:
         yield n, G.node[n][NodeAttr.var_num]
+
+def itr_sinks(dag, nbunch):
+    return (n for n in nbunch if is_sink(dag, n))
 
 def plot(dag):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)

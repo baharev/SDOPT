@@ -24,7 +24,7 @@ class Problem:
         self.setup_constraint_names()
         self.setup_nodes()
         # The followings are simplifications
-        #------------------------------------------
+        #-------------------------------------------
         # remove bogus named var aliasing
         du.assert_var_num_equals_node_id_for_named_vars(dag, self.var_num_name)
         # remove named vars from var_node_ids, we asserted just above that
@@ -32,9 +32,11 @@ class Problem:
         self.var_node_ids.difference_update( xrange(self.nvars) )
         # the rest assumes that named var nodes are no longer in var_node_ids!
         self.remove_var_aliases()
-        #------------------------------------------
+        #-------------------------------------------
         # nl2dag erroneously turns defined vars into constraints
         self.reconstruct_CSEs()
+        #-------------------------------------------
+        self.remove_unused_def_vars()
         #-------------------------------------------
         self.print_constraints()
 
@@ -102,6 +104,21 @@ class Problem:
             assert def_node!=var_node, '%d, %d' % (def_node, var_node)
             du.reparent(dag, def_node, var_node, new_parent_is_source=False)
         self.var_node_ids.clear() # after eliminating the CSEs, we don't need it
+
+    def remove_unused_def_vars(self):
+        dag = self.dag
+        for n in du.itr_sinks(dag, self.defined_vars):
+            deps = ancestors(dag, n)
+            deps.add(n)
+            con_dag = dag.subgraph(deps)
+            reverse_order = topological_sort(con_dag, reverse=True)
+            self.delete_sinks_recursively(reverse_order)
+
+    def delete_sinks_recursively(self, reverse_order):
+        dag = self.dag
+        for n in reverse_order:
+            if du.is_sink(dag, n):
+                dag.remove_node(n)
 
     def print_constraints(self):
         print('Constraint dependencies\n')
