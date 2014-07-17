@@ -20,6 +20,7 @@ class Problem:
     def setup(self):
         dag = self.dag
         du.dbg_info(dag)
+        dag.graph['name'] = self.model_name
         self.setup_constraint_names()
         self.setup_nodes()
         # The followings are simplifications
@@ -99,7 +100,7 @@ class Problem:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
             assert def_node!=var_node, '%d, %d' % (def_node, var_node)
-            du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
+            du.reparent(dag, def_node, var_node, new_parent_is_source=False)
         self.var_node_ids.clear() # after eliminating the CSEs, we don't need it
 
     def print_constraints(self):

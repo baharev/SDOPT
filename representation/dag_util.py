@@ -1,5 +1,6 @@
 from __future__ import print_function
 from array import array
+from collections import defaultdict
 import networkx as nx
 import nodes
 from nodes.attributes import NodeAttr
@@ -12,9 +13,32 @@ def dbg_info(dag):
     print('Is DAG?', nx.is_directed_acyclic_graph(dag))
     print('Weakly connected components:', nx.number_weakly_connected_components(dag))
     print('Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag))
+    source_types = group_node_ids_by_kind(itr_sourcetype_nodeid(dag))
+    sink_types   = group_node_ids_by_kind(itr_sinktype_nodeid(  dag))
+    print('Sources:', source_types.items())
+    print('Sink:',    sink_types.items())
+    
+def group_node_ids_by_kind(itr_kind_nodeid_pairs):    
+    types = defaultdict(list)
+    for kind, n in itr_kind_nodeid_pairs:
+        types[kind].append(n)
+    return types
 
-def is_leaf(dag, node_id):
+def itr_sourcetype_nodeid(dag):
+    return ((get_pretty_type_str(dag, n), n) for n in dag if is_source(dag, n))
+
+def itr_sinktype_nodeid(dag):
+    return ((get_pretty_type_str(dag, n), n) for n in dag if is_sink(dag, n))
+
+def is_source(dag, node_id):
     return len(dag.pred[node_id])==0
+
+def is_sink(dag, node_id):
+    return len(dag.succ[node_id])==0
+
+def get_pretty_type_str(dag, n):
+    the_name = dag.node[n][NodeAttr.type].__name__
+    return the_name.rsplit('.')[1]
 
 # TODO Would be a nice addition to nx
 def iter_attr(G, nbunch, name):
@@ -50,15 +74,15 @@ def add_edge(dag, src, dest, attr_dict):
     dag.add_edge(src, dest, attr_dict)
     dag.node[dest].setdefault(NodeAttr.input_ord, array('l')).append(src)
 
-def reparent(dag, new_parent, node_to_del, new_parent_is_leaf=True):
+def reparent(dag, new_parent, node_to_del, new_parent_is_source=True):
     # delete node_to_del and connect all children to new_parent, with edge dict;
     # update each child's input order array to contain the new parent
     out_edges = dag.edge[node_to_del]
     # print()
     # print(new_parent, node_to_del, out_edges)
-    assert_leaf(dag, node_to_del)
-    if new_parent_is_leaf:
-        assert_leaf(dag, new_parent)
+    assert_source(dag, node_to_del)
+    if new_parent_is_source:
+        assert_source(dag, new_parent)
     dag.remove_node(node_to_del)
     for child_id, edge_dict in out_edges.iteritems():
         dag.add_edge(new_parent, child_id, edge_dict)
@@ -88,8 +112,8 @@ def replace(arr, old_value, new_value):
         if item==old_value:
             arr[index] = new_value
 
-def assert_leaf(dag, node_id):
-    assert is_leaf(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
+def assert_source(dag, node_id):
+    assert is_source(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
 
 def assert_var_num_equals_node_id_for_named_vars(dag, var_num_name):
     for var_num in var_num_name:
