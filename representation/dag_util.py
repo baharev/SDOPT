@@ -42,6 +42,10 @@ def plot(dag):
     mng.resize(1865,1025)
     plt.show()
 
+def add_edge(dag, src, dest, mult):
+    dag.add_edge(src, dest, weight=mult)
+    dag.node[dest].setdefault(NodeAttr.input_ord, []).append(src)
+
 # FIXME Respect children order! Wrap: add_edge, remove_node, remove_edge,
 #                                     reverse_edge
 def reparent(dag, var_num, node_id, new_parent_is_leaf=True):

@@ -12,6 +12,7 @@ class NodeAttr(AutoNumber):
     d_term    = ()
     dag       = ()
     display   = ()
+    input_ord = ()
     n_term    = ()
     name      = ()
     node_id   = ()

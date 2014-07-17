@@ -99,7 +99,7 @@ class Problem:
         for var_node in var_node_ids:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
-            if def_node!=var_node: # this is a true bogus reference
+            if def_node!=var_node: # true if var_node is a bogus reference
                 du.reparent(dag, def_node, var_node, new_parent_is_leaf=False)
         # TODO var_node_ids -= var_aliases.viewkeys()
         #      There should only be CSEs left in the var_node_ids?
