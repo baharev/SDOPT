@@ -75,17 +75,12 @@ class Problem:
                          if self.con_ends_num[n] not in self.con_num_name ]
 
     def eliminate_def_vars(self, con_ends):
-        # Eliminates defined variables: def var := defining constraint
+        #  def var := defining constraint
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
-        # FIXME See the comment at assert_CSE_defining_constraints w.r.t.
-        #       reversing the edge
         dag = self.dag
-        for n in con_ends:
-            # reverse edge
-            dag.add_edge(n, n+1, dag[n+1][n]) # multiplier, children order, etc not updated!
-            dag.remove_edge(n+1, n)
-            # TODO Removed from constraints without updating the defining sum nodes
-            self.con_ends_num.pop(n)
+        for sum_node_id in con_ends:
+            du.reverse_edge_to_get_def_var(dag, sum_node_id)
+            self.con_ends_num.pop(sum_node_id)
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
 
     def remove_CSE_aliases(self, con_ends):
