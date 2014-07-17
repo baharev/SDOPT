@@ -5,17 +5,23 @@ import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 
+# TODO: dbg_info, show nvars, ncons, cons type
+#       parse <H>, contains starting point
+#       import sparsity pattern from AMPL
+#       try to get defined variable names
+
 class Problem:
 
     def __init__(self):
         self.dag = nx.DiGraph()
-        self.con_ends_num = { } # con root node -> con num (in AMPL)
+        self.con_ends_num = { } # con sink node -> con num (in AMPL)
         self.con_num_name = { } # con num -> con name (in AMPL)
         self.var_num_name = { } # var num (in AMPL) -> var name (in AMPL)
         self.var_node_ids = set()
         self.defined_vars = [ ] # after elimination, only for debugging for now
-        self.model_name = '(none)'
-        self.nvars = int(-1)
+        self.model_name   = '(none)'
+        self.nvars        = int(-1) # number of variables
+        self.con_top_ord  = { } # con sink node -> con topological order
 
     def setup(self):
         dag = self.dag
@@ -43,7 +49,7 @@ class Problem:
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
             d = self.dag.node[node_id]
-            d[NodeAttr.name] = self.con_num_name.get(con_num, '_c{}'.format(con_num))
+            d[NodeAttr.name] = self.con_num_name.get(con_num, '_c%d' % con_num)
             d[NodeAttr.con_num] = con_num
 
     def setup_nodes(self):

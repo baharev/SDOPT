@@ -4,8 +4,9 @@ import numpy as np
 
 def check_if_text_format(first_line):
     if not first_line.startswith('g'):
-        print('First line: \'{}\''.format(first_line))
-        raise RuntimeError('only ASCII format files can be parsed (specify the g flag to AMPL)')
+        print('First line: \'%s\'' % first_line)
+        msg = 'only ASCII format files can be parsed (give the g flag to AMPL)'
+        raise RuntimeError(msg)
 
 def extract_length(line):
     # 'k42 <arbitrary text>' -> 42

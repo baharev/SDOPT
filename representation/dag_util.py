@@ -7,16 +7,18 @@ from nodes.attributes import NodeAttr
 from matplotlib import pyplot as plt
 
 def dbg_info(dag):
-    print()
+    print('-------------------------------------------------------------------')
     # TODO Why does this crash?
     #print('Is connected?', nx.is_connected(dag.to_undirected()))
+    print('Nodes: %d, edges: %d'%(dag.number_of_nodes(),dag.number_of_edges()) )
     print('Is DAG?', nx.is_directed_acyclic_graph(dag))
-    print('Weakly connected components:', nx.number_weakly_connected_components(dag))
-    print('Nodes:', nx.number_of_nodes(dag), 'edges:', nx.number_of_edges(dag))
+    nwcc = nx.number_weakly_connected_components(dag)
+    print('Weakly connected components:', nwcc)
     source_types = group_node_ids_by_kind(itr_sourcetype_nodeid(dag))
     sink_types   = group_node_ids_by_kind(itr_sinktype_nodeid(  dag))
     print('Sources:', source_types.items())
     print('Sink:',    sink_types.items())
+    print('-------------------------------------------------------------------')
 
 def group_node_ids_by_kind(itr_kind_nodeid_pairs):
     types = defaultdict(list)

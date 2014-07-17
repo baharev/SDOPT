@@ -25,14 +25,19 @@ def parse(f):
         func = funcs.get(kind)
         if func:
             func(p, elems)
-    print('Finished reading the dag file')
-    p.setup()
-    plot(p.dag)
+    return p
 
-def read_dag(filename):
+def read(filename):
     try:
         f = fileinput.input(filename, mode='r')
         return parse(f)
     finally:
-        print('Read', f.lineno(), 'lines')
+        print('Read', f.lineno(), 'lines from file', filename)
         f.close()
+
+def read_problem(filename):
+    problem = read(filename)
+    problem.setup()
+    plot(problem.dag)
+    return problem    
+    
