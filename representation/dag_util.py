@@ -54,6 +54,9 @@ def itr_var_num(G, var_node_ids):
 def itr_sinks(dag, nbunch):
     return (n for n in nbunch if is_sink(dag, n))
 
+def itr_sum_node(dag):
+    return (n for n in dag if dag.node[n][NodeAttr.type]==nodes.sum_node)
+
 def plot(dag):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
@@ -107,8 +110,8 @@ def reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id):
     # update the sum node
     d = dag.node[sum_node_id]
     # d_term -= rhs
-    d_term = d.get(NodeAttr.d_term, 0.0) - d[NodeAttr.bounds].l
-    d[NodeAttr.d_term] = d_term
+    d_term = d.get(NodeAttr.d_term, 0.0) - d[NodeAttr.bounds].l# l == u == rhs
+    d[NodeAttr.d_term] = d_term                                #already asserted
     del d[NodeAttr.bounds]
     d[NodeAttr.input_ord].remove(var_node_id)
 

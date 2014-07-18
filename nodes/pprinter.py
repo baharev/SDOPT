@@ -82,8 +82,10 @@ def log_node_str(n, d, con_dag, nvars):
     return 'log(' + lin_comb_str(n, d, con_dag, nvars) + ')'
 
 def var_node_str(n, d, con_dag, nvars):
-    # FIXME defined vars!
-    return 'v%d' % n
+    assert NodeAttr.input_ord in d, '%d, %s' % (n, d)
+    pred = d[NodeAttr.input_ord]
+    assert len(pred)==1
+    return sum_node_str(n, d, con_dag, nvars)
 
 def num_node_str(n, d, con_dag, nvars):
     return str(d[NodeAttr.number])

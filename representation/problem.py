@@ -11,6 +11,7 @@ import nodes.pprinter
 #       - parse <H>, contains starting point
 #       - import sparsity pattern from AMPL
 #       - try to get defined variable names
+#       - color given nodes on the plot yellow
 #       - defined var topological orders should be stored as well
 #         not clear how to avoid recomputations, maybe removing
 #         aliases wasn't the best idea?
@@ -49,8 +50,11 @@ class Problem:
         #-------------------------------------------
         self.remove_unused_def_vars()
         #-------------------------------------------
+        self.remove_identity_sum_nodes()
+        #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
+        self.dbg_show_node_types()
         self.pprint_constraints()
 
     def setup_constraint_names(self):
@@ -132,6 +136,21 @@ class Problem:
             if du.is_sink(dag, n):
                 dag.remove_node(n)
 
+    # TODO Clean-up the code
+    def remove_identity_sum_nodes(self):
+        to_delete = [ ]
+        dag = self.dag
+        for n in du.itr_sum_node(dag):
+            pred = dag.pred[n]
+            succ = dag.succ[n]
+            if len(pred)!=1 or len(succ)!=1:
+                continue
+            in_mul  = dag.edge[pred.keys()[0]][n]['weight']
+            out_mul = dag.edge[n][succ.keys()[0]]['weight']
+            if in_mul==1.0 and out_mul==1.0:
+                to_delete.append(n)
+        print('identity sum nodes:', to_delete)
+
     def collect_constraint_topological_orders(self):
         dag = self.dag
         for sink_node in self.con_ends_num:
@@ -160,10 +179,17 @@ class Problem:
         for n in eval_order:
             d = con_dag.node[n]
             #=====
+            needed = n >= self.nvars and not NodeAttr.number in d
+            if not needed:
+                continue
             fmt = du.get_pretty_type_str(con_dag, n) + '_str'
             formatter = getattr(nodes.pprinter, fmt)
             body = formatter(n, d, con_dag, self.nvars)
-            if n >= self.nvars and not NodeAttr.number in d:
+
+            assert n >= self.nvars
+            if NodeAttr.var_num in d:
+                print('t%d =' % n, body, '   # def var %d'%d[NodeAttr.var_num])
+            else:
                 print('t%d =' % n, body)
             #=====
 #            predec = con_dag.predecessors(n)
@@ -181,5 +207,11 @@ class Problem:
             print('res = t%d - %s' % (sink_node, to_str(lb)))
         else:
             print('%g <= t%d <= %g' % (lb, sink_node, ub))
+        print()
+
+    def dbg_show_node_types(self):
+        dag = self.dag
+        for n in dag:
+            print('%d  %s' % (n, du.get_pretty_type_str(dag, n)))
         print()
 
