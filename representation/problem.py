@@ -4,7 +4,7 @@ import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from util.to_str import to_str
-from nodes.pprinter import str_lin_comb
+import nodes.pprinter
 
 # TODO: - Where are the var bounds?
 #       - dbg_info, show nvars, ncons, cons type
@@ -159,23 +159,27 @@ class Problem:
     def pprint_con_body(self, con_dag, eval_order):
         for n in eval_order:
             d = con_dag.node[n]
-            if NodeAttr.operation in d:
-                body = str_lin_comb(con_dag, d)
-                print('l.c. ', body)
-            predec = con_dag.predecessors(n)
+            #=====
+            fmt = du.get_pretty_type_str(con_dag, n) + '_str'
+            formatter = getattr(nodes.pprinter, fmt)
+            body = formatter(n, d, con_dag, self.nvars)
+            if n >= self.nvars:
+                print('t%d =' % n, body)
+            #=====
+#            predec = con_dag.predecessors(n)
             assert NodeAttr.display in d, 'node: %d %s' % (n, d)
-            if len(predec) > 0:
-                print(n, '=', d[NodeAttr.display], predec)
-            else:
-                print(n, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
+#             if len(predec) > 0:
+#                 print(n, '=', d[NodeAttr.display], predec)
+#             else:
+#                 print(n, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
 
     def pprint_residual(self, sink_node, d_sink):
         lb, ub = d_sink[NodeAttr.bounds]
         if lb == ub == 0.0:
-            print('res = node %d' % sink_node)
+            print('res = t%d' % sink_node)
         elif lb == ub:
-            print('res = node %d - %s' % (sink_node, to_str(lb)))
+            print('res = t%d - %s' % (sink_node, to_str(lb)))
         else:
-            print('%g <= node %d <= %g' % (lb, sink_node, ub))
+            print('%g <= t%d <= %g' % (lb, sink_node, ub))
         print()
 
