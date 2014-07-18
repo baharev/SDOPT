@@ -1,5 +1,4 @@
 from __future__ import print_function
-import weakref
 import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
@@ -62,7 +61,6 @@ class Problem:
 
     def setup_nodes(self):
         for node_id, d in self.dag.nodes_iter(data=True):
-            d[NodeAttr.dag] = weakref.ref(self.dag)
             d[NodeAttr.type].setup(node_id, d, self)
 
     def remove_var_aliases(self):

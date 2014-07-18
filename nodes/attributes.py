@@ -10,7 +10,6 @@ class NodeAttr(AutoNumber):
     bounds    = ()
     con_num   = ()
     d_term    = ()
-    dag       = ()
     display   = ()
     input_ord = ()
     n_term    = ()
