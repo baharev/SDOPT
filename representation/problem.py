@@ -4,11 +4,16 @@ import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
+from util.to_str import to_str
 
-# TODO: dbg_info, show nvars, ncons, cons type
-#       parse <H>, contains starting point
-#       import sparsity pattern from AMPL
-#       try to get defined variable names
+# TODO: - Where are the var bounds?
+#       - dbg_info, show nvars, ncons, cons type
+#       - parse <H>, contains starting point
+#       - import sparsity pattern from AMPL
+#       - try to get defined variable names
+#       - defined var topological orders should be stored as well
+#         not clear how to avoid recomputations, maybe removing
+#         aliases wasn't the best idea?
 
 class Problem:
 
@@ -46,7 +51,7 @@ class Problem:
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
-        self.print_constraints()
+        self.pprint_constraints()
 
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
@@ -130,49 +135,45 @@ class Problem:
 
     def collect_constraint_topological_orders(self):
         dag = self.dag
-        for con_sink in self.con_ends_num:
-            dependecies = ancestors(dag, con_sink)
-            dependecies.add(con_sink)
+        for sink_node in self.con_ends_num:
+            dependecies = ancestors(dag, sink_node)
+            dependecies.add(sink_node)
             eval_order = topological_sort(dag, dependecies)
-            self.con_top_ord[con_sink] = eval_order
-            #self.print_con(dag.subgraph(eval_order), eval_order, con_sink)
-            assert False, 'continue from here'
-            # FIXME Defined var topological orders should be stored as well
-            #       Not clear how to avoid recomputations, maybe removing 
-            #       aliases wasn't the best idea?
+            self.con_top_ord[sink_node] = eval_order
 
-    def print_constraints(self):
-        print('Constraint dependencies\n')
-        dag = self.dag
-        for end_node_id in self.con_ends_num:
-            deps = ancestors(dag, end_node_id)
-            d = self.dag.node[end_node_id]
-            #print('d =',d)
-            if len(deps)==0: # something silly, apparently just var bounds
-                print(d[NodeAttr.display], 'in', d[NodeAttr.bounds],'\n')
-                continue
-            print(d[NodeAttr.name])
-            deps.add(end_node_id)
-            con_dag = dag.subgraph(deps)
-            eval_order = topological_sort(con_dag)
-            self.print_con(con_dag, eval_order, end_node_id)
-        du.dbg_info(dag)
+    def pprint_constraints(self):
+        for sink_node in self.con_ends_num:
+            eval_order = self.con_top_ord[sink_node]
+            con_dag    = self.dag.subgraph(eval_order)
+            self.pprint_con(sink_node, con_dag, eval_order)
 
-    def print_con(self, sub_dag, order, end_node_id):
-        for node_id in order:
-            predec = sub_dag.predecessors(node_id)
-            d = sub_dag.node[node_id]
-            assert NodeAttr.display in d, 'node: %d %s' % (node_id, d)
+    def pprint_con(self, sink_node, con_dag, eval_order):
+        d_sink = con_dag.node[sink_node]
+        if len(eval_order)==1: # apparently just variable bounds
+            print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
+            return
+
+        print(d_sink[NodeAttr.name])
+        self.pprint_con_body(con_dag, eval_order)
+        self.pprint_residual(sink_node, d_sink)
+
+    def pprint_con_body(self, con_dag, eval_order):
+        for n in eval_order:
+            d = con_dag.node[n]
+            predec = con_dag.predecessors(n)
+            assert NodeAttr.display in d, 'node: %d %s' % (n, d)
             if len(predec) > 0:
-                print(node_id, '=', d[NodeAttr.display], predec)
+                print(n, '=', d[NodeAttr.display], predec)
             else:
-                print(node_id, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
-        # finally show the residual
-        lb, ub = d[NodeAttr.bounds]
+                print(n, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
+
+    def pprint_residual(self, sink_node, d_sink):
+        lb, ub = d_sink[NodeAttr.bounds]
         if lb == ub == 0.0:
-            print('res = node {}'.format(node_id))
+            print('res = node %d' % sink_node)
         elif lb == ub:
-            print('res = node {} - {}'.format(node_id, lb))
+            print('res = node %d - %s' % (sink_node, to_str(lb)))
         else:
-            print('{} <= node {} <= {}'.format(lb, node_id, ub))
+            print('%g <= node %d <= %g' % (lb, sink_node, ub))
         print()
+
