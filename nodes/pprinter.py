@@ -47,7 +47,7 @@ def idx_str(i, nvars, con_dag):
         return str(number) if number >= 0 else '({})'.format(number)
     return 't%d' % i
 
-def lin_comb_str(n, d, con_dag, nvars, op):
+def lin_comb_str(n, d, con_dag, nvars, op='+'):
     # for 1..n: lambda_1*child_1 op lambda_2*child_2 ... op lambda_n*child_n
     #   where op is + or *
     pred = d[NodeAttr.input_ord]
@@ -59,7 +59,7 @@ def lin_comb_str(n, d, con_dag, nvars, op):
 
 def sum_node_str(n, d, con_dag, nvars):
     d_term = d.get(NodeAttr.d_term, 0.0)
-    return lin_comb_str(n, d, con_dag, nvars, '+') + add_d_term_str(d_term)
+    return lin_comb_str(n, d, con_dag, nvars) + add_d_term_str(d_term)
 
 def mul_node_str(n, d, con_dag, nvars):
     d_term = d.get(NodeAttr.d_term, 1.0)
@@ -73,13 +73,13 @@ def div_node_str(n, d, con_dag, nvars):
     mult   = [con_dag[c][n]['weight'] for c in pred]
     nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], nvars, con_dag)
     denom  = lambda_to_str(mult[1]) + idx_str(pred[1], nvars, con_dag)
-    return lmul_d_term_str(d_term) + '(' + nomin + ') / (' + denom + ')'
+    return lmul_d_term_str(d_term) + '(' + nomin + ')/(' + denom + ')'
 
 def exp_node_str(n, d, con_dag, nvars):
-    return 'exp(' + lin_comb_str(n, d, con_dag, nvars, '+') + ')'
+    return 'exp(' + lin_comb_str(n, d, con_dag, nvars) + ')'
 
 def log_node_str(n, d, con_dag, nvars):
-    return 'log(' + lin_comb_str(n, d, con_dag, nvars, '+') + ')'
+    return 'log(' + lin_comb_str(n, d, con_dag, nvars) + ')'
 
 def var_node_str(n, d, con_dag, nvars):
     # FIXME defined vars!
