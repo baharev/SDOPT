@@ -38,11 +38,12 @@ def lmul_d_term_str(d_term):
         return '-'
     return '%s * ' % str(d_term)
 
-def idx_str(i, nvars, d):
+def idx_str(i, nvars, con_dag):
     if i<nvars:
         return 'v%d' % i
-    if NodeAttr.number in d:
-        number = d[NodeAttr.number]
+    d_child = con_dag.node[i]
+    if NodeAttr.number in d_child:
+        number = d_child[NodeAttr.number]
         return str(number) if number >= 0 else '({})'.format(number)
     return 't%d' % i
 
@@ -53,7 +54,7 @@ def lin_comb_str(n, d, con_dag, nvars, op):
     mult = [con_dag[c][n]['weight'] for c in pred]
     s = []
     for c, lam in izip(pred, mult):
-        s.append('%s%s' % (lambda_to_str(lam), idx_str(c, nvars, d)))
+        s.append('%s%s' % (lambda_to_str(lam), idx_str(c, nvars, con_dag)))
     return (' %s ' % op).join(s)
 
 def sum_node_str(n, d, con_dag, nvars):
@@ -70,9 +71,9 @@ def div_node_str(n, d, con_dag, nvars):
     pred   = d[NodeAttr.input_ord]
     assert len(pred)==2, 'Expected exactly two children %s' % d
     mult   = [con_dag[c][n]['weight'] for c in pred]
-    nomin  = '(%s%s)' % (lambda_to_str(mult[0]), idx_str(pred[0], nvars, d))
-    denom  = '(%s%s)' % (lambda_to_str(mult[1]), idx_str(pred[1], nvars, d))
-    return lmul_d_term_str(d_term) + nomin + '/' + denom
+    nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], nvars, con_dag)
+    denom  = lambda_to_str(mult[1]) + idx_str(pred[1], nvars, con_dag)
+    return lmul_d_term_str(d_term) + '(' + nomin + ') / (' + denom + ')'
 
 def exp_node_str(n, d, con_dag, nvars):
     return 'exp(' + lin_comb_str(n, d, con_dag, nvars, '+') + ')'
@@ -81,6 +82,7 @@ def log_node_str(n, d, con_dag, nvars):
     return 'log(' + lin_comb_str(n, d, con_dag, nvars, '+') + ')'
 
 def var_node_str(n, d, con_dag, nvars):
+    # FIXME defined vars!
     return 'v%d' % n
 
 def num_node_str(n, d, con_dag, nvars):

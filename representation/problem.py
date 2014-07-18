@@ -163,7 +163,7 @@ class Problem:
             fmt = du.get_pretty_type_str(con_dag, n) + '_str'
             formatter = getattr(nodes.pprinter, fmt)
             body = formatter(n, d, con_dag, self.nvars)
-            if n >= self.nvars:
+            if n >= self.nvars and not NodeAttr.number in d:
                 print('t%d =' % n, body)
             #=====
 #            predec = con_dag.predecessors(n)
