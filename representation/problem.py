@@ -5,6 +5,7 @@ import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from util.to_str import to_str
+from nodes.pprinter import str_lin_comb
 
 # TODO: - Where are the var bounds?
 #       - dbg_info, show nvars, ncons, cons type
@@ -138,7 +139,7 @@ class Problem:
         for sink_node in self.con_ends_num:
             dependecies = ancestors(dag, sink_node)
             dependecies.add(sink_node)
-            eval_order = topological_sort(dag, dependecies)
+            eval_order = topological_sort(dag.subgraph(dependecies), dependecies)
             self.con_top_ord[sink_node] = eval_order
 
     def pprint_constraints(self):
@@ -160,6 +161,9 @@ class Problem:
     def pprint_con_body(self, con_dag, eval_order):
         for n in eval_order:
             d = con_dag.node[n]
+            if NodeAttr.operation in d:
+                body = str_lin_comb(con_dag, d)
+                print('l.c. ', body)
             predec = con_dag.predecessors(n)
             assert NodeAttr.display in d, 'node: %d %s' % (n, d)
             if len(predec) > 0:
