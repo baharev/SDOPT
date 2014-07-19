@@ -6,13 +6,16 @@ from networkx.algorithms.dag import ancestors, topological_sort
 from util.to_str import to_str
 import nodes.pprinter
 
-# TODO: - Where are the var bounds?
+# TODO: - Eliminate dumb assignments
+#       - Clean-up residual nodes
+#       - Where are the var bounds?
 #       - dbg_info, show nvars, ncons, cons type
 #       - parse <H>, contains starting point
-#       - make topological orders unique by breaking ties with node ids
+#       - make substitution test with trace point
+#       - make tests automatic
+#       - color given nodes on the plot yellow
 #       - import sparsity pattern from AMPL
 #       - try to get defined variable names
-#       - color given nodes on the plot yellow
 #       - defined var topological orders should be stored as well
 #         not clear how to avoid recomputations, maybe removing
 #         aliases wasn't the best idea?
@@ -179,7 +182,8 @@ class Problem:
         for sink_node in self.con_ends_num:
             dependecies = ancestors(dag, sink_node)
             dependecies.add(sink_node)
-            eval_order = topological_sort(dag.subgraph(dependecies), dependecies)
+            con_dag = dag.subgraph(dependecies)
+            eval_order = du.deterministic_topological_sort(con_dag)
             self.con_top_ord[sink_node] = eval_order
 
     def pprint_constraints(self):

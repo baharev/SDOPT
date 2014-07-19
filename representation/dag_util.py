@@ -61,6 +61,38 @@ def itr_siso_sum_nodes(dag):
     return (n for n in itr_sum_nodes(dag) if  len(dag.pred[n])==1
                                           and len(dag.succ[n])==1 )
 
+def deterministic_topological_sort(dag):
+    # This function is stolen from networkx/algorithms/dag.py, topological_sort;
+    # made the returned order deterministic by pre-sorting the nodes by their ID
+    seen = set()
+    order = []
+    explored = set()
+    nbunch = sorted(dag.nodes_iter())                               # <-- SORTED
+    for v in nbunch:     # process all vertices in G
+        if v in explored:
+            continue
+        fringe = [v]   # nodes yet to look at
+        while fringe:
+            w = fringe[-1]  # depth first search
+            if w in explored: # already looked down this branch
+                fringe.pop()
+                continue
+            seen.add(w)     # mark as seen
+            # Check successors for cycles and for new nodes
+            new_nodes = []
+            for n in sorted(dag[w].iterkeys()):                     # <-- SORTED
+                if n not in explored:
+                    if n in seen: #CYCLE !!
+                        raise nx.NetworkXUnfeasible("Graph contains a cycle.")
+                    new_nodes.append(n)
+            if new_nodes:   # Add new_nodes to fringe
+                fringe.extend(new_nodes)
+            else:           # No new nodes so w is fully explored
+                explored.add(w)
+                order.append(w)
+                fringe.pop()    # done considering this node
+    return list(reversed(order))
+
 def plot(dag):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
