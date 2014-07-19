@@ -8,7 +8,8 @@ import nodes.pprinter
 
 # TODO: - Eliminate dumb assignments
 #       - Clean-up residual nodes
-#       - Where are the var bounds?
+#       - Where are the var bounds? -> For named ones, at the definition,
+#                                      CSEs must not have any, assert inserted
 #       - dbg_info, show nvars, ncons, cons type
 #       - parse <H>, contains starting point
 #       - make substitution test with trace point
@@ -58,7 +59,6 @@ class Problem:
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
-        self.dbg_show_node_types()
         self.pprint_constraints()
         #-------------------------------------------
         du.dbg_info(dag)
@@ -215,9 +215,9 @@ class Problem:
 
             assert n >= self.nvars
             if NodeAttr.var_num in d:
-                print('t%d =' % n, body, '   # def var %d'%d[NodeAttr.var_num])
+                print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
             else:
-                print('t%d =' % n, body)
+                print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
 
     def pprint_residual(self, sink_node, d_sink):
         lb, ub = d_sink[NodeAttr.bounds]
