@@ -6,10 +6,9 @@ from networkx.algorithms.dag import ancestors, topological_sort
 from util.to_str import to_str
 import nodes.pprinter
 
-# TODO: - Eliminate dumb assignments
-#       - Clean-up residual nodes
+# TODO: - Clean-up residual nodes
 #       - Where are the var bounds? -> For named ones, at the definition,
-#                                      CSEs must not have any, assert inserted
+#                                      CSEs *must* not have any, assert inserted
 #       - dbg_info, show nvars, ncons, cons type
 #       - parse <H>, contains starting point
 #       - make substitution test with trace point
@@ -17,9 +16,12 @@ import nodes.pprinter
 #       - color given nodes on the plot yellow
 #       - import sparsity pattern from AMPL
 #       - try to get defined variable names
+#
 #       - defined var topological orders should be stored as well
 #         not clear how to avoid recomputations, maybe removing
-#         aliases wasn't the best idea?
+#         aliases wasn't the best idea? -> Cut corners, ignore inefficiencies
+#                                          for now; def vars won't be that
+#                                          common anyway with connected units
 
 class Problem:
 
@@ -52,10 +54,9 @@ class Problem:
         #-------------------------------------------
         # nl2dag erroneously turns defined vars into constraints
         self.reconstruct_CSEs()
-        #-------------------------------------------
         self.remove_unused_def_vars()
-        #-------------------------------------------
         self.remove_identity_sum_nodes()
+        self.remove_def_var_aliasing_another_node()
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
@@ -128,22 +129,28 @@ class Problem:
 
     def remove_unused_def_vars(self):
         dag = self.dag
+        removed = [ ]
         for n in du.itr_sinks(dag, self.defined_vars):
             deps = ancestors(dag, n)
             deps.add(n)
             con_dag = dag.subgraph(deps)
             reverse_order = topological_sort(con_dag, reverse=True)
-            self.delete_sinks_recursively(reverse_order)
+            removed = self.delete_sinks_recursively(reverse_order)
+        print('Unused nodes:', removed)
+        self.defined_vars.difference_update(removed)
 
     def delete_sinks_recursively(self, reverse_order):
         dag = self.dag
+        removed = [ ]
         for n in reverse_order:
             if du.is_sink(dag, n):
+                removed.append(n)
                 du.remove_node(dag, n)
+        return removed
 
     def remove_identity_sum_nodes(self):
-        to_delete = self.get_identity_sum_nodes()
         dag = self.dag
+        to_delete = self.get_identity_sum_nodes()
         for n, (pred, succ) in to_delete.iteritems():
             du.remove_node(dag, n)
             d = dag.node[succ] # may need it to transfer var_num to new parent
@@ -152,8 +159,9 @@ class Problem:
 
     def get_identity_sum_nodes(self):
         # SISO sum nodes with in and out edge weight == 1 and d_term == 0
-        to_delete = { }
+        # TODO only reparenting checks for bounds
         dag = self.dag
+        to_delete = { }
         for n in du.itr_siso_sum_nodes(dag):
             pred = dag.pred[n].keys()[0]
             succ = dag.succ[n].keys()[0]
@@ -165,16 +173,40 @@ class Problem:
         print('identity sum nodes:', to_delete)
         return to_delete
 
-    def update_defined_var_bookkeeping(self, pred, succ, d):
-        if succ in self.defined_vars:
-            # move defined var from succ to pred
-            self.defined_vars.remove(succ)
-            self.defined_vars.add(pred)
-            # transfer var_num; if pred is a def var, keep the smaller var_num
+    def update_defined_var_bookkeeping(self, new_def_var, old_def_var, d):
+        if old_def_var in self.defined_vars:
+            # move defined var from old_def_var to new_def_var
+            self.defined_vars.remove(old_def_var)
+            self.defined_vars.add(new_def_var)
+            # transfer var_num; if new_def_var is already a defined var
+            # then keep the smaller var_num
             var_num = d[NodeAttr.var_num]
-            d_pred  = self.dag.node[pred]
+            d_pred  = self.dag.node[new_def_var]
             old_var_num = d_pred.get(NodeAttr.var_num, var_num)
             d_pred[NodeAttr.var_num] = min(var_num, old_var_num)
+
+    def remove_def_var_aliasing_another_node(self):
+        dag = self.dag
+        to_delete = self.get_def_var_aliasing_another_node()
+        for n, pred in to_delete.iteritems():
+            d = dag.node[n]  # need it to transfer var_num to new parent
+            dag.remove_edge(pred, n)
+            du.reparent(dag, pred, n, new_parent_is_source=False)
+            self.update_defined_var_bookkeeping(pred, n, d)
+
+    def get_def_var_aliasing_another_node(self):
+        # def var_node with a single input, edge weight one and no d_term
+        # TODO only reparenting checks for bounds
+        dag = self.dag
+        to_delete = { }
+        for n in du.itr_single_input_nodes(dag, self.defined_vars):
+            pred = dag.pred[n].keys()[0]
+            in_mul  = dag.edge[pred][n]['weight']
+            d_term  = dag.node[n].get(NodeAttr.d_term, 0.0)
+            if in_mul==1.0 and d_term==0.0:
+                to_delete[n] = pred
+        print('var nodes just aliasing:', to_delete)
+        return to_delete
 
     def collect_constraint_topological_orders(self):
         dag = self.dag

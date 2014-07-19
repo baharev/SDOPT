@@ -61,6 +61,9 @@ def itr_siso_sum_nodes(dag):
     return (n for n in itr_sum_nodes(dag) if  len(dag.pred[n])==1
                                           and len(dag.succ[n])==1 )
 
+def itr_single_input_nodes(dag, node_ids):
+    return (n for n in node_ids if len(dag.pred[n])==1)
+
 def deterministic_topological_sort(dag):
     # This function is stolen from networkx/algorithms/dag.py, topological_sort;
     # made the returned order deterministic by pre-sorting the nodes by their ID
