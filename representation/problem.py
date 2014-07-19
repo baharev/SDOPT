@@ -9,6 +9,7 @@ import nodes.pprinter
 # TODO: - Where are the var bounds?
 #       - dbg_info, show nvars, ncons, cons type
 #       - parse <H>, contains starting point
+#       - make topological orders unique by breaking ties with node ids
 #       - import sparsity pattern from AMPL
 #       - try to get defined variable names
 #       - color given nodes on the plot yellow
@@ -101,7 +102,7 @@ class Problem:
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
         dag = self.dag
         for sum_node_id in con_ends:
-            var_node_id = sum_node_id + 1
+            var_node_id = sum_node_id + 1 # already asserted that it is true
             du.reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id)
             self.con_ends_num.pop(sum_node_id) # safe: iterating on a copy
             self.defined_vars.add(var_node_id)
@@ -143,20 +144,9 @@ class Problem:
         dag = self.dag
         for n, (pred, succ) in to_delete.iteritems():
             dag.remove_node(n)
-            d = dag.node[succ] # if needed to transfer var_num to new parent
+            d = dag.node[succ] # may need it to transfer var_num to new parent
             du.reparent(dag, pred, succ, new_parent_is_source=False)
             self.update_defined_var_bookkeeping(pred, succ, d)
-
-    def update_defined_var_bookkeeping(self, pred, succ, d):
-        if succ in self.defined_vars:
-            # move defined var from succ to pred
-            self.defined_vars.remove(succ)
-            self.defined_vars.add(pred)
-            # transfer var_num; if pred is a def var, keep the smaller var_num
-            var_num = d[NodeAttr.var_num]
-            d_pred  = self.dag.node[pred]
-            old_var_num = d_pred.get(NodeAttr.var_num, var_num)
-            d_pred[NodeAttr.var_num] = min(var_num, old_var_num)
 
     def get_identity_sum_nodes(self):
         # SISO sum nodes with in and out edge weight == 1 and d_term == 0
@@ -173,6 +163,17 @@ class Problem:
         print('identity sum nodes:', to_delete)
         return to_delete
 
+    def update_defined_var_bookkeeping(self, pred, succ, d):
+        if succ in self.defined_vars:
+            # move defined var from succ to pred
+            self.defined_vars.remove(succ)
+            self.defined_vars.add(pred)
+            # transfer var_num; if pred is a def var, keep the smaller var_num
+            var_num = d[NodeAttr.var_num]
+            d_pred  = self.dag.node[pred]
+            old_var_num = d_pred.get(NodeAttr.var_num, var_num)
+            d_pred[NodeAttr.var_num] = min(var_num, old_var_num)
+
     def collect_constraint_topological_orders(self):
         dag = self.dag
         for sink_node in self.con_ends_num:
@@ -188,11 +189,12 @@ class Problem:
             self.pprint_con(sink_node, con_dag, eval_order)
 
     def pprint_con(self, sink_node, con_dag, eval_order):
+        # Handle silly edge case first: apparently just variable bounds
         d_sink = con_dag.node[sink_node]
-        if len(eval_order)==1: # apparently just variable bounds
+        if len(eval_order)==1:
             print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
             return
-
+        # Pretty-print real constraint
         print(d_sink[NodeAttr.name])
         self.pprint_con_body(con_dag, eval_order)
         self.pprint_residual(sink_node, d_sink)
