@@ -127,10 +127,15 @@ def reparent(dag, new_parent, node_to_del, new_parent_is_source=True):
     assert_source(dag, node_to_del)
     if new_parent_is_source:
         assert_source(dag, new_parent)
-    dag.remove_node(node_to_del)
+    remove_node(dag, node_to_del)
     for child_id, edge_dict in out_edges.iteritems():
         dag.add_edge(new_parent, child_id, edge_dict)
         replace(dag.node[child_id][NodeAttr.input_ord], node_to_del, new_parent)
+
+def remove_node(dag, n):
+    d = dag.node[n]
+    assert NodeAttr.bounds not in d, d
+    dag.remove_node(n)
 
 def reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id):
     # lambda * <var node> + <lin. comb.> + d = bounds
@@ -179,16 +184,20 @@ def assert_CSE_defining_constraints(dag, con_ends, named_vars):
     # <146> V 20
     # <E> 145 146 -1
     for n in con_ends:
+        # check the sum_node
         d = dag.node[n]
-        assert d[NodeAttr.type]==nodes.sum_node,'expected a sum_node, found: %s' % d
+        assert d[NodeAttr.type]==nodes.sum_node,'expected a sum_node, found: %s'%d
         assert NodeAttr.bounds in d,'Should have bounds, node: %s' % d
         lb, ub = d[NodeAttr.bounds]
         assert lb==ub,'rhs expected to be a constant, node: %s' % d
-        assert n+1 in dag,'expected a var node; not CSE defining constraint: %s' % d
+        # check the var_node
+        assert n+1 in dag,'expected a var_node; not CSE defining constraint: %s'%d
         def_var = dag.node[n+1]
         assert def_var[NodeAttr.type]==nodes.var_node, \
                                  'expected a var_node, found: %s' % def_var
         assert n+1 not in named_vars,'expected an unnamed var, found %s' % def_var
+        assert NodeAttr.bounds not in def_var, \
+                            'CSEs must not have bounds, found\n  %s' % def_var
         assert n in dag.edge[n+1],'Nodes not connected:\n %s \n %s'%(d,def_var)
 
 def assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node):

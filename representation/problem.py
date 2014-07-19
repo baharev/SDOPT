@@ -94,7 +94,6 @@ class Problem:
         du.assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
         self.eliminate_def_vars(con_ends)
         self.remove_CSE_aliases(con_ends)
-        return
 
     def get_unnamed_constraints(self):
         return [ n for n in self.con_ends_num   \
@@ -140,13 +139,13 @@ class Problem:
         dag = self.dag
         for n in reverse_order:
             if du.is_sink(dag, n):
-                dag.remove_node(n)
+                du.remove_node(dag, n)
 
     def remove_identity_sum_nodes(self):
         to_delete = self.get_identity_sum_nodes()
         dag = self.dag
         for n, (pred, succ) in to_delete.iteritems():
-            dag.remove_node(n)
+            du.remove_node(dag, n)
             d = dag.node[succ] # may need it to transfer var_num to new parent
             du.reparent(dag, pred, succ, new_parent_is_source=False)
             self.update_defined_var_bookkeeping(pred, succ, d)
