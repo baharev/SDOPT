@@ -54,8 +54,12 @@ def itr_var_num(G, var_node_ids):
 def itr_sinks(dag, nbunch):
     return (n for n in nbunch if is_sink(dag, n))
 
-def itr_sum_node(dag):
+def itr_sum_nodes(dag):
     return (n for n in dag if dag.node[n][NodeAttr.type]==nodes.sum_node)
+
+def itr_siso_sum_nodes(dag):
+    return (n for n in itr_sum_nodes(dag) if  len(dag.pred[n])==1
+                                          and len(dag.succ[n])==1 )
 
 def plot(dag):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)

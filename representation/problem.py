@@ -24,7 +24,7 @@ class Problem:
         self.con_num_name = { } # con num -> con name (in AMPL)
         self.var_num_name = { } # var num (in AMPL) -> var name (in AMPL)
         self.var_node_ids = set()
-        self.defined_vars = [ ] # after elimination, only for debugging for now
+        self.defined_vars = set() # node ids after elimination
         self.model_name   = '(none)'
         self.nvars        = int(-1) # number of variables
         self.con_top_ord  = { } # con sink node -> con topological order
@@ -56,6 +56,8 @@ class Problem:
         #-------------------------------------------
         self.dbg_show_node_types()
         self.pprint_constraints()
+        #-------------------------------------------
+        du.dbg_info(dag)
 
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
@@ -102,7 +104,7 @@ class Problem:
             var_node_id = sum_node_id + 1
             du.reverse_edge_to_get_def_var(dag, sum_node_id, var_node_id)
             self.con_ends_num.pop(sum_node_id) # safe: iterating on a copy
-            self.defined_vars.append(var_node_id)
+            self.defined_vars.add(var_node_id)
         print('cons: ', sorted(self.con_ends_num.viewkeys()))
 
     def remove_CSE_aliases(self, con_ends):
@@ -113,7 +115,7 @@ class Problem:
         print('defined vars, var num -> defining node:\n  %s\n'%var_num_def_node)
         var_node_ids = self.var_node_ids
         du.assert_vars_are_CSEs(dag, var_node_ids, var_num_def_node)
-        var_aliases = var_node_ids - set(self.defined_vars)
+        var_aliases = var_node_ids - self.defined_vars
         for var_node in var_aliases:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
@@ -136,20 +138,40 @@ class Problem:
             if du.is_sink(dag, n):
                 dag.remove_node(n)
 
-    # TODO Clean-up the code
     def remove_identity_sum_nodes(self):
-        to_delete = [ ]
+        to_delete = self.get_identity_sum_nodes()
         dag = self.dag
-        for n in du.itr_sum_node(dag):
-            pred = dag.pred[n]
-            succ = dag.succ[n]
-            if len(pred)!=1 or len(succ)!=1:
-                continue
-            in_mul  = dag.edge[pred.keys()[0]][n]['weight']
-            out_mul = dag.edge[n][succ.keys()[0]]['weight']
-            if in_mul==1.0 and out_mul==1.0:
-                to_delete.append(n)
+        for n, (pred, succ) in to_delete.iteritems():
+            dag.remove_node(n)
+            d = dag.node[succ] # if needed to transfer var_num to new parent
+            du.reparent(dag, pred, succ, new_parent_is_source=False)
+            self.update_defined_var_bookkeeping(pred, succ, d)
+
+    def update_defined_var_bookkeeping(self, pred, succ, d):
+        if succ in self.defined_vars:
+            # move defined var from succ to pred
+            self.defined_vars.remove(succ)
+            self.defined_vars.add(pred)
+            # transfer var_num; if pred is a def var, keep the smaller var_num
+            var_num = d[NodeAttr.var_num]
+            d_pred  = self.dag.node[pred]
+            old_var_num = d_pred.get(NodeAttr.var_num, var_num)
+            d_pred[NodeAttr.var_num] = min(var_num, old_var_num)
+
+    def get_identity_sum_nodes(self):
+        # SISO sum nodes with in and out edge weight == 1 and d_term == 0
+        to_delete = { }
+        dag = self.dag
+        for n in du.itr_siso_sum_nodes(dag):
+            pred = dag.pred[n].keys()[0]
+            succ = dag.succ[n].keys()[0]
+            in_mul  = dag.edge[pred][n]['weight']
+            out_mul = dag.edge[n][succ]['weight']
+            d_term  = dag.node[n].get(NodeAttr.d_term, 0.0)
+            if in_mul==1.0 and out_mul==1.0 and d_term==0.0:
+                to_delete[n] = (pred, succ)
         print('identity sum nodes:', to_delete)
+        return to_delete
 
     def collect_constraint_topological_orders(self):
         dag = self.dag
@@ -191,13 +213,6 @@ class Problem:
                 print('t%d =' % n, body, '   # def var %d'%d[NodeAttr.var_num])
             else:
                 print('t%d =' % n, body)
-            #=====
-#            predec = con_dag.predecessors(n)
-            assert NodeAttr.display in d, 'node: %d %s' % (n, d)
-#             if len(predec) > 0:
-#                 print(n, '=', d[NodeAttr.display], predec)
-#             else:
-#                 print(n, '=', d[NodeAttr.display], d.get(NodeAttr.bounds, ''))
 
     def pprint_residual(self, sink_node, d_sink):
         lb, ub = d_sink[NodeAttr.bounds]

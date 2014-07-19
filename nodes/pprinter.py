@@ -39,12 +39,15 @@ def lmul_d_term_str(d_term):
     return '%s * ' % str(d_term)
 
 def idx_str(i, nvars, con_dag):
+    # a true var
     if i<nvars:
         return 'v%d' % i
-    d_child = con_dag.node[i]
-    if NodeAttr.number in d_child:
-        number = d_child[NodeAttr.number]
+    # a number
+    d = con_dag.node[i]
+    if NodeAttr.number in d:
+        number = d[NodeAttr.number]
         return str(number) if number >= 0 else '({})'.format(number)
+    # some intermediate node
     return 't%d' % i
 
 def lin_comb_str(n, d, con_dag, nvars, op='+'):
@@ -69,6 +72,7 @@ def div_node_str(n, d, con_dag, nvars):
     assert len(con_dag.pred[n])==2, 'Expected exactly two children %s' % d
     d_term = d.get(NodeAttr.d_term, 1.0)
     pred   = d[NodeAttr.input_ord]
+    # pred == con_dag.pred[n] should hold too
     assert len(pred)==2, 'Expected exactly two children %s' % d
     mult   = [con_dag[c][n]['weight'] for c in pred]
     nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], nvars, con_dag)
