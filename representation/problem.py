@@ -6,13 +6,12 @@ from networkx.algorithms.dag import ancestors, topological_sort
 from util.to_str import to_str
 import nodes.pprinter
 
-# TODO: - Clean-up residual nodes
+# TODO: - parse <H>, contains starting point
+#       - make substitution test with trace point
+#       - make tests automatic
 #       - Where are the var bounds? -> For named ones, at the definition,
 #                                      CSEs *must* not have any, assert inserted
 #       - dbg_info, show nvars, ncons, cons type
-#       - parse <H>, contains starting point
-#       - make substitution test with trace point
-#       - make tests automatic
 #       - color given nodes on the plot yellow
 #       - import sparsity pattern from AMPL
 #       - try to get defined variable names
@@ -220,47 +219,55 @@ class Problem:
             self.con_top_ord[sink_node] = eval_order
 
     def pprint_constraints(self):
+        print()
         for sink_node in self.con_ends_num:
             eval_order = self.con_top_ord[sink_node]
             con_dag    = self.dag.subgraph(eval_order)
-            self.pprint_con(sink_node, con_dag, eval_order)
+            self.pprint_one_constraint(sink_node, con_dag, eval_order)
 
-    def pprint_con(self, sink_node, con_dag, eval_order):
+    def pprint_one_constraint(self, sink_node, con_dag, eval_order):
         # Handle silly edge case first: apparently just variable bounds
         d_sink = con_dag.node[sink_node]
         if len(eval_order)==1:
             print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
             return
-        # Pretty-print real constraint
+        #
+        # Pretty-print well-behaving constraint
+        # name
         print(d_sink[NodeAttr.name])
-        self.pprint_con_body(con_dag, eval_order)
-        self.pprint_residual(sink_node, d_sink)
+        # evaluation in topologically sorted order
+        for n, d in self.itr_nodes_to_pprint(con_dag, eval_order):
+            body = self.get_body(n, d, con_dag)
+            self.pprint_node_assignment_with_comment(n, d, body, con_dag)
+        # residual
+        self.pprint_residual(sink_node, d_sink, con_dag)
 
-    def pprint_con_body(self, con_dag, eval_order):
-        for n in eval_order:
-            d = con_dag.node[n]
-            #=====
-            needed = n >= self.nvars and not NodeAttr.number in d
-            if not needed:
-                continue
-            fmt = du.get_pretty_type_str(con_dag, n) + '_str'
-            formatter = getattr(nodes.pprinter, fmt)
-            body = formatter(n, d, con_dag, self.nvars)
+    def itr_nodes_to_pprint(self, con_dag, eval_order):
+        # Print if NOT a named variable, a number or the last node (residual)
+        return ((n, con_dag.node[n]) for n in eval_order[:-1] \
+                  if n >= self.nvars and NodeAttr.number not in con_dag.node[n])
 
-            assert n >= self.nvars
-            if NodeAttr.var_num in d:
-                print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
-            else:
-                print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
+    def get_body(self, n, d, con_dag):
+        fmt = du.get_pretty_type_str(con_dag, n) + '_str'
+        formatter = getattr(nodes.pprinter, fmt)
+        return formatter(n, d, con_dag, self.nvars)
 
-    def pprint_residual(self, sink_node, d_sink):
+    def pprint_node_assignment_with_comment(self, n, d, body, con_dag):
+        if NodeAttr.var_num in d:
+            print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
+        else:
+            print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
+
+    def pprint_residual(self, sink_node, d_sink, con_dag):
+        con_num = self.con_ends_num[sink_node]
+        body = self.get_body(sink_node, d_sink, con_dag)
         lb, ub = d_sink[NodeAttr.bounds]
         if lb == ub == 0.0:
-            print('res = t%d' % sink_node)
+            print('con%d = %s  # t%d' % (con_num, body, sink_node))
         elif lb == ub:
-            print('res = t%d - %s' % (sink_node, to_str(lb)))
+            print('con%d = %s - %s  # t%d' % (con_num, body, to_str(lb), sink_node))
         else:
-            print('%g <= t%d <= %g' % (lb, sink_node, ub))
+            print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
         print()
 
     def dbg_show_node_types(self):
