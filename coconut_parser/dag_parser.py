@@ -37,8 +37,10 @@ def read(filename):
         print('Read', f.lineno(), 'lines from file', filename)
         f.close()
 
-def read_problem(filename):
+def read_problem(filename, to_plot = True):
     problem = read(filename)
     problem.setup()
-    plot(problem.dag)
+    if to_plot:
+        plot(problem.dag)
+        return None # FIXME Resolve issues with plotting! (Must destroy dictionaries)
     return problem

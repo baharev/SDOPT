@@ -1,19 +1,18 @@
 from __future__ import print_function
 import networkx as nx
 import dag_util as du
-from StringIO import StringIO
-from util.redirect_stdout import redirect_stdout
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from nodes.pprinter import pprint_one_constraint
 
-# TODO: - make substitution test with trace point
-#       - make tests automatic
+# TODO: - Put solution to tracepoint in AMPL automatically, maybe .sol file to
+#             converter?
+#       - Clean up test, improve coverage
+#       - import sparsity pattern from AMPL
+#       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
 #       - Where are the var bounds? -> For named ones, at the definition,
 #                                      CSEs *must* not have any, assert inserted
-#       - dbg_info, show nvars, ncons, cons type
 #       - color given nodes on the plot yellow
-#       - import sparsity pattern from AMPL
 #       - try to get defined variable names
 #
 #       - defined var topological orders should be stored as well
@@ -220,16 +219,12 @@ class Problem:
             self.con_top_ord[sink_node] = eval_order
 
     def pprint_constraints(self):
-        ostream = StringIO()
-        with redirect_stdout(ostream):
-            for sink_node in self.con_ends_num:
-                eval_order = self.con_top_ord[sink_node]
-                con_num = self.con_ends_num[sink_node]
-                con_dag = self.dag.subgraph(eval_order)
-                nvars   = self.nvars
-                pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
-        print(ostream.getvalue())
-        ostream.close()
+        for sink_node in self.con_ends_num:
+            eval_order = self.con_top_ord[sink_node]
+            con_num = self.con_ends_num[sink_node]
+            con_dag = self.dag.subgraph(eval_order)
+            nvars   = self.nvars
+            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
 
     def dbg_show_node_types(self):
         dag = self.dag

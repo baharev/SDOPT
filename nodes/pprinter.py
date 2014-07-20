@@ -46,7 +46,7 @@ def lmul_d_term_str(d_term):
 def idx_str(i, nvars, con_dag):
     # a true var
     if i<nvars:
-        return 'v%d' % i
+        return 'v[%d]' % i
     # a number
     d = con_dag.node[i]
     if NodeAttr.number in d:
@@ -138,9 +138,9 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, nvars):
     body = get_body(sink_node, d_sink, con_dag, nvars)
     lb, ub = d_sink[NodeAttr.bounds]
     if lb == ub == 0.0:
-        print('con%d = %s  # t%d' % (con_num, body, sink_node))
+        print('con[%d] = %s  # t%d' % (con_num, body, sink_node))
     elif lb == ub:
-        print('con%d = %s - %s  # t%d' % (con_num, body, to_str(lb), sink_node))
+        print('con[%d] = %s - %s  # t%d' % (con_num, body, to_str(lb), sink_node))
     else:
         print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
     print()
