@@ -3,8 +3,7 @@ import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
-from util.to_str import to_str
-import nodes.pprinter
+from nodes.pprinter import pprint_one_constraint
 
 # TODO: - parse <H>, contains starting point
 #       - make substitution test with trace point
@@ -222,53 +221,10 @@ class Problem:
         print()
         for sink_node in self.con_ends_num:
             eval_order = self.con_top_ord[sink_node]
-            con_dag    = self.dag.subgraph(eval_order)
-            self.pprint_one_constraint(sink_node, con_dag, eval_order)
-
-    def pprint_one_constraint(self, sink_node, con_dag, eval_order):
-        # Handle silly edge case first: apparently just variable bounds
-        d_sink = con_dag.node[sink_node]
-        if len(eval_order)==1:
-            print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
-            return
-        #
-        # Pretty-print well-behaving constraint
-        # name
-        print(d_sink[NodeAttr.name])
-        # evaluation in topologically sorted order
-        for n, d in self.itr_nodes_to_pprint(con_dag, eval_order):
-            body = self.get_body(n, d, con_dag)
-            self.pprint_node_assignment_with_comment(n, d, body, con_dag)
-        # residual
-        self.pprint_residual(sink_node, d_sink, con_dag)
-
-    def itr_nodes_to_pprint(self, con_dag, eval_order):
-        # Print if NOT a named variable, a number or the last node (residual)
-        return ((n, con_dag.node[n]) for n in eval_order[:-1] \
-                  if n >= self.nvars and NodeAttr.number not in con_dag.node[n])
-
-    def get_body(self, n, d, con_dag):
-        fmt = du.get_pretty_type_str(con_dag, n) + '_str'
-        formatter = getattr(nodes.pprinter, fmt)
-        return formatter(n, d, con_dag, self.nvars)
-
-    def pprint_node_assignment_with_comment(self, n, d, body, con_dag):
-        if NodeAttr.var_num in d:
-            print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
-        else:
-            print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
-
-    def pprint_residual(self, sink_node, d_sink, con_dag):
-        con_num = self.con_ends_num[sink_node]
-        body = self.get_body(sink_node, d_sink, con_dag)
-        lb, ub = d_sink[NodeAttr.bounds]
-        if lb == ub == 0.0:
-            print('con%d = %s  # t%d' % (con_num, body, sink_node))
-        elif lb == ub:
-            print('con%d = %s - %s  # t%d' % (con_num, body, to_str(lb), sink_node))
-        else:
-            print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
-        print()
+            con_num = self.con_ends_num[sink_node]
+            con_dag = self.dag.subgraph(eval_order)
+            nvars   = self.nvars
+            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
 
     def dbg_show_node_types(self):
         dag = self.dag

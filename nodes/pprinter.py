@@ -1,6 +1,11 @@
+from __future__ import print_function
 from nodes.attributes import NodeAttr
 from itertools import izip
 import math
+import representation.dag_util as du
+
+def to_str(number):
+    return str(number) if number >= 0 else '({})'.format(number)
 
 def lambda_to_str(number):
     #  1* -> ''
@@ -93,3 +98,50 @@ def var_node_str(n, d, con_dag, nvars):
 
 def num_node_str(n, d, con_dag, nvars):
     return str(d[NodeAttr.number])
+
+################################################################################
+
+def pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars):
+    # Handle silly edge case first: apparently just variable bounds
+    d_sink = con_dag.node[sink_node]
+    if len(eval_order)==1:
+        print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
+        return
+    #
+    # Pretty-print well-behaving constraint
+    # name
+    print('#', d_sink[NodeAttr.name])
+    # evaluation in topologically sorted order
+    for n, d in itr_nodes_to_pprint(con_dag, eval_order, nvars):
+        body = get_body(n, d, con_dag, nvars)
+        pprint_node_assignment_with_comment(n, d, body, con_dag)
+    # residual
+    pprint_residual(sink_node, d_sink, con_num, con_dag, nvars)
+
+def itr_nodes_to_pprint(con_dag, eval_order, nvars):
+    # Print if NOT a named variable, a number or the last node (residual)
+    return ((n, con_dag.node[n]) for n in eval_order[:-1] \
+              if n >= nvars and NodeAttr.number not in con_dag.node[n])
+
+def get_body(n, d, con_dag, nvars):
+    fmt = du.get_pretty_type_str(con_dag, n) + '_str'
+    formatter = globals()[fmt]
+    return formatter(n, d, con_dag, nvars)
+
+def pprint_node_assignment_with_comment(n, d, body, con_dag):
+    if NodeAttr.var_num in d:
+        print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
+    else:
+        print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
+
+def pprint_residual(sink_node, d_sink, con_num, con_dag, nvars):
+    body = get_body(sink_node, d_sink, con_dag, nvars)
+    lb, ub = d_sink[NodeAttr.bounds]
+    if lb == ub == 0.0:
+        print('con%d = %s  # t%d' % (con_num, body, sink_node))
+    elif lb == ub:
+        print('con%d = %s - %s  # t%d' % (con_num, body, to_str(lb), sink_node))
+    else:
+        print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
+    print()
+
