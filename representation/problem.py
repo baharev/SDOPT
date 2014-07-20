@@ -1,6 +1,8 @@
 from __future__ import print_function
 import networkx as nx
 import dag_util as du
+from StringIO import StringIO
+from util.redirect_stdout import redirect_stdout
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from nodes.pprinter import pprint_one_constraint
@@ -218,13 +220,16 @@ class Problem:
             self.con_top_ord[sink_node] = eval_order
 
     def pprint_constraints(self):
-        print()
-        for sink_node in self.con_ends_num:
-            eval_order = self.con_top_ord[sink_node]
-            con_num = self.con_ends_num[sink_node]
-            con_dag = self.dag.subgraph(eval_order)
-            nvars   = self.nvars
-            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
+        ostream = StringIO()
+        with redirect_stdout(ostream):
+            for sink_node in self.con_ends_num:
+                eval_order = self.con_top_ord[sink_node]
+                con_num = self.con_ends_num[sink_node]
+                con_dag = self.dag.subgraph(eval_order)
+                nvars   = self.nvars
+                pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
+        print(ostream.getvalue())
+        ostream.close()
 
     def dbg_show_node_types(self):
         dag = self.dag
