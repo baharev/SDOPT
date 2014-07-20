@@ -159,7 +159,6 @@ class Problem:
 
     def get_identity_sum_nodes(self):
         # SISO sum nodes with in and out edge weight == 1 and d_term == 0
-        # TODO only reparenting checks for bounds
         dag = self.dag
         to_delete = { }
         for n in du.itr_siso_sum_nodes(dag):
@@ -167,7 +166,9 @@ class Problem:
             succ = dag.succ[n].keys()[0]
             in_mul  = dag.edge[pred][n]['weight']
             out_mul = dag.edge[n][succ]['weight']
-            d_term  = dag.node[n].get(NodeAttr.d_term, 0.0)
+            d = dag.node[n]
+            d_term  = d.get(NodeAttr.d_term, 0.0)
+            assert NodeAttr.bounds not in d, d
             if in_mul==1.0 and out_mul==1.0 and d_term==0.0:
                 to_delete[n] = (pred, succ)
         print('identity sum nodes:', to_delete)
@@ -196,13 +197,14 @@ class Problem:
 
     def get_def_var_aliasing_another_node(self):
         # def var_node with a single input, edge weight one and no d_term
-        # TODO only reparenting checks for bounds
         dag = self.dag
         to_delete = { }
         for n in du.itr_single_input_nodes(dag, self.defined_vars):
             pred = dag.pred[n].keys()[0]
             in_mul  = dag.edge[pred][n]['weight']
-            d_term  = dag.node[n].get(NodeAttr.d_term, 0.0)
+            d = dag.node[n]
+            assert NodeAttr.bounds not in d, d
+            d_term  = d.get(NodeAttr.d_term, 0.0)
             if in_mul==1.0 and d_term==0.0:
                 to_delete[n] = pred
         print('var nodes just aliasing:', to_delete)
