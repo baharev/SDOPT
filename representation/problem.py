@@ -7,8 +7,7 @@ from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from nodes.pprinter import pprint_one_constraint
 
-# TODO: - parse <H>, contains starting point
-#       - make substitution test with trace point
+# TODO: - make substitution test with trace point
 #       - make tests automatic
 #       - Where are the var bounds? -> For named ones, at the definition,
 #                                      CSEs *must* not have any, assert inserted
@@ -35,6 +34,7 @@ class Problem:
         self.model_name   = '(none)'
         self.nvars        = int(-1) # number of variables
         self.con_top_ord  = { } # con sink node -> con topological order
+        self.refsols      = [ ]
 
     def setup(self):
         dag = self.dag

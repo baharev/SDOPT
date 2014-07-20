@@ -1,6 +1,7 @@
 from __future__ import print_function
 import fileinput
 import edge_line
+import hint_line
 import info_line
 import node_line
 from representation.problem import Problem
@@ -19,7 +20,8 @@ def lines(iterable):
 def parse(f):
     funcs = { 'N': info_line.parse,
               'I': node_line.parse,
-              'E': edge_line.parse }
+              'E': edge_line.parse,
+              'H': hint_line.parse }
     p = Problem()
     for kind, elems in lines(f):
         func = funcs.get(kind)
@@ -39,5 +41,4 @@ def read_problem(filename):
     problem = read(filename)
     problem.setup()
     plot(problem.dag)
-    return problem    
-    
+    return problem
