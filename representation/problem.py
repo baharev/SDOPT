@@ -10,9 +10,12 @@ from nodes.pprinter import pprint_one_constraint
 #       - Clean up test, improve coverage
 #       - import sparsity pattern from AMPL
 #       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
+#       - report / fix plotting bugs
+#       - code generation for AD and constraint propagation
 #       - Where are the var bounds? -> For named ones, at the definition,
 #                                      CSEs *must* not have any, assert inserted
-#       - color given nodes on the plot yellow
+#       - color given nodes on the plot yellow (selected ones for debugging,
+#             sinks, def var nodes, etc.)
 #       - try to get defined variable names
 #
 #       - defined var topological orders should be stored as well
