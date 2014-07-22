@@ -23,6 +23,7 @@ def eval(v):
 
 postamble = '    return con\n'
 
+# FIXME Move code generation code to pprinter, where it belongs
 def prepare_evaluation_code(f):
     problem = read_problem(f, to_plot=False)
     code = StringIO()
