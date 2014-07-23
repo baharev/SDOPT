@@ -11,6 +11,7 @@ from nodes.pprinter import pprint_one_constraint
 #       - import sparsity pattern from AMPL
 #       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
 #       - report / fix plotting bugs
+#       - consider iterators when iterating over a set of nodes, return tuples
 #       - code generation for AD and constraint propagation
 #       - Where are the var bounds? -> For named ones, at the definition,
 #                                      CSEs *must* not have any, assert inserted
