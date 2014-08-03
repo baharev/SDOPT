@@ -3,6 +3,8 @@ from nodes.attributes import NodeAttr
 from itertools import izip
 import math
 import representation.dag_util as du
+from StringIO import StringIO
+from util.redirect_stdout import redirect_stdout
 
 def to_str(number):
     return str(number) if number >= 0 else '({})'.format(number)
@@ -144,4 +146,38 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, nvars):
     else:
         print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
     print()
+
+################################################################################
+
+# TODO Properly assert nvars == ncons
+preamble = \
+'''
+from math import exp
+
+def eval(v):
+    con = [ float('NaN') ] * len(v)
+
+'''
+
+postamble = '    return con\n'
+
+def prepare_evaluation_code(problem):
+    code = StringIO()
+    code.write(preamble)
+    for line in get_constraint_evaluation_py_code(problem):
+        code.write(line)
+    code.write(postamble)
+    res = code.getvalue()
+    code.close() # TODO make it with with statement
+    return res
+
+def get_constraint_evaluation_py_code(p):
+    ostream = StringIO()
+    with redirect_stdout(ostream):
+        p.pprint_constraints()
+    # prepend indentation, keep line ends
+    code = ['    %s' % l for l in ostream.getvalue().splitlines(True)]
+    ostream.close() # TODO make it with with statement
+    return code
+
 
