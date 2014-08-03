@@ -2,7 +2,6 @@ from __future__ import print_function
 import unittest
 from coconut_parser.dag_parser import read_problem
 from nodes.pprinter import prepare_evaluation_code
-from nodes import pprinter
 
 # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
 def import_code(code, name):

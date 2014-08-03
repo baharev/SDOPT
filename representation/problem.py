@@ -59,7 +59,7 @@ class Problem:
         self.reconstruct_CSEs()
         self.remove_unused_def_vars()
         self.remove_identity_sum_nodes()
-        #self.remove_def_var_aliasing_another_node()
+        self.remove_def_var_aliasing_another_node()
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
@@ -181,7 +181,6 @@ class Problem:
         if old_def_var in self.defined_vars:
             # move defined var from old_def_var to new_def_var
             self.defined_vars.remove(old_def_var)
-            self.defined_vars.add(new_def_var)
             # transfer var_num; if new_def_var is already a defined var
             # then keep the smaller var_num
             var_num = d[NodeAttr.var_num]
@@ -206,7 +205,6 @@ class Problem:
             pred = dag.pred[n].keys()[0]
             in_mul  = dag.edge[pred][n]['weight']
             d = dag.node[n]
-            assert NodeAttr.bounds not in d, d
             d_term  = d.get(NodeAttr.d_term, 0.0)
             if in_mul==1.0 and d_term==0.0:
                 to_delete[n] = pred
