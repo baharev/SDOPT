@@ -58,13 +58,11 @@ def idx_str(i, nvars, con_dag):
     return 't%d' % i
 
 def lin_comb_str(n, d, con_dag, nvars, op='+'):
-    # for 1..n: lambda_1*child_1 op lambda_2*child_2 ... op lambda_n*child_n
+    # for 1..n: lambda_1*predec_1 op lambda_2*predec_2 ... op lambda_n*predec_n
     #   where op is + or *
-    pred = d[NodeAttr.input_ord]
-    mult = [con_dag[c][n]['weight'] for c in pred]
     s = []
-    for c, lam in izip(pred, mult):
-        s.append('%s%s' % (lambda_to_str(lam), idx_str(c, nvars, con_dag)))
+    for lam, predec  in izip(*inedge_mult(n, d, con_dag)):
+        s.append('%s%s' % (lambda_to_str(lam), idx_str(predec, nvars, con_dag)))
     return (' %s ' % op).join(s)
 
 def sum_node_str(n, d, con_dag, nvars):
@@ -76,14 +74,12 @@ def mul_node_str(n, d, con_dag, nvars):
     return  lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, nvars, '*')
 
 def div_node_str(n, d, con_dag, nvars):
-    assert len(con_dag.pred[n])==2, 'Expected exactly two children %s' % d
-    d_term = d.get(NodeAttr.d_term, 1.0)
-    pred   = d[NodeAttr.input_ord]
-    # pred == con_dag.pred[n] should hold too
-    assert len(pred)==2, 'Expected exactly two children %s' % d
-    mult   = [con_dag[c][n]['weight'] for c in pred]
+    mult, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
     nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], nvars, con_dag)
     denom  = lambda_to_str(mult[1]) + idx_str(pred[1], nvars, con_dag)
+    d_term = d.get(NodeAttr.d_term, 1.0)
     return lmul_d_term_str(d_term) + '(' + nomin + ')/(' + denom + ')'
 
 def exp_node_str(n, d, con_dag, nvars):
@@ -100,6 +96,11 @@ def var_node_str(n, d, con_dag, nvars):
 
 def num_node_str(n, d, con_dag, nvars):
     return str(d[NodeAttr.number])
+
+def inedge_mult(n, d, con_dag):
+    pred = d[NodeAttr.input_ord]
+    mult = [con_dag[p][n]['weight'] for p in pred]
+    return mult, pred
 
 ################################################################################
 
