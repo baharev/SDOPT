@@ -14,7 +14,8 @@ class ResidualTest(unittest.TestCase):
 
     def test_files(self):
         files = ['/home/ali/pyton-ws/sparse-matrix-computations/dag/JacobsenDbg.dag',
-                 '/home/ali/pyton-ws/sparse-matrix-computations/dag/mssTornDbg.dag' ]
+                 '/home/ali/pyton-ws/sparse-matrix-computations/dag/mssTornDbg.dag',
+                 '/home/ali/pyton-ws/sparse-matrix-computations/dag/Luyben.dag' ]
         for dag_file in files:
             problem = read_problem(dag_file, to_plot=False)
             residual_code = prepare_evaluation_code(problem)
