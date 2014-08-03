@@ -152,8 +152,7 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, nvars):
 
 # TODO Properly assert nvars == ncons
 preamble = \
-'''
-from math import exp
+'''from math import exp, log
 
 def eval(v):
     con = [ float('NaN') ] * len(v)
@@ -181,4 +180,10 @@ def get_constraint_evaluation_py_code(p):
     ostream.close() # TODO make it with with statement
     return code
 
+def dbg_dump_code(residual_code, v):
+    print(residual_code)
+    print('''if __name__=='__main__':''')
+    print(  '    v =', v)
+    print(  '    con = eval(v)')
+    print(  '    print con \n\n')
 

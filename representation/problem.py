@@ -59,7 +59,7 @@ class Problem:
         self.reconstruct_CSEs()
         self.remove_unused_def_vars()
         self.remove_identity_sum_nodes()
-        self.remove_def_var_aliasing_another_node()
+        #self.remove_def_var_aliasing_another_node()
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
