@@ -6,7 +6,9 @@ from networkx.algorithms.dag import ancestors, topological_sort
 from nodes.pprinter import pprint_one_constraint
 
 # TODO: - Put solution to tracepoint in AMPL automatically, maybe .sol file to
-#             converter?
+#             converter?  -> set the solver and call solve at the end of the
+#                            .mod file; the solution appears in the .nl file as
+#                            a tracepoint
 #       - Clean up test, improve coverage
 #       - import sparsity pattern from AMPL
 #       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
