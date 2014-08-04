@@ -69,6 +69,9 @@ def square(node_id, elems, attr):
     attr[NodeAttr.operation] = 'sqr'
     attr[NodeAttr.type] = sqr_node
 
+def coconut_simplifier_ignored(node_id, elems, attr):
+    pass
+
 def unimplemented(node_id, elems, attr):
     raise NotImplementedError('%d  %s' % (node_id, elems))
 
@@ -77,6 +80,7 @@ lookup_table = {  'b':   bounds,
                   'C':   constant,
                   'd':   d_term,
                   'n':   n_term,
+                  's':   coconut_simplifier_ignored,
                   '+':   sumnode,
                   '*':   mul,
                   '/':   div,

@@ -35,6 +35,7 @@ class ResidualTest(unittest.TestCase):
             self.assertLess(max_residual, 1.0e-6, \
                             'Large constraint violation\n%s' % residuals)
             print('PASSED:', dag_file)
+        #read_problem('/home/ali/pyton-ws/sparse-matrix-computations/dag/ex9_2_8.dag')
 
 #if __name__ == '__main__':
 #    unittest.main()
