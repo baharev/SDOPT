@@ -172,7 +172,7 @@ def add_keep_smaller(mapping, key, value):
 def assert_source(dag, node_id):
     assert is_source(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
 
-def assert_CSE_defining_constraints(dag, con_ends, named_vars):
+def assert_CSE_defining_constraints(dag, con_ends, base_vars):
     # A constraint (sum) node immediately followed by an unnamed var node; with
     # an edge from the var node to the sum node; and the rhs of the constraint
     # is a real number, not an interval.
@@ -193,7 +193,7 @@ def assert_CSE_defining_constraints(dag, con_ends, named_vars):
         def_var = dag.node[n+1]
         assert def_var[NodeAttr.type]==nodes.var_node, \
                                  'expected a var_node, found: %s' % def_var
-        assert n+1 not in named_vars,'expected an unnamed var, found %s' % def_var
+        assert n+1 not in base_vars,'expected an unnamed var, found %s' % def_var
         assert NodeAttr.bounds not in def_var, \
                             'CSEs must not have bounds, found\n  %s' % def_var
         assert n in dag.edge[n+1],'Nodes not connected:\n %s \n %s'%(d,def_var)
