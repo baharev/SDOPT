@@ -61,8 +61,16 @@ def log(node_id, elems, attr):
     attr[NodeAttr.operation] = 'log'
     attr[NodeAttr.type] = log_node
 
+def power(node_id, elems, attr):
+    attr[NodeAttr.operation] = 'pow'
+    attr[NodeAttr.type] = pow_node
+
+def square(node_id, elems, attr):
+    attr[NodeAttr.operation] = 'sqr'
+    attr[NodeAttr.type] = sqr_node
+
 def unimplemented(node_id, elems, attr):
-    pass
+    raise NotImplementedError('%d  %s' % (node_id, elems))
 
 lookup_table = {  'b':   bounds,
                   'V':   var_number,
@@ -73,4 +81,6 @@ lookup_table = {  'b':   bounds,
                   '*':   mul,
                   '/':   div,
                   'exp': exp,
-                  'log': log }
+                  'log': log,
+                  '^'  : power,
+                  '2'  : square }

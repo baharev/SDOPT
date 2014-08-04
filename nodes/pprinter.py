@@ -81,11 +81,24 @@ def div_node_str(n, d, con_dag, named_vars):
     d_term = d.get(NodeAttr.d_term, 1.0)
     return lmul_d_term_str(d_term) + '(' + nomin + ')/(' + denom + ')'
 
+def pow_node_str(n, d, con_dag, named_vars):
+    mult, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    d_term = d.get(NodeAttr.d_term, 0.0)
+    base  = lambda_to_str(mult[0]) + idx_str(pred[0], named_vars, con_dag)
+    base += add_d_term_str(d_term)
+    power = lambda_to_str(mult[1]) + idx_str(pred[1], named_vars, con_dag)
+    return  'pow(' + base + ', ' + power + ')'
+
 def exp_node_str(n, d, con_dag, named_vars):
     return 'exp(' + lin_comb_str(n, d, con_dag, named_vars) + ')'
 
 def log_node_str(n, d, con_dag, named_vars):
     return 'log(' + lin_comb_str(n, d, con_dag, named_vars) + ')'
+
+def sqr_node_str(n, d, con_dag, named_vars):
+    return '(' + lin_comb_str(n, d, con_dag, named_vars) + ')**2'
 
 def var_node_str(n, d, con_dag, named_vars):
     # Assumes a defined variable, names variables must not be printed this way!

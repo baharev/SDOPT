@@ -10,13 +10,18 @@ def import_code(code, name):
     exec code in module.__dict__
     return module
 
+
+def gen_testfiles():
+    test_dir = '/home/ali/pyton-ws/sparse-matrix-computations/dag/'
+    test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
+                  'tunnelDiodes', 'mss20heatBalance' ]
+    for basename in test_cases:
+        yield '{dir}{filename}.dag'.format(dir=test_dir, filename=basename)
+
 class ResidualTest(unittest.TestCase):
 
     def test_files(self):
-        files = ['/home/ali/pyton-ws/sparse-matrix-computations/dag/JacobsenDbg.dag',
-                 '/home/ali/pyton-ws/sparse-matrix-computations/dag/mssTornDbg.dag',
-                 '/home/ali/pyton-ws/sparse-matrix-computations/dag/Luyben.dag' ]
-        for dag_file in files:
+        for dag_file in gen_testfiles():
             problem = read_problem(dag_file, to_plot=False)
             residual_code = prepare_evaluation_code(problem)
             # Dumps the debug code being executed

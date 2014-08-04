@@ -5,13 +5,16 @@ from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 from nodes.pprinter import pprint_one_constraint
 
-# TODO: - Put solution to tracepoint in AMPL automatically, maybe .sol file to
-#             converter?  -> set the solver and call solve at the end of the
-#                            .mod file; the solution appears in the .nl file as
-#                            a tracepoint
-#       - Clean up test, improve coverage
-#       - import sparsity pattern from AMPL
+# TODO: - Clean up test, improve coverage
+#       - naming issue: named vars should be base vars;
+#             for base vars: var_num < nvars
+#       - try to get defined variable names -> they have appeared!!!
+#                                              print them, where appropriate
+#       - In the simplifier, reconstruct exact integer powers (e.g. x**3)
+#       - import sparsity pattern and suffixes from AMPL
 #       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
+#             and report only count the sink and source types if there are too
+#             many
 #       - report / fix plotting bugs
 #       - consider iterators when iterating over a set of nodes, return tuples
 #       - code generation for AD and constraint propagation
@@ -19,13 +22,17 @@ from nodes.pprinter import pprint_one_constraint
 #                                      CSEs *must* not have any, assert inserted
 #       - color given nodes on the plot yellow (selected ones for debugging,
 #             sinks, def var nodes, etc.)
-#       - try to get defined variable names
 #
 #       - defined var topological orders should be stored as well
 #         not clear how to avoid recomputations, maybe removing
 #         aliases wasn't the best idea? -> Cut corners, ignore inefficiencies
 #                                          for now; def vars won't be that
 #                                          common anyway with connected units
+#
+#       - Put solution to tracepoint in AMPL automatically, maybe .sol file to
+#             converter?  -> set the solver and call solve at the end of the
+#                            .mod file; the solution appears in the .nl file as
+#                            a tracepoint
 
 class Problem:
 
@@ -89,7 +96,7 @@ class Problem:
         var_aliases = { } # alias node id -> named var aliased
         # this new dict is needed as we remove nodes from the dag as we reparent
         for node_id, var_num in du.itr_var_num(self.dag, self.var_node_ids):
-            if var_num in self.var_num_name and node_id not in self.named_vars:
+            if var_num < self.nvars and node_id not in self.named_vars:
                 var_aliases[node_id] = self.var_num_id[var_num]
         return var_aliases
 
