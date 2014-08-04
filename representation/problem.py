@@ -103,7 +103,7 @@ class Problem:
     def reconstruct_CSEs(self):
         con_ends = self.get_unnamed_constraints()
         dag = self.dag
-        du.assert_CSE_defining_constraints(dag, con_ends, self.var_num_name)
+        du.assert_CSE_defining_constraints(dag, con_ends, self.base_vars)
         self.eliminate_def_vars(con_ends)
         self.remove_CSE_aliases(con_ends)
 
