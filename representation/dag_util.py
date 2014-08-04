@@ -164,18 +164,13 @@ def replace(arr, old_value, new_value):
         if item==old_value:
             arr[index] = new_value
 
+def add_keep_smaller(mapping, key, value):
+    # mapping[key]=value BUT if key is already present, keeps smaller value
+    old_value = mapping.get(key,  value)
+    mapping[key] = min(old_value, value)
+
 def assert_source(dag, node_id):
     assert is_source(dag, node_id), 'node %d %s' % (node_id, dag.node[node_id])
-
-def assert_var_num_equals_node_id_for_named_vars(dag, var_num_name):
-    for var_num in var_num_name:
-        assert var_num in dag, 'var_num %d should be a node id' % var_num
-        d = dag.node[var_num]
-        assert d.has_key(NodeAttr.var_num), 'expected a var node,  found %s' % d
-        assert d.has_key(NodeAttr.name),    'expected a named var, found %s' % d
-        var_num_on_node = d[NodeAttr.var_num]
-        assert var_num_on_node==var_num, 'var_num on node %d, expected %d; %s' % \
-                                         (var_num_on_node, var_num, d)
 
 def assert_CSE_defining_constraints(dag, con_ends, named_vars):
     # A constraint (sum) node immediately followed by an unnamed var node; with

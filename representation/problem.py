@@ -34,7 +34,9 @@ class Problem:
         self.con_ends_num = { } # con sink node -> con num (in AMPL)
         self.con_num_name = { } # con num -> con name (in AMPL)
         self.var_num_name = { } # var num (in AMPL) -> var name (in AMPL)
-        self.var_node_ids = set()
+        self.var_node_ids = set() # initially all var node ids
+        self.var_num_id   = { }   # only named vars: var num -> smallest node id
+        self.named_vars   = { }   # named var node id -> var num
         self.defined_vars = set() # node ids after elimination
         self.model_name   = '(none)'
         self.nvars        = int(-1) # number of variables
@@ -47,13 +49,11 @@ class Problem:
         dag.graph['name'] = self.model_name
         self.setup_constraint_names()
         self.setup_nodes()
+        self.named_vars = { v : k for k, v in self.var_num_id.iteritems() }
         # The followings are simplifications
         #-------------------------------------------
         # remove bogus named var aliasing
-        du.assert_var_num_equals_node_id_for_named_vars(dag, self.var_num_name)
-        # remove named vars from var_node_ids, we asserted just above that
-        # they are nodes 0:nvars
-        self.var_node_ids.difference_update( xrange(self.nvars) )
+        self.var_node_ids.difference_update(self.named_vars.viewkeys())
         # the rest assumes that named var nodes are no longer in var_node_ids!
         self.remove_var_aliases()
         #-------------------------------------------
@@ -88,10 +88,9 @@ class Problem:
     def get_var_aliases(self):
         var_aliases = { } # alias node id -> named var aliased
         # this new dict is needed as we remove nodes from the dag as we reparent
-        nvars = self.nvars
         for node_id, var_num in du.itr_var_num(self.dag, self.var_node_ids):
-            if var_num < nvars: # true if referencing a named var; false for CSE
-                var_aliases[node_id] = var_num
+            if var_num in self.var_num_name and node_id not in self.named_vars:
+                var_aliases[node_id] = self.var_num_id[var_num]
         return var_aliases
 
     def reconstruct_CSEs(self):
@@ -187,8 +186,7 @@ class Problem:
             # then keep the smaller var_num
             var_num = d[NodeAttr.var_num]
             d_pred  = self.dag.node[new_def_var]
-            old_var_num = d_pred.get(NodeAttr.var_num, var_num)
-            d_pred[NodeAttr.var_num] = min(var_num, old_var_num)
+            du.add_keep_smaller(d_pred, NodeAttr.var_num, var_num)
 
     def remove_def_var_aliasing_another_node(self):
         dag = self.dag
@@ -216,9 +214,9 @@ class Problem:
     def collect_constraint_topological_orders(self):
         dag = self.dag
         for sink_node in self.con_ends_num:
-            dependecies = ancestors(dag, sink_node)
-            dependecies.add(sink_node)
-            con_dag = dag.subgraph(dependecies)
+            dependencies = ancestors(dag, sink_node)
+            dependencies.add(sink_node)
+            con_dag = dag.subgraph(dependencies)
             eval_order = du.deterministic_topological_sort(con_dag)
             self.con_top_ord[sink_node] = eval_order
 
@@ -227,8 +225,8 @@ class Problem:
             eval_order = self.con_top_ord[sink_node]
             con_num = self.con_ends_num[sink_node]
             con_dag = self.dag.subgraph(eval_order)
-            nvars   = self.nvars
-            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, nvars)
+            named_vars = self.named_vars
+            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, named_vars)
 
     def dbg_show_node_types(self):
         dag = self.dag

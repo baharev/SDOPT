@@ -29,6 +29,7 @@ class ResidualTest(unittest.TestCase):
             # TODO If fails, give the violated constraint name
             self.assertLess(max_residual, 1.0e-6, \
                             'Large constraint violation\n%s' % residuals)
+            print('PASSED:', dag_file)
 
 #if __name__ == '__main__':
 #    unittest.main()
