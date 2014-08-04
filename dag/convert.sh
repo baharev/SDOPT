@@ -32,7 +32,9 @@ model_path=$(dirname $model_file)
 model_file=$(basename $model_file)
 model_name=${model_file%.*}
 
-cd $model_path && $AMPL2DAG $model_file
+rm -f $model_name.col $model_name.row $model_name.nl $model_name.sol $model_name.dag
+
+$AMPL2DAG $model_file
 
 if [ $? -ne 0 ]; then
   if [ -f $model_name.tmp ] 
