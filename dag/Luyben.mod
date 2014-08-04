@@ -105,9 +105,5 @@ option var_bounds 2;
 option nl_comments 1;
 option nl_permute 0;
 
-option auxfiles rc;
-
-write gLuyben;
-
 option solver "/home/ali/ampl/ipopt";
 solve;

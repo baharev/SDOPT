@@ -195,10 +195,6 @@ for {i in 1..C, j in 2..N} {
 for {i in 1..C}
   let M_tot[i].blockid := N;
 
-option auxfiles rc;
-
-write gmssTornDbg;
-
 ########################################################################
 
 print "Constraint suffixes missing: ";
@@ -222,5 +218,5 @@ for {k in 1.._snvars} {
 ###############################################################################
 
 option solver "/home/ali/ampl/ipopt";
-
 solve;
+

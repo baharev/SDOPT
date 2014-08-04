@@ -211,5 +211,5 @@ option nl_permute 0;
 option display_precision 0;
 
 option solver "/home/ali/ampl/ipopt";
-
 solve;
+

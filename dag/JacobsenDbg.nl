@@ -6,7 +6,7 @@ g9 4 2 0 6 20140224 0 1 0 241	# problem JacobsenDbg
  0 0 0 1	# linear network variables; functions; arith, flags
  0 0 0 0 0	# discrete variables: binary, integer, nonlinear (b,c,o)
  26 0	# nonzeros in Jacobian, gradients
- 20 4	# max name lengths: constraints, variables
+ 20 5	# max name lengths: constraints, variables
  0 11 0 5 0	# common exprs: b,c,o,c1,o1
 S0 6 blockid
 0 2

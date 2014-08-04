@@ -26,5 +26,5 @@ option substout 0;
 option show_stats 1;
 
 option solver "/home/ali/ampl/ipopt";
-
 solve;
+

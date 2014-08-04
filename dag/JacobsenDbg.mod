@@ -143,8 +143,6 @@ option display_precision 0;
 
 option display_precision 0;
 
-option auxfiles rc;
-
 ################################################################################
 
 print "Assigning suffixes";
@@ -173,14 +171,6 @@ let spec_Lw.blockid := N;
 
 ################################################################################
 
-print "Before write command";
-
-write gJacobsenDbg;
-
-print "Done with write";
-
-########################################################################
-
 print "Constraint suffixes missing: ";
 
 for {k in 1.._sncons} { 
@@ -200,21 +190,4 @@ for {k in 1.._snvars} {
 }
 
 option solver "/home/ali/ampl/ipopt";
-
 solve;
-
-end;
-
-print "===========================================";
-
-print "Constraints: ";
-
-for {k in 1.._sncons}
-  print _sconname[k],"  ",_scon[k].blockid;
-  
-print "Variables: ";
-
-for {k in 1.._snvars}
-    print _svarname[k],"  ",_svar[k].blockid;
-
-

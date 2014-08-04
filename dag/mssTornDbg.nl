@@ -6,7 +6,7 @@ g9 2 2 0 12 20140224 0 1 0 241	# problem mssTornDbg
  0 0 0 1	# linear network variables; functions; arith, flags
  0 0 0 0 0	# discrete variables: binary, integer, nonlinear (b,c,o)
  57 0	# nonzeros in Jacobian, gradients
- 9 6	# max name lengths: constraints, variables
+ 9 20	# max name lengths: constraints, variables
  0 39 0 36 0	# common exprs: b,c,o,c1,o1
 S0 12 blockid
 0 2
