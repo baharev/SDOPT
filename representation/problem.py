@@ -7,7 +7,9 @@ from nodes.pprinter import pprint_one_constraint
 
 # TODO: - Clean up test, improve coverage
 #       - naming issue: named vars should be base vars;
-#             for base vars: var_num < nvars
+#             for base vars: var_num < nvars; OK, now fixed, but the code could
+#             be improved; there is no need to track the base and defined
+#             variables, it *should* be easy to identify them (var_num < nvars)
 #       - try to get defined variable names -> they have appeared!!!
 #                                              print them, where appropriate
 #       - In the simplifier, reconstruct exact integer powers (e.g. x**3)

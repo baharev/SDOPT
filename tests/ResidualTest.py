@@ -1,5 +1,6 @@
 from __future__ import print_function
 import unittest
+import os
 from coconut_parser.dag_parser import read_problem
 from nodes.pprinter import prepare_evaluation_code
 
@@ -11,18 +12,20 @@ def import_code(code, name):
     return module
 
 
-def gen_testfiles():
+def dag_files():
     test_dir = '/home/ali/pyton-ws/sparse-matrix-computations/dag/'
-    # 
-    test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
-                  'tunnelDiodes', 'mss20heatBalance' ]
-    for basename in test_cases:
-        yield '{dir}{filename}.dag'.format(dir=test_dir, filename=basename)
+    #
+    #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
+    #              'tunnelDiodes', 'mss20heatBalance' ]
+    test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
+    #test_cases = ['JacobsenTorn.dag']
+    return [ '{dir}{filename}'.format(dir=test_dir, filename=basename) \
+               for basename in test_cases ]
 
 class ResidualTest(unittest.TestCase):
 
     def test_files(self):
-        for dag_file in gen_testfiles():
+        for dag_file in dag_files():
             problem = read_problem(dag_file, to_plot=False)
             residual_code = prepare_evaluation_code(problem)
             # Dumps the debug code being executed
@@ -36,7 +39,7 @@ class ResidualTest(unittest.TestCase):
             self.assertLess(max_residual, 1.0e-6, \
                             'Large constraint violation\n%s' % residuals)
             print('PASSED:', dag_file)
-        #read_problem('/home/ali/pyton-ws/sparse-matrix-computations/dag/ex9_2_8.dag')
+        #read_problem('/home/ali/pyton-ws/sparse-matrix-computations/dag/ex9_2_8.txt')
 
 #if __name__ == '__main__':
 #    unittest.main()
