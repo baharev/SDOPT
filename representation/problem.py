@@ -1,4 +1,5 @@
 from __future__ import print_function
+from collections import OrderedDict
 import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
@@ -74,7 +75,7 @@ class Problem:
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
-        self.pprint_constraints()
+        #self.pprint_constraints()
         #-------------------------------------------
         du.dbg_info(dag)
 
@@ -167,13 +168,16 @@ class Problem:
         for n, (pred, succ) in to_delete.iteritems():
             du.remove_node(dag, n)
             d = dag.node[succ] # may need it to transfer var_num to new parent
+            # In case we already deleted pred in a previous round...
+            # reparent would insert it and we would have a node with an empty dict
+            assert pred in dag, '{}, ({},{})'.format(n, pred, succ)
             du.reparent(dag, pred, succ, new_parent_is_source=False)
             self.update_defined_var_bookkeeping(pred, succ, d)
 
     def get_identity_sum_nodes(self):
         # SISO sum nodes with in and out edge weight == 1 and d_term == 0
         dag = self.dag
-        to_delete = { }
+        remove = { }
         for n in du.itr_siso_sum_nodes(dag):
             pred = dag.pred[n].keys()[0]
             succ = dag.succ[n].keys()[0]
@@ -183,7 +187,10 @@ class Problem:
             d_term  = d.get(NodeAttr.d_term, 0.0)
             assert NodeAttr.bounds not in d, d
             if in_mul==1.0 and out_mul==1.0 and d_term==0.0:
-                to_delete[n] = (pred, succ)
+                remove[n] = (pred, succ)
+        # We delete moving backwards, otherwise we may delete the node of a
+        # later dependence (e.g. JacobsenTorn.dag)
+        to_delete = OrderedDict(sorted(remove.items(), key=lambda t: -t[0]))
         print('identity sum nodes:', to_delete)
         return to_delete
 
