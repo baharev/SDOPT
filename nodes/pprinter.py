@@ -101,7 +101,8 @@ def sqr_node_str(n, d, con_dag, base_vars):
     return '(' + lin_comb_str(n, d, con_dag, base_vars) + ')**2'
 
 def var_node_str(n, d, con_dag, base_vars):
-    # Assumes a defined variable, names variables must not be printed this way!
+    # Assumes a defined variable
+    assert n not in base_vars
     assert NodeAttr.input_ord in d, '%d, %s' % (n, d)
     pred = d[NodeAttr.input_ord]
     assert len(pred)==1

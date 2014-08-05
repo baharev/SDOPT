@@ -10,7 +10,8 @@ from nodes.pprinter import pprint_one_constraint
 #       - naming issue: named vars should be base vars;
 #             for base vars: var_num < nvars; OK, now fixed, but the code could
 #             be improved; there is no need to track the base and defined
-#             variables, it *should* be easy to identify them (var_num < nvars)
+#             variables, it *should* be easy to identify base vars
+#             (var_num < nvars) and everything else should be defined var
 #       - try to get defined variable names -> they have appeared!!!
 #                                              print them, where appropriate
 #       - In the simplifier, reconstruct exact integer powers (e.g. x**3)
@@ -59,6 +60,7 @@ class Problem:
         dag.graph['name'] = self.model_name
         self.setup_constraint_names()
         self.setup_nodes()
+        # for base vars: setup_nodes() only stores the smallest id in var_num_id
         self.base_vars = { v : k for k, v in self.var_num_id.iteritems() }
         # The followings are simplifications
         #-------------------------------------------
@@ -91,8 +93,10 @@ class Problem:
 
     def remove_var_aliases(self):
         var_aliases = self.get_var_aliases()
-        for node_id, var_num in var_aliases.iteritems():
-            du.reparent(self.dag, var_num, node_id)
+        dag = self.dag
+        for aliasing_var_node, base_var_node in var_aliases.iteritems():
+            du.assert_source(dag, base_var_node)
+            du.reparent(dag, base_var_node, aliasing_var_node)
         self.var_node_ids -= var_aliases.viewkeys()
 
     def get_var_aliases(self):
@@ -100,7 +104,8 @@ class Problem:
         # this new dict is needed as we remove nodes from the dag as we reparent
         for node_id, var_num in du.itr_var_num(self.dag, self.var_node_ids):
             if var_num < self.nvars and node_id not in self.base_vars:
-                var_aliases[node_id] = self.var_num_id[var_num]
+                base_var_node = self.var_num_id[var_num]
+                var_aliases[node_id] = base_var_node
         return var_aliases
 
     def reconstruct_CSEs(self):
@@ -138,7 +143,7 @@ class Problem:
             var_num = dag.node[var_node][NodeAttr.var_num]
             def_node = var_num_def_node[var_num]
             assert def_node!=var_node, '%d, %d' % (def_node, var_node)
-            du.reparent(dag, def_node, var_node, new_parent_is_source=False)
+            du.reparent(dag, def_node, var_node)
         self.var_node_ids.clear() # after eliminating the CSEs, we don't need it
 
     def remove_unused_def_vars(self):
@@ -168,10 +173,7 @@ class Problem:
         for n, (pred, succ) in to_delete.iteritems():
             du.remove_node(dag, n)
             d = dag.node[succ] # may need it to transfer var_num to new parent
-            # In case we already deleted pred in a previous round...
-            # reparent would insert it and we would have a node with an empty dict
-            assert pred in dag, '{}, ({},{})'.format(n, pred, succ)
-            du.reparent(dag, pred, succ, new_parent_is_source=False)
+            du.reparent(dag, pred, succ)
             self.update_defined_var_bookkeeping(pred, succ, d)
 
     def get_identity_sum_nodes(self):
@@ -202,7 +204,7 @@ class Problem:
             # then keep the smaller var_num
             var_num = d[NodeAttr.var_num]
             d_pred  = self.dag.node[new_def_var]
-            du.add_keep_smaller(d_pred, NodeAttr.var_num, var_num)
+            du.add_keep_smaller_value(d_pred, NodeAttr.var_num, var_num)
 
     def remove_def_var_aliasing_another_node(self):
         dag = self.dag
@@ -210,7 +212,7 @@ class Problem:
         for n, pred in to_delete.iteritems():
             d = dag.node[n]  # need it to transfer var_num to new parent
             dag.remove_edge(pred, n)
-            du.reparent(dag, pred, n, new_parent_is_source=False)
+            du.reparent(dag, pred, n)
             self.update_defined_var_bookkeeping(pred, n, d)
 
     def get_def_var_aliasing_another_node(self):

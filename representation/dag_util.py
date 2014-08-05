@@ -121,15 +121,14 @@ def add_edge(dag, src, dest, attr_dict):
     dag.add_edge(src, dest, attr_dict)
     dag.node[dest].setdefault(NodeAttr.input_ord, array('l')).append(src)
 
-def reparent(dag, new_parent, node_to_del, new_parent_is_source=True):
+def reparent(dag, new_parent, node_to_del):
     # delete node_to_del and connect all children to new_parent, with edge dict;
     # update each child's input order array to contain the new parent
     out_edges = dag.edge[node_to_del]
-    # print()
-    # print(new_parent, node_to_del, out_edges)
+    # In case we already deleted the new parent in a previous round; reparent
+    # would insert it again and that node would have an empty dict
+    assert new_parent in dag, '{}, {}'.format(new_parent, node_to_del)
     assert_source(dag, node_to_del)
-    if new_parent_is_source:
-        assert_source(dag, new_parent)
     remove_node(dag, node_to_del)
     for child_id, edge_dict in out_edges.iteritems():
         dag.add_edge(new_parent, child_id, edge_dict)
@@ -164,7 +163,7 @@ def replace(arr, old_value, new_value):
         if item==old_value:
             arr[index] = new_value
 
-def add_keep_smaller(mapping, key, value):
+def add_keep_smaller_value(mapping, key, value):
     # mapping[key]=value BUT if key is already present, keeps smaller value
     old_value = mapping.get(key,  value)
     mapping[key] = min(old_value, value)
