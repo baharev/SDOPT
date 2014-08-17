@@ -13,7 +13,7 @@ def import_code(code, name):
 
 
 def dag_files():
-    test_dir = '/home/ali/pyton-ws/sparse-matrix-computations/dag/'
+    test_dir = '../dag/'
     #
     #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
     #              'tunnelDiodes', 'mss20heatBalance' ]
