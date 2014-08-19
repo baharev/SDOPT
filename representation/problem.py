@@ -4,7 +4,7 @@ import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
-from nodes.pprinter import pprint_one_constraint
+import nodes.pprinter as pp
 
 # TODO: - Clean up test, improve coverage
 #       - naming issue: named vars should be base vars;
@@ -244,7 +244,9 @@ class Problem:
             con_num = self.con_ends_num[sink_node]
             con_dag = self.dag.subgraph(eval_order)
             base_vars = self.base_vars
-            pprint_one_constraint(sink_node, con_num, con_dag, eval_order, base_vars)
+            def_var_names = self.var_num_name
+            pp.print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
 
     def dbg_show_node_types(self):
         dag = self.dag

@@ -118,7 +118,7 @@ def inedge_mult(n, d, con_dag):
 
 ################################################################################
 
-def pprint_one_constraint(sink_node, con_num, con_dag, eval_order, base_vars):
+def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
     # Handle silly edge case first: apparently just variable bounds
     d_sink = con_dag.node[sink_node]
     if len(eval_order)==1:
@@ -131,7 +131,7 @@ def pprint_one_constraint(sink_node, con_num, con_dag, eval_order, base_vars):
     # evaluation in topologically sorted order
     for n, d in itr_nodes_to_pprint(con_dag, eval_order, base_vars):
         body = get_body(n, d, con_dag, base_vars)
-        pprint_node_assignment_with_comment(n, d, body, con_dag)
+        pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
     # residual
     pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars)
 
@@ -145,9 +145,9 @@ def get_body(n, d, con_dag, base_vars):
     formatter = globals()[fmt]
     return formatter(n, d, con_dag, base_vars)
 
-def pprint_node_assignment_with_comment(n, d, body, con_dag):
+def pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names):
     if NodeAttr.var_num in d:
-        print('t%d =' % n, body, ' # var_num %d' % d[NodeAttr.var_num])
+        print('t%d =' % n, body, ' # %s' % def_var_names[d[NodeAttr.var_num]])
     else:
         print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
 
