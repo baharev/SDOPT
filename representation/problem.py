@@ -16,9 +16,8 @@ import nodes.pprinter as pp
 #                                              print them, where appropriate
 #       - In the simplifier, reconstruct exact integer powers (e.g. x**3)
 #       - import sparsity pattern and suffixes from AMPL
-#       - dbg_info, show nvars, ncons, cons type, num of ref sols, model name
-#             and report only count the sink and source types if there are too
-#             many
+#       - dbg_info; problem properites: show nvars, ncons, cons type, 
+#                                       num of ref sols, model name
 #       - report / fix plotting bugs
 #       - consider iterators when iterating over a set of nodes, return tuples
 #       - code generation for AD and constraint propagation
