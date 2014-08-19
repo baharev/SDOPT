@@ -60,12 +60,12 @@ class S_segment():
         self.cols = { }
     def __call__(self, iterable, line):
         kind, length, name = extract_id_len_name(line)
-        key_value = numpy_index_value(iterable, length)
-        keys = key_value[:,0]
-        assert np.all(keys==np.arange(keys.size)),'Unexpected input:\n%s' % keys
         # magic numbers from AMPL doc
-        suffixes = { 0: self.cols, 1: self.rows }.get(kind, { })
-        suffixes.update( {name: np.array(key_value[:,1]) } )
+        suff_type = kind & 3 #  0: col;  1: row;  2: obj;  3: problem
+        value_type = np.float64 if kind & 4 else np.int32
+        index_value = numpy_index_value(iterable, length, value_type)
+        suffixes = { 0: self.cols, 1: self.rows }.get(suff_type, { })
+        suffixes[name] = index_value
 
 def extract_problem_info(second_line):
     data = second_line.split()
@@ -87,26 +87,38 @@ def parse(f):
         func = segments.get(first_char)
         if func:
             func(f, line)
-    print('Finished reading the nl file')
+    print('Finished reading the nl file')            
+    dbg_info(segments)
+    # TODO return something 
+    
+def dbg_info(segments):
     print('k segment')
     print(segments['k'].col_len)
     print('J segment, sparsity pattern')
     dbg_show_jacobian(segments['J'].jacobian)
+    # TODO Check consistency by calculating the k vector from the J segments
     print('row S segments')
-    print(segments['S'].rows)
+    dbg_show_S_segm(segments['S'].rows)
     print('col S segments')    
-    print(segments['S'].cols)
+    dbg_show_S_segm(segments['S'].cols)
     return segments['J'].jacobian, segments['k'].col_len
 
 def dbg_show_jacobian(sparse_mat):
     for i, arr in enumerate(sparse_mat):
-        # pretty print numpy array
-        col_ind = str(arr)
-        beg = col_ind.find('[')+1
-        end = col_ind.rfind(']')
-        print('%d: %s' % (i, col_ind[beg:end]))
+        print('%d: %s' % (i, pretty_str_numpy_array(arr)))
+        
+def dbg_show_S_segm(suffix_dict):
+    for name, index_value in sorted(suffix_dict.iteritems()):
+        print( '  %s: %s' % (name, pretty_str_numpy_array(index_value)) )
+        
+def pretty_str_numpy_array(arr):
+    col_ind = str(arr)
+    beg = col_ind.find('[')+1
+    end = col_ind.rfind(']')
+    return col_ind[beg:end]
 
 def read_flattened_ampl(filename):
+    print('Reading \'%s\'' % filename)
     try:
         f = fileinput.input(filename, mode='r')
         return parse(f)
@@ -116,3 +128,7 @@ def read_flattened_ampl(filename):
 
 if __name__ == '__main__':
     read_flattened_ampl('../dag/Luyben.nl')
+    read_flattened_ampl('../dag/suffix.nl')
+    read_flattened_ampl('../dag/JacobsenDbg.nl')
+    read_flattened_ampl('../dag/mssTornDbg.nl')
+        
