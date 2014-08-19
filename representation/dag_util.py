@@ -14,11 +14,21 @@ def dbg_info(dag):
     print('Is DAG?', nx.is_directed_acyclic_graph(dag))
     nwcc = nx.number_weakly_connected_components(dag)
     print('Weakly connected components:', nwcc)
+    dbg_pprint_source_sink_types(dag)
+    print('-------------------------------------------------------------------')
+    
+def dbg_pprint_source_sink_types(dag):
     source_types = group_node_ids_by_kind(itr_sourcetype_nodeid(dag))
     sink_types   = group_node_ids_by_kind(itr_sinktype_nodeid(  dag))
-    print('Sources:', source_types.items())
-    print('Sink:',    sink_types.items())
-    print('-------------------------------------------------------------------')
+    print('Sources:')
+    dbg_pprint_kind_nodeids(source_types)
+    print('Sinks:')
+    dbg_pprint_kind_nodeids(sink_types)
+    
+def dbg_pprint_kind_nodeids(kind_nodeids):
+    for kind, nodeids in kind_nodeids.iteritems():
+        count = len(nodeids)
+        print(' ', kind, nodeids if count <= 20 else '', '(count=%d)' % count)
 
 def group_node_ids_by_kind(itr_kind_nodeid_pairs):
     types = defaultdict(list)
