@@ -1,5 +1,4 @@
 import numpy as np
-from itertools import groupby
 
 # TODO 1. Reconstruct and somehow visualize blocks
 #      2. Do an ordering in the blocks, along the diagonal 
@@ -22,7 +21,7 @@ def reconstruct_partitions(bsp):
         print('WARNING: No row and/or col partitions!')
         return
     row_partitions = bsp.row_suffixes[bid]
-    col_partitions = bsp.col_suffixes[bid]
+    #col_partitions = bsp.col_suffixes[bid]
     ind = np.argsort(row_partitions, kind='mergesort', order='value')
     print('Sorted by blockid:')
     for i in ind:
