@@ -42,6 +42,10 @@ def itr_sourcetype_nodeid(dag):
 def itr_sinktype_nodeid(dag):
     return ((get_pretty_type_str(dag, n), n) for n in dag if is_sink(dag, n))
 
+def itr_sink_con_num_nodeid(dag):
+    '(con_num, node_id) for sinks only; assumes that the problem has been setup'
+    return ((dag.node[n][NodeAttr.con_num], n) for n in dag if is_sink(dag, n))
+
 def is_source(dag, node_id):
     return len(dag.pred[node_id])==0
 

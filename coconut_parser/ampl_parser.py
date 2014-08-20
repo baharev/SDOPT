@@ -2,6 +2,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
+from representation.block_sparsity_pattern import BlockSparsityPattern
 
 def get_problem_name(iterable):
     first_line = next(iterable)
@@ -85,17 +86,6 @@ def check_J_segment(bsp):
     assert np.all(accum[:-1] == bsp.col_len)
     assert accum[-1] == bsp.nzeros        
 
-class BlockSparsityPattern:
-    def __init__(self, name, nrows, ncols, nzeros):
-        self.name = name
-        self.nrows = nrows
-        self.ncols = ncols
-        self.nzeros = nzeros
-        self.jacobian = [ ] # jacobian[i]: col indices in row i
-        self.col_len = None # redundant info, can be computed from jacobian too
-        self.row_suffixes = { } # suffix name -> np.array of (index, value)
-        self.col_suffixes = { } # suffix name -> np.array of (index, value)
-
 def extract_line_with_first_char(iterable):
     for line in iterable:
         yield line[0], line
@@ -111,8 +101,8 @@ def parse(f):
             func(bsp, f, line)
     check_J_segment(bsp)
     print('Finished reading the nl file')            
-    dbg_info(bsp)
-    # TODO return something 
+    #dbg_info(bsp)
+    return bsp
 
 def dbg_info(bsp):
     print('Problem name:', bsp.name)
