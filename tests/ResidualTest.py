@@ -11,7 +11,6 @@ def import_code(code, name):
     exec code in module.__dict__
     return module
 
-
 def dag_files():
     test_dir = '../dag/'
     #
@@ -39,7 +38,7 @@ class ResidualTest(unittest.TestCase):
             self.assertLess(max_residual, 1.0e-6, \
                             'Large constraint violation\n%s' % residuals)
             print('PASSED:', dag_file)
-        #read_problem('/home/ali/pyton-ws/sparse-matrix-computations/dag/ex9_2_8.txt')
+        #read_problem('../dag/ex9_2_8.txt', crosscheck_sparsity_nl=False)
 
 #if __name__ == '__main__':
 #    unittest.main()

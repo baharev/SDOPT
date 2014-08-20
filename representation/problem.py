@@ -1,5 +1,6 @@
 from __future__ import print_function
 from collections import OrderedDict
+import numpy as np
 import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
@@ -246,6 +247,19 @@ class Problem:
             def_var_names = self.var_num_name
             pp.print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
                                                                   def_var_names)
+
+    def base_var_nums_in_con(self, sink_node): 
+        var_nums = (self.base_vars[n] for n in self.con_top_ord[sink_node] \
+                                       if n in self.base_vars) 
+        return sorted(var_nums)
+
+    def crosscheck_sparsity_pattern(self, jacobian, nrows):
+        checked = [False] * nrows
+        for con_num, n in du.itr_sink_con_num_nodeid(self.dag):
+            base_vars = np.array(self.base_var_nums_in_con(n), np.int32)
+            assert np.all(jacobian[con_num]==base_vars)
+            checked[con_num] = True
+        assert all(checked)
 
     def dbg_show_node_types(self):
         dag = self.dag

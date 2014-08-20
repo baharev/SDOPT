@@ -1,3 +1,6 @@
+'''
+Use only read_flattened_ampl, ignore all other functions.
+'''
 from __future__ import print_function
 import fileinput
 import numpy as np
@@ -123,6 +126,7 @@ def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.iteritems()):
         print( '  %s: %s' % (name, pretty_str_numpy_array(index_value)) )
 
+# TODO Somewhat misplaced utility function
 def pretty_str_numpy_array(arr):
     col_ind = str(arr)
     beg = col_ind.find('[')+1
