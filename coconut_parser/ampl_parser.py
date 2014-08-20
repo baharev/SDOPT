@@ -3,26 +3,29 @@ import fileinput
 import numpy as np
 from itertools import islice
 
+def get_problem_name(iterable):
+    first_line = next(iterable)
+    check_if_text_format(first_line)
+    return first_line.split()[-1] # name: last word on first line
+
 def check_if_text_format(first_line):
     if not first_line.startswith('g'):
         print('First line: \'%s\'' % first_line)
         msg = 'only ASCII format files can be parsed (give flag g to AMPL)'
         raise RuntimeError(msg)
-
+    
 def nth(iterable, n, default=None):
     'Returns the nth item or a default value'
     return next(islice(iterable, n, None), default)
 
 def extract_problem_info(iterable_lines):
-    second_line = next(iterable_lines).strip()
+    second_line = next(iterable_lines)
     data = second_line.split()
     # Magic numbers come from the AMPL doc
-    nrows = data[1] 
-    ncols = data[0]
-    neqns = data[4]
+    nrows, ncols, neqns = data[1], data[0], data[4]  
     if nrows!=neqns:
         print('WARNING: Not all constraints are equality constraints!')
-    eight_line = nth(iterable_lines, 5).strip()
+    eight_line = nth(iterable_lines, 5)
     nzeros = eight_line.split()[0]
     return int(nrows), int(ncols), int(nzeros)
 
@@ -44,80 +47,83 @@ def extract_id_len_name(line):
 def extract_index_value(iterable, length):
     # '3 42.8' -> '3', '42.8'
     for line in islice(iterable, length):
-        # index, value = line.strip().split()
-        yield tuple(line.strip().split())
+        # index, value = line.split()
+        yield tuple(line.split())
 
 def numpy_index_value(iterable, length, value_type):
     dtype = [('index', np.int32), ('value', value_type)]
     return np.fromiter(extract_index_value(iterable, length), dtype)
 
-class J_segment():
+def J_segment(bsp, iterable, line):
     # J5 2
     # 1 1   ->  5: [1, 3], linearity info currently discarded
     # 3 1
-    def __init__(self):
-        self.jacobian = [ ]
-    def __call__(self, iterable, line):
-        row, length = extract_id_len(line)
-        index_value = numpy_index_value(iterable, length, value_type=np.float64)  
-        vars_in_row = index_value['index']  # nonlinearity information discarded
-        assert row==len(self.jacobian), row
-        self.jacobian.append(np.array(vars_in_row, np.int32))
+    row, length = extract_id_len(line)
+    index_value = numpy_index_value(iterable, length, value_type=np.float64)  
+    vars_in_row = index_value['index']  # nonlinearity information discarded
+    assert row==len(bsp.jacobian), row
+    bsp.jacobian.append(np.array(vars_in_row, np.int32))
 
-class k_segment():
-    def __call__(self, iterable, line):
-        length = extract_length(line)
-        self.col_len = np.fromiter(iterable, np.int32, length)
+def k_segment(bsp, iterable, line):
+    length = extract_length(line)
+    bsp.col_len = np.fromiter(iterable, np.int32, length)
 
-class S_segment():
-    def __init__(self, nrows, ncols):
-        self.nrows = nrows
-        self.ncols = ncols
-        self.rows = { }
-        self.cols = { }
-    def __call__(self, iterable, line):
-        kind, length, name = extract_id_len_name(line)
-        # magic numbers from AMPL doc
-        suff_type = kind & 3 #  0: col;  1: row;  2: obj;  3: problem
-        value_type = np.float64 if kind & 4 else np.int32
-        index_value = numpy_index_value(iterable, length, value_type)
-        suffixes = { 0: self.cols, 1: self.rows }.get(suff_type, { })
-        suffixes[name] = index_value
+def S_segment(bsp, iterable, line):
+    kind, length, name = extract_id_len_name(line)
+    # magic numbers from AMPL doc
+    suff_type = kind & 3 #  0: col;  1: row;  2: obj;  3: problem
+    value_type = np.float64 if kind & 4 else np.int32
+    index_value = numpy_index_value(iterable, length, value_type)
+    suffixes = { 0: bsp.col_suffixes, 1: bsp.row_suffixes }.get(suff_type, { })
+    suffixes[name] = index_value
 
-def parse(f):
-    check_if_text_format(next(f))
-    nrows, ncols, nzeros = extract_problem_info(f)
-    segments = { 'J': J_segment(),
-                 'k': k_segment(),
-                 'S': S_segment(nrows, ncols) }
-    for line in f:
-        first_char = line[0]
-        func = segments.get(first_char)
-        if func:
-            func(f, line)
-    check_J_segment(segments['J'].jacobian, ncols, nzeros, segments['k'].col_len)
-    print('Finished reading the nl file')            
-    dbg_info(segments)
-    # TODO return something 
-    
-def check_J_segment(jacobian, ncols, nzeros, col_len):
-    count = np.zeros(ncols, np.int32)
-    for cols in jacobian:
+def check_J_segment(bsp):
+    count = np.zeros(bsp.ncols, np.int32)
+    for cols in bsp.jacobian:
         count[cols] += 1
     accum = np.add.accumulate(count) 
-    assert np.all(accum[:-1] == col_len)
-    assert accum[-1] == nzeros
+    assert np.all(accum[:-1] == bsp.col_len)
+    assert accum[-1] == bsp.nzeros        
 
-def dbg_info(segments):
+class BlockSparsityPattern:
+    def __init__(self, name, nrows, ncols, nzeros):
+        self.name = name
+        self.nrows = nrows
+        self.ncols = ncols
+        self.nzeros = nzeros
+        self.jacobian = [ ] # jacobian[i]: col indices in row i
+        self.col_len = None # redundant info, can be computed from jacobian too
+        self.row_suffixes = { } # suffix name -> np.array of (index, value)
+        self.col_suffixes = { } # suffix name -> np.array of (index, value)
+
+def extract_line_with_first_char(iterable):
+    for line in iterable:
+        yield line[0], line
+
+def parse(f):
+    bsp = BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
+    segments = { 'J': J_segment,
+                 'k': k_segment,
+                 'S': S_segment }
+    for first_char, line in extract_line_with_first_char(f):
+        func = segments.get(first_char)
+        if func:
+            func(bsp, f, line)
+    check_J_segment(bsp)
+    print('Finished reading the nl file')            
+    dbg_info(bsp)
+    # TODO return something 
+
+def dbg_info(bsp):
+    print('Problem name:', bsp.name)
     print('k segment')
-    print(segments['k'].col_len)
+    print(bsp.col_len)
     print('J segment, sparsity pattern')
-    dbg_show_jacobian(segments['J'].jacobian)
+    dbg_show_jacobian(bsp.jacobian)
     print('row S segments')
-    dbg_show_S_segm(segments['S'].rows)
+    dbg_show_S_segm(bsp.row_suffixes)
     print('col S segments')    
-    dbg_show_S_segm(segments['S'].cols)
-    return segments['J'].jacobian, segments['k'].col_len
+    dbg_show_S_segm(bsp.col_suffixes)
 
 def dbg_show_jacobian(sparse_mat):
     for i, arr in enumerate(sparse_mat):
@@ -133,11 +139,15 @@ def pretty_str_numpy_array(arr):
     end = col_ind.rfind(']')
     return col_ind[beg:end]
 
+def lines_with_newline_chars_removed(iterable):
+    for line in iterable:
+        yield line.rstrip()
+
 def read_flattened_ampl(filename):
     print('Reading \'%s\'' % filename)
     try:
         f = fileinput.input(filename, mode='r')
-        return parse(f)
+        return parse(lines_with_newline_chars_removed(f))
     finally:
         print('Read', f.lineno(), 'lines')
         f.close()
