@@ -9,6 +9,23 @@ def check_if_text_format(first_line):
         msg = 'only ASCII format files can be parsed (give flag g to AMPL)'
         raise RuntimeError(msg)
 
+def nth(iterable, n, default=None):
+    'Returns the nth item or a default value'
+    return next(islice(iterable, n, None), default)
+
+def extract_problem_info(iterable_lines):
+    second_line = next(iterable_lines).strip()
+    data = second_line.split()
+    # Magic numbers come from the AMPL doc
+    nrows = data[1] 
+    ncols = data[0]
+    neqns = data[4]
+    if nrows!=neqns:
+        print('WARNING: Not all constraints are equality constraints!')
+    eight_line = nth(iterable_lines, 5).strip()
+    nzeros = eight_line.split()[0]
+    return int(nrows), int(ncols), int(nzeros)
+
 def extract_length(line):
     # 'k42 <arbitrary text>' -> 42
     l = line.split()
@@ -67,18 +84,9 @@ class S_segment():
         suffixes = { 0: self.cols, 1: self.rows }.get(suff_type, { })
         suffixes[name] = index_value
 
-def extract_problem_info(second_line):
-    data = second_line.split()
-    nrows = data[1] # These magic numbers come from the AMPL doc
-    ncols = data[0]
-    neqns = data[4]
-    if nrows!=neqns:
-        print('WARNING: Not all constraints are equality constraints!')
-    return nrows, ncols
-
 def parse(f):
     check_if_text_format(next(f))
-    nrows, ncols = extract_problem_info(next(f).strip())
+    nrows, ncols, nzeros = extract_problem_info(f)
     segments = { 'J': J_segment(),
                  'k': k_segment(),
                  'S': S_segment(nrows, ncols) }
@@ -87,16 +95,24 @@ def parse(f):
         func = segments.get(first_char)
         if func:
             func(f, line)
+    check_J_segment(segments['J'].jacobian, ncols, nzeros, segments['k'].col_len)
     print('Finished reading the nl file')            
     dbg_info(segments)
     # TODO return something 
     
+def check_J_segment(jacobian, ncols, nzeros, col_len):
+    count = np.zeros(ncols, np.int32)
+    for cols in jacobian:
+        count[cols] += 1
+    accum = np.add.accumulate(count) 
+    assert np.all(accum[:-1] == col_len)
+    assert accum[-1] == nzeros
+
 def dbg_info(segments):
     print('k segment')
     print(segments['k'].col_len)
     print('J segment, sparsity pattern')
     dbg_show_jacobian(segments['J'].jacobian)
-    # TODO Check consistency by calculating the k vector from the J segments
     print('row S segments')
     dbg_show_S_segm(segments['S'].rows)
     print('col S segments')    
@@ -106,11 +122,11 @@ def dbg_info(segments):
 def dbg_show_jacobian(sparse_mat):
     for i, arr in enumerate(sparse_mat):
         print('%d: %s' % (i, pretty_str_numpy_array(arr)))
-        
+
 def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.iteritems()):
         print( '  %s: %s' % (name, pretty_str_numpy_array(index_value)) )
-        
+
 def pretty_str_numpy_array(arr):
     col_ind = str(arr)
     beg = col_ind.find('[')+1
@@ -131,4 +147,3 @@ if __name__ == '__main__':
     read_flattened_ampl('../dag/suffix.nl')
     read_flattened_ampl('../dag/JacobsenDbg.nl')
     read_flattened_ampl('../dag/mssTornDbg.nl')
-        
