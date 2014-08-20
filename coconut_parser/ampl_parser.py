@@ -5,7 +5,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
-from representation.block_sparsity_pattern import BlockSparsityPattern
+from representation.block_sparsity_pattern import BlockSparsityPattern, reconstruct_partitions
 
 def get_problem_name(iterable):
     first_line = next(iterable)
@@ -104,7 +104,9 @@ def parse(f):
             func(bsp, f, line)
     check_J_segment(bsp)
     print('Finished reading the nl file')            
-    #dbg_info(bsp)
+    dbg_info(bsp)
+    # FIXME Just a hack, remove when done
+    reconstruct_partitions(bsp)
     return bsp
 
 def dbg_info(bsp):

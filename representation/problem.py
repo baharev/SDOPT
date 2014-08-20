@@ -253,6 +253,7 @@ class Problem:
                                        if n in self.base_vars) 
         return sorted(var_nums)
 
+    # Not exactly the ideal place for this but couldn't find a better one
     def crosscheck_sparsity_pattern(self, jacobian, nrows):
         checked = [False] * nrows
         for con_num, n in du.itr_sink_con_num_nodeid(self.dag):
