@@ -15,6 +15,7 @@ class BlockSparsityPattern:
         self.row_suffixes = { } # suffix name -> np.array of (index, value)
         self.col_suffixes = { } # suffix name -> np.array of (index, value)
 
+# FIXME Finish partition reconstuction from here
 def reconstruct_partitions(bsp):
     bid = 'blockid'
     if (bid not in bsp.row_suffixes) or (bid not in bsp.col_suffixes):
