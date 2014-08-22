@@ -1,72 +1,69 @@
 from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
-from bidict import bidict
-from bidict import namedbidict
 
-def stable_partition(arr, pos, cnt):
-    tmp = np.empty(arr.size, dtype=np.int32)
-    tmp[0:cnt] = arr[pos]
-    tmp[cnt: ] = arr[np.invert(pos)]
-    return tmp
+def stable_partition(arr, pos):
+    return np.concatenate((arr[pos], arr[~pos]))
 
 def cols_in_row(m, r):
     c_beg, c_end = m.indptr[r], m.indptr[r+1]
     return m.indices[c_beg:c_end]
 
-def act_cols_count_and_pos(m, r, cols_in_blk):
-    # return the count, and a boolean array whether the col in r is active
-    cols_in_r = cols_in_row(m, r)
-    act_cols_pos = np.in1d(cols_in_blk, cols_in_r, assume_unique=True)
-    count = np.count_nonzero(act_cols_pos)
-    return count, act_cols_pos
-    
-def find_row_with_min_count(m, rows_in_blk, cols_in_blk):
-    MAXINT = np.int32(2**31-1)
-    min_count, i_row, cols_pos = MAXINT, np.int32(0), np.array([], np.int32) 
-    for i, r in enumerate(rows_in_blk):
-        count, pos = act_cols_count_and_pos(m, r, cols_in_blk)
-        if (count < min_count):
-            min_count, i_row, cols_pos = count, i, pos
-    return min_count, i_row, cols_pos        
+def cols_also_in_r(m, r, act_cols):
+    # A boolean array of len(act_cols) indicating whether the col is also in r 
+    return np.in1d(act_cols, cols_in_row(m, r), assume_unique=True)
 
-def min_degree_ordering(m, row_slice, col_slice):
-    # row and col slices define the active submatrix
-    
+def find_row_with_min_count(m, rs_in_asm, cs_in_asm):
+    # returns row (value, not the index), cols also in cs_in_asm (i.e. active) 
+    gen_row_act_cols = ((r, cols_also_in_r(m, r, cs_in_asm)) for r in rs_in_asm)
+    # find the row with min col count
+    # TODO The order is undefined if there are ties! (CPython keeps the first.)
+    row, cmask = min(gen_row_act_cols, key=lambda t: np.count_nonzero(t[1]))
+    return row, cmask
+
+def min_degree_ordering(m, rbeg, rend, cbeg, cend):
     # row_p and col_p store the current permutation
     row_p = np.arange(m.shape[0], dtype=np.int32)
     col_p = np.arange(m.shape[1], dtype=np.int32)
-    
-    # get the rows and cols in the active submatrix
-    rows = row_p[row_slice]
-    cols = col_p[col_slice]
-    #
-    cnt, i, pos = find_row_with_min_count(m, rows, cols)
-    print('min count at row %d (%dth in blk), count = %d'%(rows[i],i,cnt))
-    # TODO Don't forget all empty rows!
-    cols = stable_partition(cols, pos, cnt)
-    #
-    print('Columns after stable partition:', cols) 
+    dbg_show_permuted_matrix(m, row_p, col_p)
+    while rbeg < rend:
+        # get the rows and cols in the active submatrix (asm)
+        rows, cols = row_p[rbeg:rend], col_p[cbeg:cend] 
+        r, cmask = find_row_with_min_count(m, rows, cols)
+        rmask = rows==r
+        row_p[rbeg:rend] = stable_partition(rows, rmask)        
+        col_p[cbeg:cend] = stable_partition(cols, cmask)
+        cnt  = np.count_nonzero(cmask)
+        #
+        print('min count at row %d (%dth in blk), count = %d' % (r, np.where(rmask)[0], cnt))
+        print('rows after stable partition:',    row_p[rbeg:rend])        
+        print('columns after stable partition:', col_p[cbeg:cend])
+        print('r perm:', row_p)
+        print('c perm:', col_p)   
+        #     
+        rbeg += 1
+        cbeg += cnt 
+        dbg_show_permuted_matrix(m, row_p, col_p)
+
+def dbg_show_permuted_matrix(m_sparse, row_p, col_p):
+    m = m_sparse.todense()
+    for j in range(m.shape[1]):
+        m[:,j] = m[row_p,j]
+    for i in range(m.shape[0]):
+        m[i,:] = m[i,col_p]
+    print(m)
 
 if __name__=='__main__':
     
-    bimap = namedbidict('bimap', 'active_to_orig', 'orig_to_active')
-    bm = bimap({})
-    bm.active_to_orig[2] = 0
-    print(bm.orig_to_active[0])
-    bd = bidict()
-    bd[2] = 0
-    print(bd[:0])
-    
-    m = sp.dok_matrix((3,3), dtype=np.int8)
-    m[0,0] = m[0,1] = m[0,2] = 1
-    m[1,0] = m[1,1]          = 1
-    m[2,2] = 1
+    m = sp.dok_matrix((5,5), dtype=np.int8)
+    m[1,1] = m[1,2] = m[1,3] = 1
+    m[2,1] = m[2,2]          = 2
+    m[3,3] = 3
     print(m.todense(), '\n')
     
     if sp.isspmatrix_csr(m):
-        mcsr = m.copy()
+        m_csr = m.copy()
     else:
-        mcsr = m.tocsr() 
+        m_csr = m.tocsr() 
     
-    min_degree_ordering(mcsr, slice(0,3), slice(0,3))
+    min_degree_ordering(m_csr, 1, 4, 1, 4)
