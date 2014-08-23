@@ -5,7 +5,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
-from representation.block_sparsity_pattern import BlockSparsityPattern, reconstruct_partitions
+from ordering.block_sparsity_pattern import BlockSparsityPattern, reconstruct_partitions
 
 def get_problem_name(iterable):
     first_line = next(iterable)
