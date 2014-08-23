@@ -30,10 +30,10 @@ def stable_sort(partition):
     idx = np.flatnonzero(mask)
     print(idx)
     for i in xrange(idx.size-1):
-        print('%d: %s ' % (i, str(blk_ids[idx[i]:idx[i+1]])) )
+        print('%d: %s ' % (i, blk_ids[idx[i]:idx[i+1]]) )
     p = partition['index'][indices]
     for i in xrange(idx.size-1):
-        print('%d: %s ' % (i, str(p[idx[i]:idx[i+1]])) )
+        print('%d: %s ' % (i, p[idx[i]:idx[i+1]]) )
     print([j for j in izip(idx, idx[1:])])
     #return p, list of slices?
 
