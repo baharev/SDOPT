@@ -5,6 +5,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
+import util.nputil as nputil
 from ordering.block_sparsity_pattern import BlockSparsityPattern, reconstruct_partitions
 
 def get_problem_name(iterable):
@@ -122,18 +123,11 @@ def dbg_info(bsp):
 
 def dbg_show_jacobian(sparse_mat):
     for i, arr in enumerate(sparse_mat):
-        print('%d: %s' % (i, pretty_str_numpy_array(arr)))
+        print('%d: %s' % (i, nputil.pretty_str_numpy_array(arr)))
 
 def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.iteritems()):
-        print( '  %s: %s' % (name, pretty_str_numpy_array(index_value)) )
-
-# TODO Somewhat misplaced utility function
-def pretty_str_numpy_array(arr):
-    col_ind = str(arr)
-    beg = col_ind.find('[')+1
-    end = col_ind.rfind(']')
-    return col_ind[beg:end]
+        print( '  %s: %s' % (name, nputil.pretty_str_numpy_array(index_value)) )
 
 def lines_with_newline_chars_removed(iterable):
     for line in iterable:

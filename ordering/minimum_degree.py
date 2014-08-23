@@ -29,7 +29,7 @@ def find_row_with_min_count(m, rows, cols):
 
 def min_degree_ordering(m, row_p, col_p, rbeg, rend, cbeg, cend):
     dbg_show_permuted_matrix(m, row_p, col_p)
-    for rbeg in np.arange(rbeg, rend):
+    for rbeg in xrange(rbeg, rend):
         # get the rows and cols in the active submatrix (asm)
         rows, cols = row_p[rbeg:rend], col_p[cbeg:cend] 
         r, cmask = find_row_with_min_count(m, rows, cols)
@@ -40,7 +40,7 @@ def min_degree_ordering(m, row_p, col_p, rbeg, rend, cbeg, cend):
         cbeg += np.count_nonzero(cmask) 
 
 def dbg_step(r_slice, c_slice, row_p, col_p, m, r, rmask, cmask):
-    r_index =  np.where(rmask)[0]
+    r_index =  np.flatnonzero(rmask)
     count = np.count_nonzero(cmask)
     print('min count at row %d (%dth in asm), count = %d' % (r, r_index, count))
     print('rows after stable partition:',    row_p[r_slice])        
@@ -74,4 +74,4 @@ if __name__=='__main__':
     row_p = np.arange(m.shape[0], dtype=np.int32)
     col_p = np.arange(m.shape[1], dtype=np.int32) 
     #
-    min_degree_ordering(m_csr, row_p, col_p, rbeg=1, rend=4, cbeg=2, cend=4)
+    min_degree_ordering(m_csr, row_p, col_p, rbeg=1, rend=4, cbeg=1, cend=4)
