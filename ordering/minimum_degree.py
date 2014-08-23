@@ -2,48 +2,52 @@ from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
 
-def stable_partition(arr, pos):
-    return np.concatenate((arr[pos], arr[~pos]))
+# m: matrix in csr format
+# r, c: row, column
+# asm: active submatrix
+# active (act_*): in the current submatrix
+# row_p, col_p: row and col permutation
+
+def stable_partition(arr, mask):
+    return np.concatenate((arr[mask], arr[~mask]))
 
 def cols_in_row(m, r):
     c_beg, c_end = m.indptr[r], m.indptr[r+1]
     return m.indices[c_beg:c_end]
 
-def cols_also_in_r(m, r, act_cols):
-    # A boolean array of len(act_cols) indicating whether the col is also in r 
-    return np.in1d(act_cols, cols_in_row(m, r), assume_unique=True)
+def cols_also_in_r(m, r, cols):
+    # returns cmask of len(cols), indicating whether the col is also in r 
+    return np.in1d(cols, cols_in_row(m, r), assume_unique=True)
 
-def find_row_with_min_count(m, rs_in_asm, cs_in_asm):
-    # returns row (value, not the index), cols also in cs_in_asm (i.e. active) 
-    gen_row_act_cols = ((r, cols_also_in_r(m, r, cs_in_asm)) for r in rs_in_asm)
+def find_row_with_min_count(m, rows, cols):
+    # returns row (value, not the index), cmask (col both in row and in asm) 
+    gen_row_act_cols = ((r, cols_also_in_r(m, r, cols)) for r in rows)
     # find the row with min col count
     # TODO The order is undefined if there are ties! (CPython keeps the first.)
     row, cmask = min(gen_row_act_cols, key=lambda t: np.count_nonzero(t[1]))
     return row, cmask
 
-def min_degree_ordering(m, rbeg, rend, cbeg, cend):
-    # row_p and col_p store the current permutation
-    row_p = np.arange(m.shape[0], dtype=np.int32)
-    col_p = np.arange(m.shape[1], dtype=np.int32)
+def min_degree_ordering(m, row_p, col_p, rbeg, rend, cbeg, cend):
     dbg_show_permuted_matrix(m, row_p, col_p)
-    while rbeg < rend:
+    for rbeg in np.arange(rbeg, rend):
         # get the rows and cols in the active submatrix (asm)
         rows, cols = row_p[rbeg:rend], col_p[cbeg:cend] 
         r, cmask = find_row_with_min_count(m, rows, cols)
         rmask = rows==r
         row_p[rbeg:rend] = stable_partition(rows, rmask)        
         col_p[cbeg:cend] = stable_partition(cols, cmask)
-        cnt  = np.count_nonzero(cmask)
-        #
-        print('min count at row %d (%dth in blk), count = %d' % (r, np.where(rmask)[0], cnt))
-        print('rows after stable partition:',    row_p[rbeg:rend])        
-        print('columns after stable partition:', col_p[cbeg:cend])
-        print('r perm:', row_p)
-        print('c perm:', col_p)   
-        #     
-        rbeg += 1
-        cbeg += cnt 
-        dbg_show_permuted_matrix(m, row_p, col_p)
+        dbg_step(slice(rbeg,rend),slice(cbeg,cend),row_p,col_p,m,r,rmask,cmask)     
+        cbeg += np.count_nonzero(cmask) 
+
+def dbg_step(r_slice, c_slice, row_p, col_p, m, r, rmask, cmask):
+    r_index =  np.where(rmask)[0]
+    count = np.count_nonzero(cmask)
+    print('min count at row %d (%dth in asm), count = %d' % (r, r_index, count))
+    print('rows after stable partition:',    row_p[r_slice])        
+    print('columns after stable partition:', col_p[c_slice])
+    print('r perm:', row_p)
+    print('c perm:', col_p)
+    dbg_show_permuted_matrix(m, row_p, col_p)               
 
 def dbg_show_permuted_matrix(m_sparse, row_p, col_p):
     m = m_sparse.todense()
@@ -64,6 +68,10 @@ if __name__=='__main__':
     if sp.isspmatrix_csr(m):
         m_csr = m.copy()
     else:
-        m_csr = m.tocsr() 
-    
-    min_degree_ordering(m_csr, 1, 4, 1, 4)
+        m_csr = m.tocsr()
+        
+    # row_p and col_p store the current permutation
+    row_p = np.arange(m.shape[0], dtype=np.int32)
+    col_p = np.arange(m.shape[1], dtype=np.int32) 
+    #
+    min_degree_ordering(m_csr, row_p, col_p, rbeg=1, rend=4, cbeg=2, cend=4)
