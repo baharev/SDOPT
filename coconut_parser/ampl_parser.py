@@ -149,7 +149,7 @@ def read_flattened_ampl(filename):
         f.close()
 
 if __name__ == '__main__':
-    read_flattened_ampl('../dag/Luyben.nl')
-    read_flattened_ampl('../dag/suffix.nl')
-    read_flattened_ampl('../dag/JacobsenDbg.nl')
-    read_flattened_ampl('../dag/mssTornDbg.nl')
+    read_flattened_ampl('../data/Luyben.nl')
+    read_flattened_ampl('../data/suffix.nl')
+    read_flattened_ampl('../data/JacobsenDbg.nl')
+    read_flattened_ampl('../data/mssTornDbg.nl')

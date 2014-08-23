@@ -12,7 +12,7 @@ def import_code(code, name):
     return module
 
 def dag_files():
-    test_dir = '../dag/'
+    test_dir = '../data/'
     #
     #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
     #              'tunnelDiodes', 'mss20heatBalance' ]
@@ -38,7 +38,7 @@ class ResidualTest(unittest.TestCase):
             self.assertLess(max_residual, 1.0e-6, \
                             'Large constraint violation\n%s' % residuals)
             print('PASSED:', dag_file)
-        #read_problem('../dag/ex9_2_8.txt', crosscheck_sparsity_nl=False)
+        #read_problem('../data/ex9_2_8.txt', crosscheck_sparsity_nl=False)
 
 #if __name__ == '__main__':
 #    unittest.main()
