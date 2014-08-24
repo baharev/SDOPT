@@ -21,48 +21,51 @@ class BlockSparsityPattern:
         # the data below comes from block reconstruction
         self.row_permutation = None # AMPL row indices in permuted order
         self.col_permutation = None # AMPL col indices in permuted order
-        # indices in block the ith block = permutation[block_slices[i]] 
-        self.row_block_slices = None
-        self.col_block_slices = None
+        # indices in block the ith block = permutation[slice(*blocks[i])] 
+        self.row_blocks = None
+        self.col_blocks = None
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
 # i.e. partition['index'] gives the indices, partition['values'] the block ids
 
-def set_permutation_with_block_slices(bsp):
+def set_permutation_with_block_boundaries(bsp):
     blockid = 'blockid'
     if (blockid not in bsp.row_suffixes) or (blockid not in bsp.col_suffixes):
         print('WARNING: No row and/or col partitions!')
         return
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
-    bsp.row_permutation, bsp.row_block_slices = reconstruct(row_partition) 
-    bsp.col_permutation, bsp.col_block_slices = reconstruct(col_partition)
+    bsp.row_permutation, bsp.row_blocks = reconstruct(row_partition) 
+    bsp.col_permutation, bsp.col_blocks = reconstruct(col_partition)
     # The rest of this function is just debugging
-    assert len(bsp.row_block_slices)==len(bsp.col_block_slices)    
+    assert len(bsp.row_blocks)==len(bsp.col_blocks)    
     print('ROWS')
-    dbg_show(row_partition, bsp.row_permutation, bsp.row_block_slices)
+    dbg_show(row_partition, bsp.row_permutation, bsp.row_blocks)
     print('COLS')
-    dbg_show(col_partition, bsp.col_permutation, bsp.col_block_slices)
+    dbg_show(col_partition, bsp.col_permutation, bsp.col_blocks)
+    # FIXME Hack here!
+    write_asy_input(bsp)
+    return
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
-    # returns: tuple of permutation vector, block boundaries (as slices)
+    # returns: tuple of permutation vector, block boundaries as (beg, end) tuple
     sort_by_block_id(partition)
-    block_slices = get_block_slices(partition)
-    check_block_ids(partition, len(block_slices))
-    return partition['index'], block_slices
+    blocks = get_blocks(partition)
+    check_block_ids(partition, len(blocks))
+    return partition['index'], blocks
 
 def sort_by_block_id(partition):
     # in place, stable sort by block id (by 'value')
     np.ndarray.sort(partition, kind='mergesort', order='value')
 
-def get_block_slices(partition):
+def get_blocks(partition):
     # This function assumes that partition has already been sorted by block id 
     # (by 'value'). Find the block boundaries first:
     mask = np.ediff1d(partition['value'], to_begin=1, to_end=1)
     idx = np.flatnonzero(mask) # adjancent elements of idx give the block slices 
-    return [slice(*t) for t in zip(idx[:-1],idx[1:])]
+    return [t for t in zip(idx[:-1],idx[1:])]
 
 def check_block_ids(partition, block_count):
     # Assumption: block_ids is already sorted, and has block_count distinct 
@@ -71,14 +74,23 @@ def check_block_ids(partition, block_count):
     assert block_ids[ 0] == 1
     assert block_ids[-1] == block_count
 
-def dbg_show(partition, permutation, block_slices):
+def dbg_show(partition, permutation, blocks):
     print('permutation:', permutation)
     print('blocks:')
-    for i, slc in enumerate(block_slices):
-        print(i, partition['value'][slc])
+    for i, boundaries in enumerate(blocks):
+        print(i, partition['value'][slice(*boundaries)])
     print('indices by block:')
-    for i, slc in enumerate(block_slices):
-        print(i, permutation[slc])
+    for i, boundaries in enumerate(blocks):
+        print(i, permutation[slice(*boundaries)])    
         
 def write_asy_input(bsp):
-    pass
+    prefix = '../asy/'+bsp.name
+    np.savetxt(prefix+'.rperm', bsp.row_permutation, fmt='%d')
+    np.savetxt(prefix+'.cperm', bsp.col_permutation, fmt='%d')
+    write_slices(prefix+'.rslc', bsp.row_blocks)
+    write_slices(prefix+'.cslc', bsp.row_blocks)    
+    
+def write_slices(file_name, blocks):
+    with open(file_name, 'w') as f:
+        for tup in blocks:
+            f.write('%d %d\n' % tup)

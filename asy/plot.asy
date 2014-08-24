@@ -7,7 +7,7 @@ pen fat = black + 3;
 real SCALE = 10.0;
 //------------
 usersetting();
-assert(length(file_name), "No file name given!");
+assert(length(file_name)>0, "No file name given!");
 size(psize, Aspect);
 
 struct ipair {

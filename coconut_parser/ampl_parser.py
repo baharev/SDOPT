@@ -105,7 +105,7 @@ def parse(f):
     check_J_segment(bsp)
     print('Finished reading the nl file')            
     dbg_info(bsp)
-    bs.set_permutation_with_block_slices(bsp)
+    bs.set_permutation_with_block_boundaries(bsp)
     return bsp
 
 def dbg_info(bsp):
