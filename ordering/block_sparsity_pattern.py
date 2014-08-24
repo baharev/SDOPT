@@ -1,10 +1,12 @@
 from __future__ import print_function
-from future_builtins import zip     # Python 2 only
+from future_builtins import zip
 import numpy as np
 
 # TODO 1. Reconstruct and somehow visualize blocks
-#      2. Do an ordering in the blocks, along the diagonal 
-#         (postpone block orderings)
+#      2. Check if the blocks happen to be in Hessenberg form 
+#         (both row and col profiles are monotone) 
+#      3. Do ordering within the blocks, along the diagonal 
+#         (but postpone block orderings)
 
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
@@ -21,7 +23,7 @@ class BlockSparsityPattern:
 # partition: np.array of (index, value) pairs, where value is the block id,
 # i.e. partition['index'] gives the indices, partition['values'] the block ids
 
-def reconstruct_permutation_with_blocks(bsp):
+def reconstruct_permutation_with_block_slices(bsp):
     blockid = 'blockid'
     if (blockid not in bsp.row_suffixes) or (blockid not in bsp.col_suffixes):
         print('WARNING: No row and/or col partitions!')
@@ -29,14 +31,14 @@ def reconstruct_permutation_with_blocks(bsp):
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
     # Reconstruct sorts in place its argument
-    row_perm, row_blk_slices = reconstruct(row_partition) 
-    col_perm, col_blk_slices = reconstruct(col_partition)
-    assert len(row_blk_slices)==len(col_blk_slices)    
+    row_perm, row_block_slices = reconstruct(row_partition) 
+    col_perm, col_block_slices = reconstruct(col_partition)
+    assert len(row_block_slices)==len(col_block_slices)    
     print('ROWS')
-    dbg_show(row_partition, row_perm, row_blk_slices)
+    dbg_show(row_partition, row_perm, row_block_slices)
     print('COLS')
-    dbg_show(col_partition, col_perm, col_blk_slices)
-    return row_perm, row_blk_slices, col_perm, col_blk_slices
+    dbg_show(col_partition, col_perm, col_block_slices)
+    return row_perm, row_block_slices, col_perm, col_block_slices
 
 def reconstruct(partition):
     # returns: tuple of permutation vector, block boundaries (as slices)

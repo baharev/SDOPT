@@ -5,7 +5,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
-from ordering.block_sparsity_pattern import BlockSparsityPattern, reconstruct_permutation_with_blocks
+from ordering.block_sparsity_pattern import BlockSparsityPattern, reconstruct_permutation_with_block_slices
 
 def get_problem_name(iterable):
     first_line = next(iterable)
@@ -106,7 +106,7 @@ def parse(f):
     print('Finished reading the nl file')            
     dbg_info(bsp)
     # FIXME Just a hack, remove when done
-    reconstruct_permutation_with_blocks(bsp)
+    reconstruct_permutation_with_block_slices(bsp)
     return bsp
 
 def dbg_info(bsp):
