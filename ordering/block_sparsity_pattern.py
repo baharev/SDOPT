@@ -18,29 +18,35 @@ class BlockSparsityPattern:
         self.col_len = None # redundant info, can be computed from jacobian too
         self.row_suffixes = { } # suffix name -> np.array of (index, value)
         self.col_suffixes = { } # suffix name -> np.array of (index, value)
+        # the data below comes from block reconstruction
+        self.row_permutation = None # AMPL row indices in permuted order
+        self.col_permutation = None # AMPL col indices in permuted order
+        # indices in block the ith block = permutation[block_slices[i]] 
+        self.row_block_slices = None
+        self.col_block_slices = None
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
 # i.e. partition['index'] gives the indices, partition['values'] the block ids
 
-def reconstruct_permutation_with_block_slices(bsp):
+def set_permutation_with_block_slices(bsp):
     blockid = 'blockid'
     if (blockid not in bsp.row_suffixes) or (blockid not in bsp.col_suffixes):
         print('WARNING: No row and/or col partitions!')
         return
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
-    # Reconstruct sorts in place its argument
-    row_perm, row_block_slices = reconstruct(row_partition) 
-    col_perm, col_block_slices = reconstruct(col_partition)
-    assert len(row_block_slices)==len(col_block_slices)    
+    bsp.row_permutation, bsp.row_block_slices = reconstruct(row_partition) 
+    bsp.col_permutation, bsp.col_block_slices = reconstruct(col_partition)
+    # The rest of this function is just debugging
+    assert len(bsp.row_block_slices)==len(bsp.col_block_slices)    
     print('ROWS')
-    dbg_show(row_partition, row_perm, row_block_slices)
+    dbg_show(row_partition, bsp.row_permutation, bsp.row_block_slices)
     print('COLS')
-    dbg_show(col_partition, col_perm, col_block_slices)
-    return row_perm, row_block_slices, col_perm, col_block_slices
+    dbg_show(col_partition, bsp.col_permutation, bsp.col_block_slices)
 
 def reconstruct(partition):
+    # Sorts partition in place by block ids
     # returns: tuple of permutation vector, block boundaries (as slices)
     sort_by_block_id(partition)
     block_slices = get_block_slices(partition)
@@ -72,4 +78,7 @@ def dbg_show(partition, permutation, block_slices):
         print(i, partition['value'][slc])
     print('indices by block:')
     for i, slc in enumerate(block_slices):
-        print(i, permutation[slc])        
+        print(i, permutation[slc])
+        
+def write_asy_input(bsp):
+    pass
