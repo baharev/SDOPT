@@ -5,7 +5,7 @@ from __future__ import print_function
 import fileinput
 import numpy as np
 from itertools import islice
-import ordering.block_sparsity_pattern as ord
+import ordering.block_sparsity_pattern as bs
 
 def get_problem_name(iterable):
     first_line = next(iterable)
@@ -94,7 +94,7 @@ def extract_line_with_first_char(iterable):
         yield line[0], line
 
 def parse(f):
-    bsp = ord.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
+    bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
     segments = { 'J': J_segment,
                  'k': k_segment,
                  'S': S_segment }
@@ -105,7 +105,7 @@ def parse(f):
     check_J_segment(bsp)
     print('Finished reading the nl file')            
     dbg_info(bsp)
-    ord.set_permutation_with_block_slices(bsp)
+    bs.set_permutation_with_block_slices(bsp)
     return bsp
 
 def dbg_info(bsp):
