@@ -105,6 +105,7 @@ def parse(f):
     check_J_segment(bsp)
     print('Finished reading the nl file')            
     dbg_info(bsp)
+    # FIXME Should be done after closing the .nl file!
     bs.set_permutation_with_block_boundaries(bsp)
     return bsp
 
@@ -139,6 +140,8 @@ def read_flattened_ampl(filename):
     finally:
         print('Read', f.lineno(), 'lines')
         f.close()
+    # FIXME Read and append row and column names!
+    #       Move plotting here!
 
 if __name__ == '__main__':
     read_flattened_ampl('../data/Luyben.nl')

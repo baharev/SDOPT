@@ -1,6 +1,7 @@
 from __future__ import print_function
 from future_builtins import zip
 import numpy as np
+import sparse_plot as splot
 
 # TODO 1. Reconstruct and somehow visualize blocks
 #      2. Check if the blocks happen to be in Hessenberg form 
@@ -44,6 +45,9 @@ def set_permutation_with_block_boundaries(bsp):
     dbg_show(row_partition, bsp.row_permutation, bsp.row_blocks)
     print('COLS')
     dbg_show(col_partition, bsp.col_permutation, bsp.col_blocks)
+    # FIXME Hack!
+    splot.plot(bsp)
+    
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
