@@ -49,6 +49,8 @@ def plot_matrix(m, row_names, col_names):
     plt.show()
     
 def plot(bsp):
+    # TODO Find a more efficient way, perhaps store the Jacobian in csr format 
+    # in the first place
     m = sp.dok_matrix((bsp.nrows, bsp.ncols), dtype=np.int8)
     for r, cols in enumerate(bsp.jacobian):
         for c in cols:
