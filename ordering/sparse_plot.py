@@ -22,11 +22,12 @@ def cols_in_row(m, r):
     return m.indices[c_beg:c_end]
 
 def plot_matrix(m, row_names, col_names):
-    isinstance(m, sp.csr_matrix)
+    assert isinstance(m, sp.csr_matrix)
     fig=plt.figure()
     ax=fig.add_subplot(111)
     mng = plt.get_current_fig_manager()
     mng.resize(1865,1025)
+    # TODO Post a wrapper to Code Review?
     #mng.full_screen_toggle()     
     plt.axis('scaled')
     n_row = m.shape[0]
