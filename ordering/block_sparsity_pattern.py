@@ -44,9 +44,6 @@ def set_permutation_with_block_boundaries(bsp):
     dbg_show(row_partition, bsp.row_permutation, bsp.row_blocks)
     print('COLS')
     dbg_show(col_partition, bsp.col_permutation, bsp.col_blocks)
-    # FIXME Hack here!
-    write_asy_input(bsp)
-    return
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
@@ -82,15 +79,3 @@ def dbg_show(partition, permutation, blocks):
     print('indices by block:')
     for i, boundaries in enumerate(blocks):
         print(i, permutation[slice(*boundaries)])    
-        
-def write_asy_input(bsp):
-    prefix = '../asy/'+bsp.name
-    np.savetxt(prefix+'.rperm', bsp.row_permutation, fmt='%d')
-    np.savetxt(prefix+'.cperm', bsp.col_permutation, fmt='%d')
-    write_slices(prefix+'.rslc', bsp.row_blocks)
-    write_slices(prefix+'.cslc', bsp.row_blocks)    
-    
-def write_slices(file_name, blocks):
-    with open(file_name, 'w') as f:
-        for tup in blocks:
-            f.write('%d %d\n' % tup)
