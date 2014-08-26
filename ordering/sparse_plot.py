@@ -37,13 +37,14 @@ def plot_matrix(m, row_names, col_names):
     # TODO Write a custom, csr iterator?
     for r in xrange(n_row):
         for i in cols_in_row(m, r):
-            rect = plt.Rectangle((i, r), 1, 1, facecolor='black', edgecolor='0.7', linewidth=1.0)
+            rect = plt.Rectangle((i, r), 1,1, facecolor='black',edgecolor='0.7')
             ax.add_artist(rect)
     fs = get_font_size(fig, ax)
     for r in xrange(n_row):
-        ax.text(-0.25, r+0.5, row_names[r], ha='right', va='center', size=fs)
+        ax.text(-0.25, r+0.5, row_names[r], ha='right',  va='center', size=fs)
     for c in xrange(n_col):
-        ax.text(c+0.5, -0.25, col_names[c], ha='center', va='bottom', rotation=90, size=fs)        
+        ax.text(c+0.5, -0.25, col_names[c], ha='center', va='bottom', size=fs, 
+                rotation=90)        
     ax.invert_yaxis()
     ax.set_xticks([])
     ax.set_yticks([])
@@ -56,6 +57,4 @@ def plot(bsp):
     for r, cols in enumerate(bsp.jacobian):
         for c in cols:
             m[r,c] = 1
-    row_names = ['']*bsp.nrows
-    col_names = ['']*bsp.ncols
-    plot_matrix(m.tocsr(), row_names, col_names)
+    plot_matrix(m.tocsr(), bsp.row_names, bsp.col_names)

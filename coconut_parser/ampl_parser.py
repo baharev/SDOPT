@@ -9,19 +9,37 @@ import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 
 def read_flattened_ampl(filename):
-    print('Reading \'%s\'' % filename)
-    try:
-        f = fileinput.input(filename, mode='r')
-        bsp = parse(lines_with_newline_chars_removed(f))
-    finally:
-        print('Read', f.lineno(), 'lines')
-        f.close()
+    bsp = read_nl(filename)
     check_J_segment(bsp)
     dbg_info(bsp)
     bs.set_permutation_with_block_boundaries(bsp)
-    # FIXME Read and append row and column names!
+    bsp.row_names = read_names(filename, 'row', bsp.nrows)
+    bsp.col_names = read_names(filename, 'col', bsp.ncols)
+    # TODO Append the names to bsp
     splot.plot(bsp)
     return bsp
+
+# TODO Factor out boilerplate code 
+def read_nl(filename):
+    print('Reading \'%s\'' % filename)
+    try:
+        f = fileinput.input(filename, mode='r')
+        return parse(lines_with_newline_chars_removed(f))
+    finally:
+        print('Read', f.lineno(), 'lines from file', filename)
+        f.close()
+
+def read_names(fname, kind, count):
+    filename = fname[:-2] + kind
+    print('Reading \'%s\'' % filename)
+    try:
+        f = fileinput.input(filename, mode='r')
+        names = [line for line in lines_with_newline_chars_removed(f)]
+    finally:
+        print('Read', f.lineno(), 'lines from file', filename)
+        f.close()
+    assert len(names)==count
+    return names
 
 def parse(f):
     bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))

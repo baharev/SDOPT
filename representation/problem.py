@@ -261,6 +261,12 @@ class Problem:
             assert np.all(jacobian[con_num]==base_vars)
             checked[con_num] = True
         assert all(checked)
+        
+    def crosscheck_names(self, row_names, col_names):
+        assert set(row_names) <= set(self.con_num_name.itervalues())
+        assert set(col_names) <= set(self.var_num_name.itervalues())
+        assert len(row_names) == len(self.con_ends_num)
+        assert len(col_names) == self.nvars
 
     def dbg_show_node_types(self):
         dag = self.dag

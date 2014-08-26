@@ -41,12 +41,13 @@ def read(filename):
         print('Read', f.lineno(), 'lines from file', filename)
         f.close()
 
-def read_problem(filename, crosscheck_sparsity_nl=True, to_plot=True):
+def read_problem(filename, crosscheck_with_ampl=True, to_plot=True):
     problem = read(filename)
     problem.setup() # This call is better here, after the file is closed
-    if crosscheck_sparsity_nl:
+    if crosscheck_with_ampl:
         bsp = read_flattened_ampl( filename[:-4]+'.nl' )
-        problem.crosscheck_sparsity_pattern(bsp.jacobian, bsp.nrows) 
+        problem.crosscheck_sparsity_pattern(bsp.jacobian, bsp.nrows)
+        problem.crosscheck_names(bsp.row_names, bsp.col_names)
     if to_plot:
         du.plot(problem.dag)
         return None # FIXME Resolve issues with plotting! (Must destroy dictionaries)

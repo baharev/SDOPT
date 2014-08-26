@@ -18,6 +18,8 @@ class BlockSparsityPattern:
         self.col_len = None # redundant info, can be computed from jacobian too
         self.row_suffixes = { } # suffix name -> np.array of (index, value)
         self.col_suffixes = { } # suffix name -> np.array of (index, value)
+        self.row_names = None
+        self.col_names = None
         # the data below comes from block reconstruction
         self.row_permutation = None # AMPL row indices in permuted order
         self.col_permutation = None # AMPL col indices in permuted order
