@@ -2,7 +2,7 @@ from __future__ import print_function
 import unittest
 import os
 from coconut_parser.dag_parser import read_problem
-from nodes.pprinter import prepare_evaluation_code
+import nodes.pprinter as pprinter
 
 # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
 def import_code(code, name):
@@ -26,7 +26,7 @@ class ResidualTest(unittest.TestCase):
     def test_files(self):
         for dag_file in dag_files():
             problem = read_problem(dag_file, to_plot=False)
-            residual_code = prepare_evaluation_code(problem)
+            residual_code = pprinter.prepare_evaluation_code(problem)
             # Dumps the debug code being executed
             # pprinter.dbg_dump_code(residual_code, problem.refsols[0])
             # TODO Does the fake module name twistedResidualTest matter?
