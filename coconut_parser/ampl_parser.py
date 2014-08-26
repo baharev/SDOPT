@@ -6,6 +6,7 @@ import fileinput
 import numpy as np
 from itertools import islice
 import ordering.block_sparsity_pattern as bs
+import ordering.sparse_plot as splot
 
 def get_problem_name(iterable):
     first_line = next(iterable)
@@ -102,11 +103,7 @@ def parse(f):
         func = segments.get(first_char)
         if func:
             func(bsp, f, line)
-    check_J_segment(bsp)
     print('Finished reading the nl file')            
-    dbg_info(bsp)
-    # FIXME Should be done after closing the .nl file!
-    bs.set_permutation_with_block_boundaries(bsp)
     return bsp
 
 def dbg_info(bsp):
@@ -136,12 +133,16 @@ def read_flattened_ampl(filename):
     print('Reading \'%s\'' % filename)
     try:
         f = fileinput.input(filename, mode='r')
-        return parse(lines_with_newline_chars_removed(f))
+        bsp = parse(lines_with_newline_chars_removed(f))
     finally:
         print('Read', f.lineno(), 'lines')
         f.close()
+    check_J_segment(bsp)
+    dbg_info(bsp)
+    bs.set_permutation_with_block_boundaries(bsp)
     # FIXME Read and append row and column names!
-    #       Move plotting here!
+    splot.plot(bsp)
+    return bsp
 
 if __name__ == '__main__':
     read_flattened_ampl('../data/Luyben.nl')
