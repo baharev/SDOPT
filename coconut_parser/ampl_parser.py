@@ -2,14 +2,17 @@
 Use only read_flattened_ampl, ignore all other functions.
 '''
 from __future__ import print_function
-import numpy as np
 from itertools import islice
+import numpy as np
+import scipy.sparse as sp
 import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 from util.file_reader import lines_of
 
 def read_flattened_ampl(filename):
     bsp = read_nl(filename)
+    bsp.csr_mat = sp.csr_matrix((bsp.csr_data, bsp.csr_indices, bsp.csr_indptr), 
+                                 shape=(bsp.nrows,bsp.ncols) ) 
     check_J_segment(bsp)
     dbg_info(bsp)
     bs.set_permutation_with_block_boundaries(bsp)
@@ -36,7 +39,7 @@ def parse(f):
     for first_char, line in extract_line_with_first_char(f):
         func = segments.get(first_char)
         if func:
-            func(bsp, f, line)         
+            func(bsp, f, line)
     return bsp
 
 def get_problem_name(iterable):
@@ -103,6 +106,12 @@ def J_segment(bsp, iterable, line):
     vars_in_row = index_value['index']  # nonlinearity information discarded
     assert row==len(bsp.jacobian), row
     bsp.jacobian.append(np.array(vars_in_row, np.int32))
+    #
+    slc = slice(bsp.csr_pos, bsp.csr_pos + length)
+    bsp.csr_indices[slc] = index_value['index']  
+    bsp.csr_data[slc]    = index_value['value']
+    bsp.csr_indptr[row+1]= bsp.csr_pos + length
+    bsp.csr_pos += length
 
 def k_segment(bsp, iterable, line):
     length = extract_length(line)

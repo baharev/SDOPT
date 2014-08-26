@@ -26,6 +26,12 @@ class BlockSparsityPattern:
         # indices in block the ith block = permutation[slice(*blocks[i])] 
         self.row_blocks = None
         self.col_blocks = None
+        # Sparsity pattern of the Jacobian in the CSR format
+        self.csr_data    = np.zeros(nzeros,  dtype=np.float64)
+        self.csr_indices = np.zeros(nzeros,  dtype=np.int32)
+        self.csr_indptr  = np.zeros(nrows+1, dtype=np.int32)
+        self.csr_mat     = None   # View of (data, indices, indptr) as a csr_mat
+        self.csr_pos     = int(0) # Counter needed to build the csr_mat
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
@@ -80,4 +86,5 @@ def dbg_show(partition, permutation, blocks):
         print(i, partition['value'][slice(*boundaries)])
     print('indices by block:')
     for i, boundaries in enumerate(blocks):
-        print(i, permutation[slice(*boundaries)])    
+        print(i, permutation[slice(*boundaries)])
+

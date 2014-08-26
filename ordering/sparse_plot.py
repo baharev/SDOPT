@@ -58,3 +58,5 @@ def plot(bsp):
         for c in cols:
             m[r,c] = 1
     plot_matrix(m.tocsr(), bsp.row_names, bsp.col_names)
+    #
+    plot_matrix(bsp.csr_mat, bsp.row_names, bsp.col_names)
