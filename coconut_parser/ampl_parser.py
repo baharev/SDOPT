@@ -8,6 +8,37 @@ from itertools import islice
 import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 
+def read_flattened_ampl(filename):
+    print('Reading \'%s\'' % filename)
+    try:
+        f = fileinput.input(filename, mode='r')
+        bsp = parse(lines_with_newline_chars_removed(f))
+    finally:
+        print('Read', f.lineno(), 'lines')
+        f.close()
+    check_J_segment(bsp)
+    dbg_info(bsp)
+    bs.set_permutation_with_block_boundaries(bsp)
+    # FIXME Read and append row and column names!
+    splot.plot(bsp)
+    return bsp
+
+def parse(f):
+    bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
+    segments = { 'J': J_segment,
+                 'k': k_segment,
+                 'S': S_segment }
+    for first_char, line in extract_line_with_first_char(f):
+        func = segments.get(first_char)
+        if func:
+            func(bsp, f, line)
+    print('Finished reading the nl file')            
+    return bsp
+
+def lines_with_newline_chars_removed(iterable):
+    for line in iterable:
+        yield line.rstrip()
+
 def get_problem_name(iterable):
     first_line = next(iterable)
     check_if_text_format(first_line)
@@ -18,7 +49,7 @@ def check_if_text_format(first_line):
         print('First line: \'%s\'' % first_line)
         msg = 'only ASCII format files can be parsed (give flag g to AMPL)'
         raise RuntimeError(msg)
-    
+
 def nth(iterable, n, default=None):
     'Returns the nth item or a default value'
     return next(islice(iterable, n, None), default)
@@ -33,6 +64,10 @@ def extract_problem_info(iterable_lines):
     eight_line = nth(iterable_lines, 5)
     nzeros = eight_line.split()[0]
     return int(nrows), int(ncols), int(nzeros)
+
+def extract_line_with_first_char(iterable):
+    for line in iterable:
+        yield line[0], line
 
 def extract_length(line):
     # 'k42 <arbitrary text>' -> 42
@@ -90,22 +125,6 @@ def check_J_segment(bsp):
     assert np.all(accum[:-1] == bsp.col_len)
     assert accum[-1] == bsp.nzeros        
 
-def extract_line_with_first_char(iterable):
-    for line in iterable:
-        yield line[0], line
-
-def parse(f):
-    bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
-    segments = { 'J': J_segment,
-                 'k': k_segment,
-                 'S': S_segment }
-    for first_char, line in extract_line_with_first_char(f):
-        func = segments.get(first_char)
-        if func:
-            func(bsp, f, line)
-    print('Finished reading the nl file')            
-    return bsp
-
 def dbg_info(bsp):
     print('Problem name:', bsp.name)
     print('k segment')
@@ -124,25 +143,6 @@ def dbg_show_jacobian(sparse_mat):
 def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.iteritems()):
         print( '  %s: %s' % (name, index_value) )
-
-def lines_with_newline_chars_removed(iterable):
-    for line in iterable:
-        yield line.rstrip()
-
-def read_flattened_ampl(filename):
-    print('Reading \'%s\'' % filename)
-    try:
-        f = fileinput.input(filename, mode='r')
-        bsp = parse(lines_with_newline_chars_removed(f))
-    finally:
-        print('Read', f.lineno(), 'lines')
-        f.close()
-    check_J_segment(bsp)
-    dbg_info(bsp)
-    bs.set_permutation_with_block_boundaries(bsp)
-    # FIXME Read and append row and column names!
-    splot.plot(bsp)
-    return bsp
 
 if __name__ == '__main__':
     read_flattened_ampl('../data/Luyben.nl')
