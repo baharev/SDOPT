@@ -2,7 +2,6 @@
 Use only read_problem, ignore all other functions.
 '''
 from __future__ import print_function
-import fileinput
 import edge_line
 import hint_line
 import info_line
@@ -10,6 +9,7 @@ import node_line
 from ampl_parser import read_flattened_ampl
 from representation.problem import Problem
 import representation.dag_util as du
+from util.file_reader import lines_of
 
 def lines(iterable):
     for line in iterable:
@@ -33,19 +33,12 @@ def parse(f):
             func(p, elems)
     return p
 
-def read(filename):
-    try:
-        f = fileinput.input(filename, mode='r')
-        return parse(f)
-    finally:
-        print('Read', f.lineno(), 'lines from file', filename)
-        f.close()
-
 def read_problem(filename, crosscheck_with_ampl=True, to_plot=True):
-    problem = read(filename)
-    problem.setup() # This call is better here, after the file is closed
+    with lines_of(filename) as lines:
+        problem = parse(lines)
+    problem.setup()
     if crosscheck_with_ampl:
-        bsp = read_flattened_ampl( filename[:-4]+'.nl' )
+        bsp = read_flattened_ampl( filename[:-4]+'.nl' ) # .dag -> .nl
         problem.crosscheck_sparsity_pattern(bsp.jacobian, bsp.nrows)
         problem.crosscheck_names(bsp.row_names, bsp.col_names)
     if to_plot:

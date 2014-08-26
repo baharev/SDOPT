@@ -2,11 +2,11 @@
 Use only read_flattened_ampl, ignore all other functions.
 '''
 from __future__ import print_function
-import fileinput
 import numpy as np
 from itertools import islice
 import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
+from util.file_reader import lines_of
 
 def read_flattened_ampl(filename):
     bsp = read_nl(filename)
@@ -15,29 +15,16 @@ def read_flattened_ampl(filename):
     bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
-    # TODO Append the names to bsp
     splot.plot(bsp)
     return bsp
 
-# TODO Factor out boilerplate code 
 def read_nl(filename):
-    print('Reading \'%s\'' % filename)
-    try:
-        f = fileinput.input(filename, mode='r')
-        return parse(lines_with_newline_chars_removed(f))
-    finally:
-        print('Read', f.lineno(), 'lines from file', filename)
-        f.close()
+    with lines_of(filename) as lines:
+        return parse(lines)
 
-def read_names(fname, kind, count):
-    filename = fname[:-2] + kind
-    print('Reading \'%s\'' % filename)
-    try:
-        f = fileinput.input(filename, mode='r')
-        names = [line for line in lines_with_newline_chars_removed(f)]
-    finally:
-        print('Read', f.lineno(), 'lines from file', filename)
-        f.close()
+def read_names(filename, kind, count):
+    with lines_of(filename[:-2] + kind) as lines:
+        names = [line for line in lines]
     assert len(names)==count
     return names
 
@@ -49,13 +36,8 @@ def parse(f):
     for first_char, line in extract_line_with_first_char(f):
         func = segments.get(first_char)
         if func:
-            func(bsp, f, line)
-    print('Finished reading the nl file')            
+            func(bsp, f, line)         
     return bsp
-
-def lines_with_newline_chars_removed(iterable):
-    for line in iterable:
-        yield line.rstrip()
 
 def get_problem_name(iterable):
     first_line = next(iterable)
