@@ -47,7 +47,7 @@ def draw_nzeros(ax, m, inv_row_p, inv_col_p):
 
 def get_font_size(fig, ax):
     # TODO Ask on Code Review
-    SIZE = 72.0
+    SIZE = 12.0
     invisible = (1,1,1,0)
     t = plt.text(0, 1, 'X', fontsize=SIZE, color=invisible)
     bb = t.get_window_extent(renderer=fig.canvas.get_renderer())
@@ -64,7 +64,7 @@ def write_names(ax, row_names, col_names, inv_row_p, inv_col_p, fs):
         r = inv_row_p[i]
         ax.text(-0.25, r+0.5,r_name,ha='right', va='center',size=fs)
     for j, c_name in enumerate(col_names):
-        c = inv_row_p[j]
+        c = inv_col_p[j]
         ax.text(c+0.5, -0.25,c_name,ha='center',va='bottom',size=fs,rotation=90)
         
 def beautify_axes(ax):

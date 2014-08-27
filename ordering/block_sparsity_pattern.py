@@ -8,6 +8,7 @@ import csr_utils as util
 #         (both row and col profiles are monotone) 
 #      3. Do ordering within the blocks, along the diagonal 
 #         (but postpone block orderings)
+#         diagonal is both on row and col profiles
 
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
