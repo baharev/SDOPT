@@ -20,6 +20,7 @@ def read_flattened_ampl(filename):
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
     splot.plot(bsp)
+    splot.plot_permuted(bsp)
     return bsp
 
 def read_nl(filename):

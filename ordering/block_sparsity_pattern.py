@@ -1,6 +1,7 @@
 from __future__ import print_function
 from future_builtins import zip
 import numpy as np
+import csr_utils as util
 
 # TODO 1. Reconstruct and somehow visualize blocks
 #      2. Check if the blocks happen to be in Hessenberg form 
@@ -28,8 +29,11 @@ class BlockSparsityPattern:
         self.csr_pos     = int(0) # Counter needed to build the csr_mat
         self.dbg_prev_row= int(-1)# Check whether the J segments are ordered 
         # the data below comes from block reconstruction
-        self.row_permutation = None # AMPL row indices in permuted order
-        self.col_permutation = None # AMPL col indices in permuted order
+        self.row_permutation  = None # AMPL row indices in permuted order
+        self.col_permutation  = None # AMPL col indices in permuted order
+        # TODO Inverse permutations are only used by plot, compute only there?
+        self.inverse_row_perm = None # inverse of row_permutation
+        self.inverse_col_perm = None # inverse of col_permutation
         # indices in block the ith block = permutation[slice(*blocks[i])] 
         self.row_blocks = None
         self.col_blocks = None
@@ -47,6 +51,7 @@ def set_permutation_with_block_boundaries(bsp):
     col_partition = bsp.col_suffixes[blockid]
     bsp.row_permutation, bsp.row_blocks = reconstruct(row_partition) 
     bsp.col_permutation, bsp.col_blocks = reconstruct(col_partition)
+    set_inverse_permutations(bsp)
     # The rest of this function is just debugging
     assert len(bsp.row_blocks)==len(bsp.col_blocks)    
     print('ROWS')
@@ -79,6 +84,10 @@ def check_block_ids(partition, block_count):
     block_ids = partition['value']
     assert block_ids[ 0] == 1
     assert block_ids[-1] == block_count
+    
+def set_inverse_permutations(bsp):
+    bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
+    bsp.inverse_col_perm = util.invert_permutation(bsp.col_permutation)   
 
 def dbg_show(partition, permutation, blocks):
     print('permutation:', permutation)
