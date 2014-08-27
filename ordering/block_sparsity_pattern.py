@@ -14,23 +14,25 @@ class BlockSparsityPattern:
         self.nrows = nrows
         self.ncols = ncols
         self.nzeros = nzeros
-        self.col_len = None # redundant info, can be computed from jacobian too
-        self.row_suffixes = { } # suffix name -> np.array of (index, value)
-        self.col_suffixes = { } # suffix name -> np.array of (index, value)
         self.row_names = None
         self.col_names = None
+        self.row_suffixes = { } # suffix name -> np.array of (index, value)
+        self.col_suffixes = { } # suffix name -> np.array of (index, value)
+        # Sparsity pattern of the Jacobian in the CSR format
+        self.csr_data    = np.zeros(nzeros,  dtype=np.float64)
+        self.csr_indices = np.zeros(nzeros,  dtype=np.int32)
+        self.csr_indptr  = np.zeros(nrows+1, dtype=np.int32)
+        self.csr_mat     = None   # View of (data, indices, indptr) as a csr_mat
+        self.col_len = None # redundant info, can be computed from Jacobian too
+        # These below are only needed to build the Jacobian, factor them out?
+        self.csr_pos     = int(0) # Counter needed to build the csr_mat
+        self.dbg_prev_row= int(-1)# Check whether the J segments are ordered 
         # the data below comes from block reconstruction
         self.row_permutation = None # AMPL row indices in permuted order
         self.col_permutation = None # AMPL col indices in permuted order
         # indices in block the ith block = permutation[slice(*blocks[i])] 
         self.row_blocks = None
         self.col_blocks = None
-        # Sparsity pattern of the Jacobian in the CSR format
-        self.csr_data    = np.zeros(nzeros,  dtype=np.float64)
-        self.csr_indices = np.zeros(nzeros,  dtype=np.int32)
-        self.csr_indptr  = np.zeros(nrows+1, dtype=np.int32)
-        self.csr_mat     = None   # View of (data, indices, indptr) as a csr_mat
-        self.csr_pos     = int(0) # Counter needed to build the csr_mat
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,

@@ -255,18 +255,20 @@ class Problem:
         return sorted(var_nums)
 
     # Not exactly the ideal place for this but couldn't find a better one
-    def crosscheck_sparsity_pattern(self, jacobian, nrows):
-        # FIXME Refactor
-        nrows = jacobian.shape[0]
-        assert nrows == len(self.con_ends_num)
-        assert self.nvars == jacobian.shape[1]
-        checked = [False] * nrows
+    def crosscheck_sparsity_pattern(self, jacobian):
+        self.check_shape(jacobian)
+        checked = [False] * jacobian.shape[0]
         for con_num, n in du.itr_sink_con_num_nodeid(self.dag):
             base_vars = np.array(self.base_var_nums_in_con(n), np.int32)
             cols = util.cols_in_row(jacobian, con_num)
             assert np.all(cols==base_vars)
             checked[con_num] = True
         assert all(checked)
+    
+    def check_shape(self, jacobian):
+        nrows = jacobian.shape[0]
+        assert nrows == len(self.con_ends_num)
+        assert self.nvars == jacobian.shape[1]
 
     def crosscheck_names(self, row_names, col_names):
         assert set(row_names) <= set(self.con_num_name.itervalues())

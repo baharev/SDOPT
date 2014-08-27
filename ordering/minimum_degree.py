@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
+import csr_utils as util
 
 # m: matrix in csr format
 # r, c: row, column
@@ -11,14 +12,9 @@ import scipy.sparse as sp
 def stable_partition(arr, mask):
     return np.concatenate((arr[mask], arr[~mask]))
 
-# FIXME Duplication
-def cols_in_row(m, r):
-    c_beg, c_end = m.indptr[r], m.indptr[r+1]
-    return m.indices[c_beg:c_end]
-
 def cols_also_in_r(m, r, cols):
     # returns cmask of len(cols), indicating whether the col is also in r 
-    return np.in1d(cols, cols_in_row(m, r), assume_unique=True)
+    return np.in1d(cols, util.cols_in_row(m, r), assume_unique=True)
 
 def find_row_with_min_count(m, rows, cols):
     # returns row (value, not the index), cmask (col both in row and in asm) 

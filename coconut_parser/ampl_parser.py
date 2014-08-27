@@ -104,12 +104,14 @@ def J_segment(bsp, iterable, line):
     # 3 1
     row, length = extract_id_len(line)
     index_value = numpy_index_value(iterable, length, value_type=np.float64)  
-    # FIXME assert row==len(bsp.jacobian), row
+    # The expected order of the J segments is 0, 1, 2 ..., nrows
+    assert bsp.dbg_prev_row+1==row, row
     slc = slice(bsp.csr_pos, bsp.csr_pos + length)
     bsp.csr_indices[slc] = index_value['index']  
     bsp.csr_data[slc]    = index_value['value']
     bsp.csr_indptr[row+1]= bsp.csr_pos + length
     bsp.csr_pos += length
+    bsp.dbg_prev_row = row
 
 def k_segment(bsp, iterable, line):
     length = extract_length(line)
@@ -125,6 +127,8 @@ def S_segment(bsp, iterable, line):
     suffixes[name] = index_value
 
 def check_J_segment(bsp):
+    assert bsp.nrows == bsp.csr_mat.shape[0]
+    assert bsp.ncols == bsp.csr_mat.shape[1]
     count = np.zeros(bsp.ncols, np.int32)
     for cols in util.itr_col_indices(bsp.csr_mat):
         count[cols] += 1
