@@ -6,6 +6,7 @@ import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 import nodes.pprinter as pp
+import ordering.csr_utils as util
 
 # TODO: - Clean up test, improve coverage
 #       - naming issue: named vars should be base vars;
@@ -255,13 +256,18 @@ class Problem:
 
     # Not exactly the ideal place for this but couldn't find a better one
     def crosscheck_sparsity_pattern(self, jacobian, nrows):
+        # FIXME Refactor
+        nrows = jacobian.shape[0]
+        assert nrows == len(self.con_ends_num)
+        assert self.nvars == jacobian.shape[1]
         checked = [False] * nrows
         for con_num, n in du.itr_sink_con_num_nodeid(self.dag):
             base_vars = np.array(self.base_var_nums_in_con(n), np.int32)
-            assert np.all(jacobian[con_num]==base_vars)
+            cols = util.cols_in_row(jacobian, con_num)
+            assert np.all(cols==base_vars)
             checked[con_num] = True
         assert all(checked)
-        
+
     def crosscheck_names(self, row_names, col_names):
         assert set(row_names) <= set(self.con_num_name.itervalues())
         assert set(col_names) <= set(self.var_num_name.itervalues())

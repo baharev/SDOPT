@@ -1,5 +1,4 @@
 from __future__ import print_function
-import numpy as np
 import scipy.sparse as sp
 import matplotlib.pyplot as plt
 import csr_utils as util
@@ -46,12 +45,4 @@ def plot_matrix(m, row_names, col_names):
     plt.show()
 
 def plot(bsp):
-    # TODO Find a more efficient way, perhaps store the Jacobian in csr format 
-    # in the first place
-    m = sp.dok_matrix((bsp.nrows, bsp.ncols), dtype=np.int8)
-    for r, cols in enumerate(bsp.jacobian):
-        for c in cols:
-            m[r,c] = 1
-    plot_matrix(m.tocsr(), bsp.row_names, bsp.col_names)
-    #
     plot_matrix(bsp.csr_mat, bsp.row_names, bsp.col_names)

@@ -8,6 +8,7 @@ import scipy.sparse as sp
 import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 from util.file_reader import lines_of
+import ordering.csr_utils as util
 
 def read_flattened_ampl(filename):
     bsp = read_nl(filename)
@@ -103,10 +104,7 @@ def J_segment(bsp, iterable, line):
     # 3 1
     row, length = extract_id_len(line)
     index_value = numpy_index_value(iterable, length, value_type=np.float64)  
-    vars_in_row = index_value['index']  # nonlinearity information discarded
-    assert row==len(bsp.jacobian), row
-    bsp.jacobian.append(np.array(vars_in_row, np.int32))
-    #
+    # FIXME assert row==len(bsp.jacobian), row
     slc = slice(bsp.csr_pos, bsp.csr_pos + length)
     bsp.csr_indices[slc] = index_value['index']  
     bsp.csr_data[slc]    = index_value['value']
@@ -128,26 +126,26 @@ def S_segment(bsp, iterable, line):
 
 def check_J_segment(bsp):
     count = np.zeros(bsp.ncols, np.int32)
-    for cols in bsp.jacobian:
+    for cols in util.itr_col_indices(bsp.csr_mat):
         count[cols] += 1
     accum = np.add.accumulate(count) 
     assert np.all(accum[:-1] == bsp.col_len)
-    assert accum[-1] == bsp.nzeros        
+    assert accum[-1] == bsp.nzeros
 
 def dbg_info(bsp):
     print('Problem name:', bsp.name)
     print('k segment')
     print(bsp.col_len)
     print('J segment, sparsity pattern')
-    dbg_show_jacobian(bsp.jacobian)
+    dbg_show_jacobian(bsp.csr_mat)
     print('row S segments')
     dbg_show_S_segm(bsp.row_suffixes)
     print('col S segments')    
     dbg_show_S_segm(bsp.col_suffixes)
 
-def dbg_show_jacobian(sparse_mat):
-    for i, arr in enumerate(sparse_mat):
-        print('%d: %s' % (i, arr) )
+def dbg_show_jacobian(m):
+    for r, cols in util.itr_col_indices_by_row(m):
+        print('%d: %s' % (r, cols))
 
 def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.iteritems()):

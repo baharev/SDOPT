@@ -14,7 +14,6 @@ class BlockSparsityPattern:
         self.nrows = nrows
         self.ncols = ncols
         self.nzeros = nzeros
-        self.jacobian = [ ] # jacobian[i]: col indices in row i (np.int32 array)
         self.col_len = None # redundant info, can be computed from jacobian too
         self.row_suffixes = { } # suffix name -> np.array of (index, value)
         self.col_suffixes = { } # suffix name -> np.array of (index, value)

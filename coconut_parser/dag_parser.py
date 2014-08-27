@@ -39,7 +39,7 @@ def read_problem(filename, crosscheck_with_ampl=True, to_plot=True):
     problem.setup()
     if crosscheck_with_ampl:
         bsp = read_flattened_ampl( filename[:-4]+'.nl' ) # .dag -> .nl
-        problem.crosscheck_sparsity_pattern(bsp.jacobian, bsp.nrows)
+        problem.crosscheck_sparsity_pattern(bsp.csr_mat, bsp.nrows)
         problem.crosscheck_names(bsp.row_names, bsp.col_names)
     if to_plot:
         du.plot(problem.dag)

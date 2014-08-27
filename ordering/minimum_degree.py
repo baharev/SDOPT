@@ -11,6 +11,7 @@ import scipy.sparse as sp
 def stable_partition(arr, mask):
     return np.concatenate((arr[mask], arr[~mask]))
 
+# FIXME Duplication
 def cols_in_row(m, r):
     c_beg, c_end = m.indptr[r], m.indptr[r+1]
     return m.indices[c_beg:c_end]
