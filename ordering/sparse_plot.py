@@ -2,6 +2,7 @@ from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
 import matplotlib.pyplot as plt
+import csr_utils as util
 
 def get_font_size(fig, ax):
     SIZE = 72.0
@@ -16,11 +17,6 @@ def get_font_size(fig, ax):
     print('approximate font size to set: {:.2f}'.format(SIZE/h))
     return 0.8*SIZE/h
 
-# FIXME Duplication
-def cols_in_row(m, r):
-    c_beg, c_end = m.indptr[r], m.indptr[r+1]
-    return m.indices[c_beg:c_end]
-
 def plot_matrix(m, row_names, col_names):
     assert isinstance(m, sp.csr_matrix)
     fig=plt.figure()
@@ -34,11 +30,10 @@ def plot_matrix(m, row_names, col_names):
     n_col = m.shape[1]    
     ax.set_xlim([0, n_col])
     ax.set_ylim([0, n_row])
-    # TODO Write a custom, csr iterator?
-    for r in xrange(n_row):
-        for i in cols_in_row(m, r):
-            rect = plt.Rectangle((i, r), 1,1, facecolor='black',edgecolor='0.7')
-            ax.add_artist(rect)
+    for i, j in util.itr_nonzero_indices(m):
+        # i and j must be swapped: row -> x axis, col -> y axis 
+        rect = plt.Rectangle((j, i), 1,1, facecolor='black',edgecolor='0.7')
+        ax.add_artist(rect)
     fs = get_font_size(fig, ax)
     for r in xrange(n_row):
         ax.text(-0.25, r+0.5, row_names[r], ha='right',  va='center', size=fs)
@@ -49,7 +44,7 @@ def plot_matrix(m, row_names, col_names):
     ax.set_xticks([])
     ax.set_yticks([])
     plt.show()
-    
+
 def plot(bsp):
     # TODO Find a more efficient way, perhaps store the Jacobian in csr format 
     # in the first place
