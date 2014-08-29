@@ -8,6 +8,7 @@ import scipy.sparse as sp
 import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 from util.file_reader import lines_of
+from util.assert_helpers import assertEqual
 import ordering.csr_utils as util
 
 def read_flattened_ampl(filename):
@@ -30,7 +31,7 @@ def read_nl(filename):
 def read_names(filename, kind, count):
     with lines_of(filename[:-2] + kind) as lines:
         names = [line for line in lines]
-    assert len(names)==count
+    assertEqual(len(names), count)
     return names
 
 def parse(f):
@@ -106,7 +107,7 @@ def J_segment(bsp, iterable, line):
     row, length = extract_id_len(line)
     index_value = numpy_index_value(iterable, length, value_type=np.float64)  
     # The expected order of the J segments is 0, 1, 2 ..., nrows
-    assert bsp.dbg_prev_row+1==row, row
+    assertEqual(bsp.dbg_prev_row+1, row)
     slc = slice(bsp.csr_pos, bsp.csr_pos + length)
     bsp.csr_indices[slc] = index_value['index']  
     bsp.csr_data[slc]    = index_value['value']
@@ -128,14 +129,14 @@ def S_segment(bsp, iterable, line):
     suffixes[name] = index_value
 
 def check_J_segment(bsp):
-    assert bsp.nrows == bsp.csr_mat.shape[0]
-    assert bsp.ncols == bsp.csr_mat.shape[1]
+    assertEqual(bsp.nrows, bsp.csr_mat.shape[0])
+    assertEqual(bsp.ncols, bsp.csr_mat.shape[1])
     count = np.zeros(bsp.ncols, np.int32)
     for cols in util.itr_col_indices(bsp.csr_mat):
         count[cols] += 1
     accum = np.add.accumulate(count) 
     assert np.all(accum[:-1] == bsp.col_len)
-    assert accum[-1] == bsp.nzeros
+    assertEqual(accum[-1], bsp.nzeros)
 
 def dbg_info(bsp):
     print('Problem name:', bsp.name)

@@ -2,6 +2,7 @@ from __future__ import print_function
 from future_builtins import zip
 import numpy as np
 import csr_utils as util
+from util.assert_helpers import assertEqual, assertEqLength
 
 # TODO 1. Reconstruct and somehow visualize blocks
 #      2. Check if the blocks happen to be in Hessenberg form 
@@ -57,7 +58,7 @@ def set_permutation_with_block_boundaries(bsp):
     bsp.col_permutation, bsp.cidx = reconstruct(col_partition)
     set_inverse_permutations(bsp)
     # The rest of this function is just debugging
-    assert len(bsp.ridx)==len(bsp.cidx)    
+    assertEqLength(bsp.ridx, bsp.cidx)    
     print('ROWS')
     dbg_show(row_partition, bsp.row_permutation, bsp.ridx)
     print('COLS')
@@ -86,9 +87,8 @@ def check_block_ids(partition, block_count):
     # Assumption: block_ids is already sorted, and has block_count distinct 
     # elements. Checking if distinct block_ids == 1:block_count:
     block_ids = partition['value']
-    assert block_ids[ 0] == 1
-    # FIXME Assert equal helper
-    assert block_ids[-1] == block_count, '%d, %d' % (block_ids[-1], block_count)
+    assertEqual(block_ids[ 0], 1)
+    assertEqual(block_ids[-1], block_count)
     
 def set_inverse_permutations(bsp):
     bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
