@@ -10,13 +10,13 @@ def plot(bsp, plot_permuted):
     assert isinstance(m, sp.csr_matrix)    
     row_names, col_names = bsp.row_names, bsp.col_names 
     inv_row_p, inv_col_p = get_inverse_permutation(bsp, plot_permuted)
-    ridx, cidx = bsp.ridx, bsp.cidx
-    assert not (plot_permuted and ridx is None) # responsibility of the caller
+    rblx, cblx = bsp.rblx, bsp.cblx
+    assert not (plot_permuted and rblx is None) # responsibility of the caller
     # Do the actual work 
     fig, ax = setup(*m.shape)
     draw_nzeros(ax, m, inv_row_p, inv_col_p)
     if plot_permuted:
-        draw_partitions(ax, ridx, cidx)
+        draw_partitions(ax, rblx, cblx)
     fs = get_font_size(fig, ax)
     write_names(ax, row_names, col_names, inv_row_p, inv_col_p, fs) 
     beautify_axes(ax)
@@ -47,11 +47,11 @@ def draw_nzeros(ax, m, inv_row_p, inv_col_p):
         rect = plt.Rectangle((c, r), 1, 1, facecolor='black', edgecolor='0.7')
         ax.add_artist(rect)
 
-def draw_partitions(ax, ridx, cidx):
+def draw_partitions(ax, rblx, cblx):
     line_color, line_width = 'blue', 5
-    for r in ridx:
+    for r in rblx:
         ax.axhline(r, c=line_color, lw=line_width)        
-    for c in cidx:
+    for c in cblx:
         ax.axvline(c, c=line_color, lw=line_width)
 
 def get_font_size(fig, ax):
