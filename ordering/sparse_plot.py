@@ -10,29 +10,23 @@ def plot(bsp, plot_permuted):
     assert isinstance(m, sp.csr_matrix)    
     row_names, col_names = bsp.row_names, bsp.col_names 
     inv_row_p, inv_col_p = get_inverse_permutation(bsp, plot_permuted)
-    ridx, cidx = get_block_boundaries(bsp, plot_permuted)
+    ridx, cidx = bsp.ridx, bsp.cidx
+    assert not (plot_permuted and ridx is None) # responsibility of the caller
     # Do the actual work 
     fig, ax = setup(*m.shape)
     draw_nzeros(ax, m, inv_row_p, inv_col_p)
-    draw_partitions(ax, ridx, cidx)
+    if plot_permuted:
+        draw_partitions(ax, ridx, cidx)
     fs = get_font_size(fig, ax)
     write_names(ax, row_names, col_names, inv_row_p, inv_col_p, fs) 
     beautify_axes(ax)
     plt.show()
 
 def get_inverse_permutation(bsp, plot_permuted):
-    if plot_permuted and bsp.inverse_row_perm is not None:
+    if plot_permuted:
         return bsp.inverse_row_perm, bsp.inverse_col_perm
     else:
-        # TODO Emit a warning if inverse permutations were None?
         return np.arange(bsp.nrows), np.arange(bsp.ncols)
-
-def get_block_boundaries(bsp, plot_permuted):
-    # TODO Ugly to return None
-    if plot_permuted and bsp.inverse_row_perm is not None:
-        return bsp.ridx, bsp.cidx
-    else:
-        return None, None
 
 def setup(nrows, ncols):
     fig=plt.figure()
@@ -54,9 +48,6 @@ def draw_nzeros(ax, m, inv_row_p, inv_col_p):
         ax.add_artist(rect)
 
 def draw_partitions(ax, ridx, cidx):
-    # Nonsense to plot this if we do not have blocks OR not permuted
-    if ridx is None:
-        return
     line_color, line_width = 'blue', 5
     for r in ridx:
         ax.axhline(r, c=line_color, lw=line_width)        

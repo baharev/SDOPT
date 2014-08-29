@@ -17,11 +17,12 @@ def read_flattened_ampl(filename):
                                  shape=(bsp.nrows,bsp.ncols) ) 
     check_J_segment(bsp)
     dbg_info(bsp)
-    bs.set_permutation_with_block_boundaries(bsp)
+    has_blocks = bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
     splot.plot(bsp, plot_permuted=False)
-    splot.plot(bsp, plot_permuted=True)
+    if has_blocks:
+        splot.plot(bsp, plot_permuted=True)
     return bsp
 
 def read_nl(filename):

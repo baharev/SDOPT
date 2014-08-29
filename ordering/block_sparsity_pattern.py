@@ -55,7 +55,7 @@ def set_permutation_with_block_boundaries(bsp):
     blockid = 'blockid'
     if (blockid not in bsp.row_suffixes) or (blockid not in bsp.col_suffixes):
         print('WARNING: No row and/or col partitions!')
-        return
+        return False
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
     bsp.row_permutation, bsp.ridx = reconstruct(row_partition) 
@@ -67,6 +67,7 @@ def set_permutation_with_block_boundaries(bsp):
     dbg_show(row_partition, bsp.row_permutation, bsp.ridx)
     print('COLS')
     dbg_show(col_partition, bsp.col_permutation, bsp.cidx)
+    return True
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
