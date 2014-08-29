@@ -30,19 +30,23 @@ class BlockSparsityPattern:
         # These below are only needed to build the Jacobian, factor them out?
         self.csr_pos     = int(0) # Counter needed to build the csr_mat
         self.dbg_prev_row= int(-1)# Check whether the J segments are ordered 
-        # the data below comes from block reconstruction
+        # The data below comes from block reconstruction
         self.row_permutation  = None # AMPL row indices in permuted order
         self.col_permutation  = None # AMPL col indices in permuted order
         # TODO Inverse permutations are only used by plot, compute only there?
         self.inverse_row_perm = None # inverse of row_permutation
         self.inverse_col_perm = None # inverse of col_permutation
-        # indices in block the ith block = permutation[slice(*blocks[i])] 
-        # FIXME How the block slices are stored...
-        self.ridx = None       # adjancent elements of idx give the block slices 
-        self.cidx = None       # block beg end indices: zip(idx[:-1],idx[1:])
-        # indices in block the ith block = permutation[slice(beg, end)] 
-        # block count: len(idx)-1        
-
+        # Block boundaries
+        # FIXME Rename to blk_bnds
+        self.ridx = None # adjancent elements of idx give the block slices 
+        self.cidx = None # block beg end indices: zip(idx[:-1],idx[1:])
+        # indices in the ith block = permutation[slice(beg, end)] 
+        # block count: len(idx)-1
+        
+def itr_index_block_slice(idx): 
+    for i, beg_end in enumerate(zip(idx[:-1],idx[1:])):
+        yield i, slice(*beg_end)
+    
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
 # i.e. partition['index'] gives the indices, partition['values'] the block ids
@@ -97,10 +101,9 @@ def set_inverse_permutations(bsp):
 def dbg_show(partition, permutation, blocks):
     print('permutation:', permutation)
     print('blocks:')
-    # FIXME Duplication and ugliness
-    for i, boundaries in enumerate(zip(blocks[:-1], blocks[1:])):
-        print(i, partition['value'][slice(*boundaries)])
+    for i, block_slice in itr_index_block_slice(blocks):
+        print(i, partition['value'][block_slice])
     print('indices by block:')
-    for i, boundaries in enumerate(zip(blocks[:-1], blocks[1:])):
-        print(i, permutation[slice(*boundaries)])
+    for i, block_slice in itr_index_block_slice(blocks):
+        print(i, permutation[block_slice])
 
