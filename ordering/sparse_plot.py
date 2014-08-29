@@ -4,27 +4,35 @@ import scipy.sparse as sp
 import matplotlib.pyplot as plt
 import csr_utils as util
 
-def plot(bsp):
-    inv_row_p = np.arange(bsp.nrows)
-    inv_col_p = np.arange(bsp.ncols)
-    plot_matrix(bsp.csr_mat, bsp.row_names, bsp.col_names, inv_row_p, inv_col_p)
-    
-def plot_permuted(bsp):
-    if bsp.inverse_row_perm is None:
-        plot(bsp)
-        return
-    inv_row_p = bsp.inverse_row_perm
-    inv_col_p = bsp.inverse_col_perm
-    plot_matrix(bsp.csr_mat, bsp.row_names, bsp.col_names, inv_row_p, inv_col_p)
-
-def plot_matrix(m, row_names, col_names, inv_row_p, inv_col_p):
-    assert isinstance(m, sp.csr_matrix)
+def plot(bsp, plot_permuted):
+    # Unpack bsp
+    m = bsp.csr_mat
+    assert isinstance(m, sp.csr_matrix)    
+    row_names, col_names = bsp.row_names, bsp.col_names 
+    inv_row_p, inv_col_p = get_inverse_permutation(bsp, plot_permuted)
+    ridx, cidx = get_block_boundaries(bsp, plot_permuted)
+    # Do the actual work 
     fig, ax = setup(*m.shape)
     draw_nzeros(ax, m, inv_row_p, inv_col_p)
+    draw_partitions(ax, ridx, cidx)
     fs = get_font_size(fig, ax)
     write_names(ax, row_names, col_names, inv_row_p, inv_col_p, fs) 
     beautify_axes(ax)
     plt.show()
+
+def get_inverse_permutation(bsp, plot_permuted):
+    if plot_permuted and bsp.inverse_row_perm is not None:
+        return bsp.inverse_row_perm, bsp.inverse_col_perm
+    else:
+        # TODO Emit a warning if inverse permutations were None?
+        return np.arange(bsp.nrows), np.arange(bsp.ncols)
+
+def get_block_boundaries(bsp, plot_permuted):
+    # TODO Ugly to return None
+    if plot_permuted and bsp.inverse_row_perm is not None:
+        return bsp.ridx, bsp.cidx
+    else:
+        return None, None
 
 def setup(nrows, ncols):
     fig=plt.figure()
@@ -44,6 +52,16 @@ def draw_nzeros(ax, m, inv_row_p, inv_col_p):
         # r and c must be swapped: row -> y axis, col -> x axis
         rect = plt.Rectangle((c, r), 1, 1, facecolor='black', edgecolor='0.7')
         ax.add_artist(rect)
+
+def draw_partitions(ax, ridx, cidx):
+    # Nonsense to plot this if we do not have blocks OR not permuted
+    if ridx is None:
+        return
+    line_color, line_width = 'blue', 5
+    for r in ridx:
+        ax.axhline(r, c=line_color, lw=line_width)        
+    for c in cidx:
+        ax.axvline(c, c=line_color, lw=line_width)
 
 def get_font_size(fig, ax):
     # TODO Ask on Code Review
@@ -66,9 +84,8 @@ def write_names(ax, row_names, col_names, inv_row_p, inv_col_p, fs):
     for j, c_name in enumerate(col_names):
         c = inv_col_p[j]
         ax.text(c+0.5, -0.25,c_name,ha='center',va='bottom',size=fs,rotation=90)
-        
+
 def beautify_axes(ax):
     ax.invert_yaxis()
     ax.set_xticks([])
     ax.set_yticks([])
-

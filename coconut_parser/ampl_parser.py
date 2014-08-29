@@ -19,8 +19,8 @@ def read_flattened_ampl(filename):
     bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
-    splot.plot(bsp)
-    splot.plot_permuted(bsp)
+    splot.plot(bsp, plot_permuted=False)
+    splot.plot(bsp, plot_permuted=True)
     return bsp
 
 def read_nl(filename):

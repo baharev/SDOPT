@@ -36,8 +36,11 @@ class BlockSparsityPattern:
         self.inverse_row_perm = None # inverse of row_permutation
         self.inverse_col_perm = None # inverse of col_permutation
         # indices in block the ith block = permutation[slice(*blocks[i])] 
-        self.row_blocks = None
-        self.col_blocks = None
+        # FIXME How the block slices are stored...
+        self.ridx = None       # adjancent elements of idx give the block slices 
+        self.cidx = None       # block beg end indices: zip(idx[:-1],idx[1:])
+        # indices in block the ith block = permutation[slice(beg, end)] 
+        # block count: len(idx)-1        
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
@@ -50,23 +53,23 @@ def set_permutation_with_block_boundaries(bsp):
         return
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
-    bsp.row_permutation, bsp.row_blocks = reconstruct(row_partition) 
-    bsp.col_permutation, bsp.col_blocks = reconstruct(col_partition)
+    bsp.row_permutation, bsp.ridx = reconstruct(row_partition) 
+    bsp.col_permutation, bsp.cidx = reconstruct(col_partition)
     set_inverse_permutations(bsp)
     # The rest of this function is just debugging
-    assert len(bsp.row_blocks)==len(bsp.col_blocks)    
+    assert len(bsp.ridx)==len(bsp.cidx)    
     print('ROWS')
-    dbg_show(row_partition, bsp.row_permutation, bsp.row_blocks)
+    dbg_show(row_partition, bsp.row_permutation, bsp.ridx)
     print('COLS')
-    dbg_show(col_partition, bsp.col_permutation, bsp.col_blocks)
+    dbg_show(col_partition, bsp.col_permutation, bsp.cidx)
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
     # returns: tuple of permutation vector, block boundaries as (beg, end) tuple
     sort_by_block_id(partition)
-    blocks = get_blocks(partition)
-    check_block_ids(partition, len(blocks))
-    return partition['index'], blocks
+    idx = get_blocks(partition)
+    check_block_ids(partition, len(idx)-1)
+    return partition['index'], idx
 
 def sort_by_block_id(partition):
     # in place, stable sort by block id (by 'value')
@@ -77,14 +80,15 @@ def get_blocks(partition):
     # (by 'value'). Find the block boundaries first:
     mask = np.ediff1d(partition['value'], to_begin=1, to_end=1)
     idx = np.flatnonzero(mask) # adjancent elements of idx give the block slices 
-    return [t for t in zip(idx[:-1],idx[1:])]
+    return idx
 
 def check_block_ids(partition, block_count):
     # Assumption: block_ids is already sorted, and has block_count distinct 
     # elements. Checking if distinct block_ids == 1:block_count:
     block_ids = partition['value']
     assert block_ids[ 0] == 1
-    assert block_ids[-1] == block_count
+    # FIXME Assert equal helper
+    assert block_ids[-1] == block_count, '%d, %d' % (block_ids[-1], block_count)
     
 def set_inverse_permutations(bsp):
     bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
@@ -93,9 +97,10 @@ def set_inverse_permutations(bsp):
 def dbg_show(partition, permutation, blocks):
     print('permutation:', permutation)
     print('blocks:')
-    for i, boundaries in enumerate(blocks):
+    # FIXME Duplication and ugliness
+    for i, boundaries in enumerate(zip(blocks[:-1], blocks[1:])):
         print(i, partition['value'][slice(*boundaries)])
     print('indices by block:')
-    for i, boundaries in enumerate(blocks):
+    for i, boundaries in enumerate(zip(blocks[:-1], blocks[1:])):
         print(i, permutation[slice(*boundaries)])
 
