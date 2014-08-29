@@ -62,13 +62,8 @@ if __name__=='__main__':
     m[3,3] = 3
     print(m.todense(), '\n')
     
-    if sp.isspmatrix_csr(m):
-        m_csr = m.copy()
-    else:
-        m_csr = m.tocsr()
-        
     # row_p and col_p store the current permutation
     row_p = np.arange(m.shape[0], dtype=np.int32)
     col_p = np.arange(m.shape[1], dtype=np.int32) 
     #
-    min_degree_ordering(m_csr, row_p, col_p, rbeg=1, rend=4, cbeg=1, cend=4)
+    min_degree_ordering(m.tocsr(), row_p, col_p, rbeg=1, rend=4, cbeg=1, cend=4)
