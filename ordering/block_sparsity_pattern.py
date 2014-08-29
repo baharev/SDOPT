@@ -4,10 +4,9 @@ import numpy as np
 import csr_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 
-# TODO 1. Reconstruct and somehow visualize blocks
-#      2. Check if the blocks happen to be in Hessenberg form 
+# TODO 1. Check if the blocks happen to be in Hessenberg form 
 #         (both row and col profiles are monotone) 
-#      3. Do ordering within the blocks, along the diagonal 
+#      2. Do ordering within the blocks, along the diagonal 
 #         (but postpone block orderings)
 #         diagonal is both on row and col profiles
 
