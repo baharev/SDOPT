@@ -8,7 +8,7 @@ from util.assert_helpers import assertEqual, assertEqLength
 
 # TODO 1. Do ordering within the blocks, along the diagonal 
 #         (but postpone block orderings)
-#         diagonal is both on row and col profiles
+#         diagonal: apparently, the blocks are in lower triangular form
 #      2. Code gen for AD
 
 class BlockSparsityPattern:
@@ -125,24 +125,25 @@ def get_permuted_block_profiles(bsp):
         #print('i=%d j=%d r=%d c=%d rb=%d cb=%d' % (i,j,r,c,rblk,cblk))
         blk_mat[key] = blk_mat.get(key) + 1
     print('Block pattern:\n%s' % blk_mat.todense())
-    #
-    coo = blk_mat.tocoo()
-    #
-    col_major = coo.tocsc()
+    get_row_profile(blk_mat)
+    get_col_profile(blk_mat)
+    return
+
+def get_row_profile(blk_mat):
+    col_major = blk_mat.tocsc()
     col_major.sort_indices()
     rprof = util.indices_of_first_nonzeros(col_major)
-    #
-    row_major = coo.tocsr()
+    assert_in_lower_triangular_form(rprof, 'row')
+    return rprof
+
+def get_col_profile(blk_mat):
+    row_major = blk_mat.tocsr()
     row_major.sort_indices()
     cprof = util.indices_of_last_nonzeros(row_major)
-    #
-    assert_in_lower_triangular_form(rprof, 'row')
     assert_in_lower_triangular_form(cprof, 'col')
-    #
-    return
+    return cprof
 
 def assert_in_lower_triangular_form(prof, row_or_col):
     diff = np.ediff1d(prof)
     assert np.all(diff == 1) and (prof[0]==0), \
     '%s block profile not in lower triangular form:\n%s' % (row_or_col, prof)
-
