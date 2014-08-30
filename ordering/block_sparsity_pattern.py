@@ -144,5 +144,5 @@ def get_permuted_block_profiles(bsp):
 def assert_in_lower_triangular_form(prof, row_or_col):
     diff = np.ediff1d(prof)
     assert np.all(diff == 1) and (prof[0]==0), \
-    'Block profile not in lower triangular form:\n%s' % (row_or_col, prof)
+    '%s block profile not in lower triangular form:\n%s' % (row_or_col, prof)
 
