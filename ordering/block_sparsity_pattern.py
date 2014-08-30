@@ -6,9 +6,9 @@ import csr_utils
 import misc_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 
-# TODO 1. Do ordering within the blocks, along the diagonal 
+# TODO 1. Do ordering within the blocks, along the upper envelope 
 #         (but postpone block orderings)
-#         diagonal: apparently, the blocks are in lower triangular form
+#         upper envelope: apparently, the blocks are in lower triangular form
 #      2. Code gen for AD
 
 class BlockSparsityPattern:
@@ -41,8 +41,6 @@ class BlockSparsityPattern:
         self.cblx = None # block beg end indices: zip(blx[:-1],blx[1:])
         # indices in the ith block = permutation[slice(beg, end)] 
         # block count: len(blx)-1
-        self.rowblk_prof = None
-        self.colblk_prof = None
         
 def itr_index_block_slice(blx): 
     for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
@@ -125,9 +123,9 @@ def get_permuted_block_profiles(bsp):
         #print('i=%d j=%d r=%d c=%d rb=%d cb=%d' % (i,j,r,c,rblk,cblk))
         blk_mat[key] = blk_mat.get(key) + 1
     print('Block pattern:\n%s' % blk_mat.todense())
-    get_row_profile(blk_mat)
-    get_col_profile(blk_mat)
-    return
+    rprof = get_row_profile(blk_mat)
+    cprof = get_col_profile(blk_mat)
+    return rprof, cprof
 
 def get_row_profile(blk_mat):
     col_major = blk_mat.tocsc()
