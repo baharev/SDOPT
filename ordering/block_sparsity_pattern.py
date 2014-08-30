@@ -2,15 +2,14 @@ from __future__ import print_function
 from future_builtins import zip
 import numpy as np
 import scipy.sparse as sp
-import csr_utils as util
+import csr_utils
+import misc_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 
-# TODO 1. Check if the blocks happen to be in Hessenberg form 
-#         (both row and col profiles are monotone) 
-#      2. Do ordering within the blocks, along the diagonal 
+# TODO 1. Do ordering within the blocks, along the diagonal 
 #         (but postpone block orderings)
 #         diagonal is both on row and col profiles
-#      3. Code gen for AD
+#      2. Code gen for AD
 
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
@@ -116,15 +115,33 @@ def dbg_show(partition, permutation, blocks):
 # FIXME This is a temporary hack to test block sparsity pattern
     
 def get_permuted_block_profiles(bsp):
-    bmat = sp.dok_matrix((len(bsp.rblx)-1,len(bsp.cblx)-1), dtype=np.int32)
+    blk_mat = sp.dok_matrix((len(bsp.rblx)-1,len(bsp.cblx)-1), dtype=np.int32)
     # Same logic as in nonzero plotting
-    for i, j in util.itr_nonzero_indices(bsp.csr_mat):
+    for i, j in csr_utils.itr_nonzero_indices(bsp.csr_mat):
         r, c = bsp.inverse_row_perm[i], bsp.inverse_col_perm[j]
         rblk = np.searchsorted(bsp.rblx, r, side='right') - 1 # inefficient, doesn't move within a row
         cblk = np.searchsorted(bsp.cblx, c, side='right') - 1
         key = (rblk,cblk)
         #print('i=%d j=%d r=%d c=%d rb=%d cb=%d' % (i,j,r,c,rblk,cblk))
-        bmat[key] = bmat.get(key) + 1
-    print('Block pattern:\n%s' % bmat.todense())
+        blk_mat[key] = blk_mat.get(key) + 1
+    print('Block pattern:\n%s' % blk_mat.todense())
+    #
+    coo = blk_mat.tocoo()
+    #
+    col_major = coo.tocsc()
+    col_major.sort_indices()
+    rprof = util.indices_of_first_nonzeros(col_major)
+    #
+    row_major = coo.tocsr()
+    row_major.sort_indices()
+    cprof = util.indices_of_last_nonzeros(row_major)
+    #
+    assert_non_decreasing(rprof, 'row')
+    assert_non_decreasing(cprof, 'col')
+    #
     return
-        
+
+def assert_non_decreasing(prof, row_or_col):
+    diff = np.ediff1d(prof)
+    assert np.all(diff >= 0), \
+    'In Hessenberg form, the %s profile is non-decreasing, profile:\n%s' % (row_or_col, prof)
