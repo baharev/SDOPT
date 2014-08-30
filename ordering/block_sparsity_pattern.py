@@ -1,6 +1,7 @@
 from __future__ import print_function
 from future_builtins import zip
 import numpy as np
+import scipy.sparse as sp
 import csr_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 
@@ -9,6 +10,7 @@ from util.assert_helpers import assertEqual, assertEqLength
 #      2. Do ordering within the blocks, along the diagonal 
 #         (but postpone block orderings)
 #         diagonal is both on row and col profiles
+#      3. Code gen for AD
 
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
@@ -40,6 +42,8 @@ class BlockSparsityPattern:
         self.cblx = None # block beg end indices: zip(blx[:-1],blx[1:])
         # indices in the ith block = permutation[slice(beg, end)] 
         # block count: len(blx)-1
+        self.rowblk_prof = None
+        self.colblk_prof = None
         
 def itr_index_block_slice(blx): 
     for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
@@ -65,6 +69,8 @@ def set_permutation_with_block_boundaries(bsp):
     dbg_show(row_partition, bsp.row_permutation, bsp.rblx)
     print('COLS')
     dbg_show(col_partition, bsp.col_permutation, bsp.cblx)
+    # FIXME Hack to get block profiles
+    get_permuted_block_profiles(bsp)
     return True
 
 def reconstruct(partition):
@@ -106,3 +112,19 @@ def dbg_show(partition, permutation, blocks):
     for i, block_slice in itr_index_block_slice(blocks):
         print(i, permutation[block_slice])
 
+################################################################################
+# FIXME This is a temporary hack to test block sparsity pattern
+    
+def get_permuted_block_profiles(bsp):
+    bmat = sp.dok_matrix((len(bsp.rblx)-1,len(bsp.cblx)-1), dtype=np.int32)
+    # Same logic as in nonzero plotting
+    for i, j in util.itr_nonzero_indices(bsp.csr_mat):
+        r, c = bsp.inverse_row_perm[i], bsp.inverse_col_perm[j]
+        rblk = np.searchsorted(bsp.rblx, r, side='right') - 1 # inefficient, doesn't move within a row
+        cblk = np.searchsorted(bsp.cblx, c, side='right') - 1
+        key = (rblk,cblk)
+        #print('i=%d j=%d r=%d c=%d rb=%d cb=%d' % (i,j,r,c,rblk,cblk))
+        bmat[key] = bmat.get(key) + 1
+    print('Block pattern:\n%s' % bmat.todense())
+    return
+        
