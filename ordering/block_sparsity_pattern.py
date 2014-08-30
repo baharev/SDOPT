@@ -136,12 +136,13 @@ def get_permuted_block_profiles(bsp):
     row_major.sort_indices()
     cprof = util.indices_of_last_nonzeros(row_major)
     #
-    assert_non_decreasing(rprof, 'row')
-    assert_non_decreasing(cprof, 'col')
+    assert_in_lower_triangular_form(rprof, 'row')
+    assert_in_lower_triangular_form(cprof, 'col')
     #
     return
 
-def assert_non_decreasing(prof, row_or_col):
+def assert_in_lower_triangular_form(prof, row_or_col):
     diff = np.ediff1d(prof)
-    assert np.all(diff >= 0), \
-    'In Hessenberg form, the %s profile is non-decreasing, profile:\n%s' % (row_or_col, prof)
+    assert np.all(diff == 1) and (prof[0]==0), \
+    'Block profile not in lower triangular form:\n%s' % (row_or_col, prof)
+
