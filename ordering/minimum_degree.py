@@ -3,6 +3,8 @@ import numpy as np
 import scipy.sparse as sp
 import csr_utils as util
 
+DEBUG = False
+
 # m: matrix in csr format
 # r, c: row, column
 # asm: active submatrix
@@ -37,24 +39,28 @@ def min_degree_ordering(m, row_p, col_p, rbeg, rend, cbeg, cend):
         cbeg += np.count_nonzero(cmask) 
 
 def dbg_step(r_slice, c_slice, row_p, col_p, m, r, rmask, cmask):
-    r_index =  np.flatnonzero(rmask)
-    count = np.count_nonzero(cmask)
-    print('min count at row %d (%dth in asm), count = %d' % (r, r_index, count))
-    print('rows after stable partition:',    row_p[r_slice])        
-    print('columns after stable partition:', col_p[c_slice])
-    print('r perm:', row_p)
-    print('c perm:', col_p)
-    dbg_show_permuted_matrix(m, row_p, col_p)               
+    if DEBUG:    
+        r_index =  np.flatnonzero(rmask)
+        count = np.count_nonzero(cmask)
+        print('min count at row %d (%dth in asm), count = %d'%(r,r_index,count))
+        print('rows after stable partition:',    row_p[r_slice])        
+        print('columns after stable partition:', col_p[c_slice])
+        print('r perm:', row_p)
+        print('c perm:', col_p)
+        dbg_show_permuted_matrix(m, row_p, col_p)               
 
 def dbg_show_permuted_matrix(m_sparse, row_p, col_p):
-    m = m_sparse.todense()
-    for j in range(m.shape[1]):
-        m[:,j] = m[row_p,j]
-    for i in range(m.shape[0]):
-        m[i,:] = m[i,col_p]
-    print(m)
+    if DEBUG:
+        m = m_sparse.todense()
+        for j in range(m.shape[1]):
+            m[:,j] = m[row_p,j]
+        for i in range(m.shape[0]):
+            m[i,:] = m[i,col_p]
+        print(m)
 
-if __name__=='__main__':
+if __name__=='__main__':  
+    
+    DEBUG = True
     
     m = sp.dok_matrix((5,5), dtype=np.int8)
     m[1,1] = m[1,2] = m[1,3] = 1

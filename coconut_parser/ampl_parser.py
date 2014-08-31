@@ -14,15 +14,14 @@ import ordering.csr_utils as util
 def read_flattened_ampl(filename):
     bsp = read_nl(filename)
     bsp.csr_mat = sp.csr_matrix((bsp.csr_data, bsp.csr_indices, bsp.csr_indptr), 
-                                 shape=(bsp.nrows,bsp.ncols) ) 
+                                shape=(bsp.nrows,bsp.ncols) ) 
     check_J_segment(bsp)
     dbg_info(bsp)
-    has_blocks = bs.set_permutation_with_block_boundaries(bsp)
+    bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
     splot.plot(bsp, plot_permuted=False)
-    if has_blocks:
-        splot.plot(bsp, plot_permuted=True)
+    splot.plot(bsp, plot_permuted=True)
     return bsp
 
 def read_nl(filename):
