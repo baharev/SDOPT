@@ -24,15 +24,12 @@ def coloring(m, inv_row_p, inv_col_p):
     # If color i is available: color_available[i] is 1, otherwise 0
     # Initially, "color" 0 is available 
     color_available = np.ones(1, np.int8)
-    # chromatic number >= max nonzeros in a row
-    lb_chromatic_number = 0
-    # Iterate through columns backwards, from right to left
+    # Iterate through the columns backwards, from right to left
     for c in reversed(xrange(ncols)):
         # All rows containing c
         for r in rows_in_col(col_major, c):
             # All other columns in those rows, c's "neighbors"
             cols = cols_in_row(row_major, r)
-            lb_chromatic_number = max(lb_chromatic_number, cols.size)
             idx = np.flatnonzero(cols==c)
             # cols in r: [ left | c | right]
             # only the right index set has been processed so far
@@ -42,8 +39,11 @@ def coloring(m, inv_row_p, inv_col_p):
         #print('Colors available:\n%s' % color_available)
         index = np.flatnonzero(color_available)[0]
         column_colors[c] = index
+        # introduce new "color" if index == color_available.size-1 
         color_available = np.ones(max(index+2, color_available.size), np.int8)
     print('Colors:\n%s' % column_colors)
+    # chromatic number >= max nonzeros in a row
+    lb_chromatic_number = np.max(np.diff(row_major.indptr))
     print('Color count: %d (>=%d)'%(color_available.size-1,lb_chromatic_number)) 
 
 if __name__=='__main__':  
