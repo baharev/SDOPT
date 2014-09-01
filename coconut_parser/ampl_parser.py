@@ -150,7 +150,7 @@ def dbg_info(bsp):
     dbg_show_S_segm(bsp.col_suffixes)
 
 def dbg_show_jacobian(m):
-    for r, cols in util.itr_col_indices_by_row(m):
+    for r, cols in util.itr_col_indices_with_row_index(m):
         print('%d: %s' % (r, cols))
 
 def dbg_show_S_segm(suffix_dict):
