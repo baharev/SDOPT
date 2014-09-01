@@ -36,7 +36,7 @@ def coloring(m, inv_row_p, inv_col_p):
             right = cols[idx+1:]
             used_colors = column_colors[right]
             color_available[used_colors] = 0
-        print('Colors available:\n%s' % color_available)
+        #print('Colors available:\n%s' % color_available)
         index = np.flatnonzero(color_available)[0]
         column_colors[c] = index
         color_available = np.ones(max(index+2, color_available.size), np.int8)

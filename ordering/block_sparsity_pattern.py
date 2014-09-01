@@ -6,6 +6,7 @@ import csr_utils
 import misc_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 from ordering.minimum_degree import min_degree_ordering
+from ordering.coloring import coloring
 
 DEBUG = True
 
@@ -135,6 +136,8 @@ def set_min_degree_order(bsp):
     for i in xrange(n_rblx(bsp)):
         min_degree_ordering(m, row_p, col_p, *get_block_boundaries(bsp, i, i))
     set_inverse_permutations(bsp)
+    # FIXME Hackish way to run coloring
+    coloring(m, bsp.inverse_row_perm, bsp.inverse_col_perm)
 
 def set_inverse_permutations(bsp):
     bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
