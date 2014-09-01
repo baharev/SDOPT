@@ -7,10 +7,9 @@ import misc_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 from ordering.minimum_degree import min_degree_ordering
 
-# TODO 1. Do ordering within the blocks, along the upper envelope 
-#         (but postpone block orderings)
-#         upper envelope: apparently, the blocks are in lower triangular form
-#      2. Code gen for AD
+DEBUG = True
+
+# TODO Code gen for AD
 
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
@@ -34,7 +33,6 @@ class BlockSparsityPattern:
         # The data below comes from block reconstruction
         self.row_permutation  = None # AMPL row indices in permuted order
         self.col_permutation  = None # AMPL col indices in permuted order
-        # TODO Inverse permutations are only used by plot, compute only there?
         self.inverse_row_perm = None # inverse of row_permutation
         self.inverse_col_perm = None # inverse of col_permutation
         # Block boundaries
@@ -49,7 +47,16 @@ def itr_index_block_slice(blx):
 
 def get_block_boundaries(bsp, i, j):
     return bsp.rblx[i], bsp.rblx[i+1], bsp.cblx[j], bsp.cblx[j+1]
-    
+
+def n_blocks(bsp):
+    return n_rblx(bsp), n_cblx(bsp)
+
+def n_rblx(bsp):
+    return len(bsp.rblx)-1
+
+def n_cblx(bsp):
+    return len(bsp.cblx)-1
+
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
 # i.e. partition['index'] gives the indices, partition['values'] the block ids
@@ -57,23 +64,31 @@ def get_block_boundaries(bsp, i, j):
 def set_permutation_with_block_boundaries(bsp):
     blockid = 'blockid'
     if (blockid not in bsp.row_suffixes) or (blockid not in bsp.col_suffixes):
-        print('WARNING: No row and/or col partitions!')
         make_one_big_fake_block(bsp)
         return
     row_partition = bsp.row_suffixes[blockid] 
     col_partition = bsp.col_suffixes[blockid]
     bsp.row_permutation, bsp.rblx = reconstruct(row_partition) 
     bsp.col_permutation, bsp.cblx = reconstruct(col_partition)
-    set_inverse_permutations(bsp)
-    # The rest of this function is just debugging
-    assertEqLength(bsp.rblx, bsp.cblx) # it is not necessary in the general case
-    print('ROWS')
-    dbg_show(row_partition, bsp.row_permutation, bsp.rblx)
-    print('COLS')
-    dbg_show(col_partition, bsp.col_permutation, bsp.cblx)
-    # FIXME Hack to get block profiles
-    get_permuted_block_profiles(bsp)
+    if DEBUG:
+        assertEqLength(bsp.rblx, bsp.cblx) # it is not necessary in the general case
+        print('ROWS')
+        dbg_show(row_partition, bsp.row_permutation, bsp.rblx)
+        print('COLS')
+        dbg_show(col_partition, bsp.col_permutation, bsp.cblx)
     set_min_degree_order(bsp)
+    
+def make_one_big_fake_block(bsp):
+    print('WARNING: No row and/or col partitions,', end='') 
+    print('the Jacobian will be treated as a single big block!')
+    # Setting the whole matrix to be one big block
+    bsp.rblx = np.fromiter((0, bsp.nrows), dtype=np.int32)
+    bsp.cblx = np.fromiter((0, bsp.ncols), dtype=np.int32)
+    # The permutation is the identity    
+    bsp.row_permutation = np.arange(bsp.nrows, dtype=np.int32)
+    bsp.col_permutation = np.arange(bsp.ncols, dtype=np.int32)
+    # Now we can call minimum degree
+    set_min_degree_order(bsp)        
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
@@ -100,10 +115,6 @@ def check_block_ids(partition, block_count):
     block_ids = partition['value']
     assertEqual(block_ids[ 0], 1)
     assertEqual(block_ids[-1], block_count)
-    
-def set_inverse_permutations(bsp):
-    bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
-    bsp.inverse_col_perm = util.invert_permutation(bsp.col_permutation)   
 
 def dbg_show(partition, permutation, blocks):
     print('permutation:', permutation)
@@ -114,11 +125,31 @@ def dbg_show(partition, permutation, blocks):
     for i, block_slice in itr_index_block_slice(blocks):
         print(i, permutation[block_slice])
 
+def set_min_degree_order(bsp):
+    # Checking whether the blocks are in lower triangular form
+    set_inverse_permutations(bsp)
+    get_permuted_block_profiles(bsp) # profiles are currently ignored
+    # Unpacking bsp
+    m, row_p, col_p = bsp.csr_mat, bsp.row_permutation, bsp.col_permutation  
+    # Apply minimum degree ordering to each block on the diagonal (i,i)    
+    for i in xrange(n_rblx(bsp)):
+        min_degree_ordering(m, row_p, col_p, *get_block_boundaries(bsp, i, i))
+    set_inverse_permutations(bsp)
+
+def set_inverse_permutations(bsp):
+    bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)
+    bsp.inverse_col_perm = util.invert_permutation(bsp.col_permutation)      
+
 ################################################################################
-# FIXME This is a temporary hack to test block sparsity pattern
-    
+# The block attributes (rblx and cblx) and the functions working on them seem to
+# be separated: move them into a separate class?
+
 def get_permuted_block_profiles(bsp):
-    blk_mat = sp.dok_matrix((len(bsp.rblx)-1,len(bsp.cblx)-1), dtype=np.int32)
+    # The idea was to get the row and column profiles but apparently the blocks
+    # are in lower triangular form in all the test examples, so the profiles are 
+    # currently ignored; we only check if the blocks are really in lower 
+    # triangular form 
+    blk_mat = sp.dok_matrix(n_blocks(bsp), dtype=np.int32)
     # Same logic as in nonzero plotting
     for i, j in csr_utils.itr_nonzero_indices(bsp.csr_mat):
         r, c = bsp.inverse_row_perm[i], bsp.inverse_col_perm[j]
@@ -150,24 +181,3 @@ def assert_in_lower_triangular_form(prof, row_or_col):
     diff = np.ediff1d(prof)
     assert np.all(diff == 1) and (prof[0]==0), \
     '%s block profile not in lower triangular form:\n%s' % (row_or_col, prof)
-    
-################################################################################
-
-def set_min_degree_order(bsp):
-    # TODO Check if LTF
-    m = bsp.csr_mat
-    for i in xrange(len(bsp.rblx)-1):
-        # Apply minimum degree ordering to each block on the diagonal (i,i)
-        min_degree_ordering(m, bsp.row_permutation, bsp.col_permutation, 
-                            *get_block_boundaries(bsp, i, i))
-    set_inverse_permutations(bsp)
-
-def make_one_big_fake_block(bsp):
-    # The whole matrix is just one big block
-    bsp.rblx = np.fromiter((0, bsp.nrows), dtype=np.int32)
-    bsp.cblx = np.fromiter((0, bsp.ncols), dtype=np.int32)
-    # The permutation is the identity    
-    bsp.row_permutation = np.arange(bsp.nrows, dtype=np.int32)
-    bsp.col_permutation = np.arange(bsp.ncols, dtype=np.int32)
-    # Now we can call minimum degree
-    set_min_degree_order(bsp)
