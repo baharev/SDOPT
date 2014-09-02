@@ -18,8 +18,8 @@ then
   exit 1;
 fi
 
-CONVERTER_HOME=/home/ali/ws-java-se/Sdms/coverters/linux/converter4
-AMPL=/home/ali/ampl/ampl
+CONVERTER_HOME=/home/ali/coconut-converters
+AMPL=/home/ali/ampl-bin/ampl
 
 export AMPL
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONVERTER_HOME 
