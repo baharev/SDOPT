@@ -44,7 +44,9 @@ def coloring(m, inv_row_p, inv_col_p):
     print('Colors:\n%s' % column_colors)
     # chromatic number >= max nonzeros in a row
     lb_chromatic_number = np.max(np.diff(row_major.indptr))
-    print('Color count: %d (>=%d)'%(color_available.size-1,lb_chromatic_number)) 
+    color_count = color_available.size-1
+    print('Color count: %d (>=%d)' % (color_count, lb_chromatic_number))
+    return  column_colors, color_count
 
 if __name__=='__main__':  
     m = sp.dok_matrix((3,3), dtype=np.int8)

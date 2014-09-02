@@ -41,6 +41,8 @@ class BlockSparsityPattern:
         self.cblx = None # block beg end indices: zip(blx[:-1],blx[1:])
         # indices in the ith block = permutation[slice(beg, end)] 
         # block count: len(blx)-1
+        self.coloring = None # Graph coloring for good seeds in forward mode AD
+        self.color_count = 0
         
 def itr_index_block_slice(blx): 
     for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
@@ -77,7 +79,7 @@ def set_permutation_with_block_boundaries(bsp):
         dbg_show(row_partition, bsp.row_permutation, bsp.rblx)
         print('COLS')
         dbg_show(col_partition, bsp.col_permutation, bsp.cblx)
-    set_min_degree_order(bsp)
+    set_min_degree_order_and_coloring(bsp)
     
 def make_one_big_fake_block(bsp):
     print('WARNING: No row and/or col partitions,', end='') 
@@ -89,7 +91,7 @@ def make_one_big_fake_block(bsp):
     bsp.row_permutation = np.arange(bsp.nrows, dtype=np.int32)
     bsp.col_permutation = np.arange(bsp.ncols, dtype=np.int32)
     # Now we can call minimum degree
-    set_min_degree_order(bsp)        
+    set_min_degree_order_and_coloring(bsp)        
 
 def reconstruct(partition):
     # Sorts partition in place by block ids
@@ -126,7 +128,7 @@ def dbg_show(partition, permutation, blocks):
     for i, block_slice in itr_index_block_slice(blocks):
         print(i, permutation[block_slice])
 
-def set_min_degree_order(bsp):
+def set_min_degree_order_and_coloring(bsp):
     # Checking whether the blocks are in lower triangular form
     set_inverse_permutations(bsp)
     get_permuted_block_profiles(bsp) # profiles are currently ignored
@@ -136,8 +138,8 @@ def set_min_degree_order(bsp):
     for i in xrange(n_rblx(bsp)):
         min_degree_ordering(m, row_p, col_p, *get_block_boundaries(bsp, i, i))
     set_inverse_permutations(bsp)
-    # FIXME Hackish way to run coloring
-    coloring(m, bsp.inverse_row_perm, bsp.inverse_col_perm)
+    bsp.coloring, bsp.color_count = coloring( m, bsp.inverse_row_perm, 
+                                                 bsp.inverse_col_perm )
 
 def set_inverse_permutations(bsp):
     bsp.inverse_row_perm = util.invert_permutation(bsp.row_permutation)

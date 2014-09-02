@@ -1,20 +1,26 @@
 from __future__ import print_function
+from math import floor
 import numpy as np
 import scipy.sparse as sp
 import matplotlib.pyplot as plt
+import matplotlib.cm as cmx
+import matplotlib.colors as colors
 import csr_utils as util
 
-def plot(bsp, plot_permuted):
+def plot(bsp, plot_permuted, show_coloring=False):
     # Unpack bsp
     m = bsp.csr_mat
-    assert isinstance(m, sp.csr_matrix)    
+    assert isinstance(m, sp.csr_matrix)
+    assert plot_permuted or not show_coloring # color only permuted patterns
     row_names, col_names = bsp.row_names, bsp.col_names 
     inv_row_p, inv_col_p = get_inverse_permutation(bsp, plot_permuted)
     rblx, cblx = bsp.rblx, bsp.cblx
-    assert not (plot_permuted and rblx is None) # responsibility of the caller
+    coloring = bsp.coloring
+    color_count = bsp.color_count
     # Do the actual work 
     fig, ax = setup(*m.shape)
-    draw_nzeros(ax, m, inv_row_p, inv_col_p)
+    column_cmap = get_column_cmap(coloring, color_count, show_coloring)
+    draw_nzeros(ax, m, inv_row_p, inv_col_p, column_cmap)
     if plot_permuted:
         draw_partitions(ax, rblx, cblx)
     fs = get_font_size(fig, ax)
@@ -40,11 +46,22 @@ def setup(nrows, ncols):
     ax.set_ylim([0, nrows])
     return fig, ax
 
-def draw_nzeros(ax, m, inv_row_p, inv_col_p):
+def get_column_cmap(coloring, color_count, show_coloring):
+    if not show_coloring:
+        return lambda i: 'black'
+    # The magic number 1.09 is a hack as I cannot distinguish the 2 ends of hsv
+    color_norm  = colors.Normalize(vmin=0, vmax=int(floor(color_count*1.09)))
+    scalar_map = cmx.ScalarMappable(norm=color_norm, cmap='hsv') 
+    def cmap(i):
+        return scalar_map.to_rgba(coloring[i])
+    return cmap
+
+def draw_nzeros(ax, m, inv_row_p, inv_col_p, column_cmap):
     for i, j in util.itr_nonzero_indices(m):
         r, c = inv_row_p[i], inv_col_p[j]
         # r and c must be swapped: row -> y axis, col -> x axis
-        rect = plt.Rectangle((c, r), 1, 1, facecolor='black', edgecolor='0.7')
+        color_of_c = column_cmap(c)
+        rect = plt.Rectangle((c,r), 1,1, facecolor=color_of_c, edgecolor='0.7')
         ax.add_artist(rect)
 
 def draw_partitions(ax, rblx, cblx):
