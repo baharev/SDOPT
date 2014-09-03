@@ -25,9 +25,7 @@ decomposing the large model into smaller problems.
   <img src ="pics/HeatingSystem.png?raw=true" alt="modular technical system"/>
 </p>
 
-<p style="background: red; color: white;">
-THIS PROJECT IS A WORK IN PROGRESS.
-</p>
+**THIS PROJECT IS A WORK IN PROGRESS.**
 
 Input
 -----
@@ -43,9 +41,7 @@ SymPy. Only nonlinear systems of equations are considered at the moment
 For example, the following AMPL code
 ```
 var x; var y; var z;
-
-equation:
-  exp(x+y)*z = 1;
+equation: exp(3*x+2*y)+4*z = 1;
 ```
 yields the directed acyclic graph below.
 <p align="center">
@@ -57,7 +53,7 @@ In any case, I will keep the AMPL interface too.
 [Modelica](http://en.wikipedia.org/wiki/Modelica) is definitely on the agenda, 
 accessed through the 
 [functional mock-up interface](http://en.wikipedia.org/wiki/Functional_Mock-up_Interface).
-This project is not aiming at creating yet another modeling environment; the 
+This project is not aiming at creating yet another modeling environment: The 
 goal is to plug the tools of this project into well-established modeling 
 systems.
 
@@ -67,7 +63,7 @@ The modules of the technical systems partition the
 [Jacobian](http://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) 
 into blocks in a fairly natural way. This natural block structure plays an
 important role in [structure-driven algorithms](README.md#structure-driven):
-Computing the optimal partitioning and ordering of the smaller systems is 
+Computing the optimal partitioning and ordering of the smaller subproblems is 
 NP-hard in the general case; one must resort to heuristics in practice. 
 Independent results show that the heuristic which exploits the natural block 
 structure often yields good quality partitioning and ordering. 
@@ -75,7 +71,7 @@ structure often yields good quality partitioning and ordering.
 The current way to pass the natural blocks is rather hackish: Suffixes are 
 used, see *Defining and using suffixes* on page 302 in the 
 [AMPL book](http://ampl.github.io/ampl-book.pdf). In the future, component-based
-modeling tools will allow an easy programmatic access to the natural block 
+modeling tools will hopefully allow programmatic access to the natural block 
 structure.
 
 Minimum degree ordering
@@ -86,12 +82,12 @@ natural block structure.
 ![ordering](pics/ordering.png?raw=true)
 
 My primary interest is chemical process modeling. The Jacobian of these models 
-are very sparse but *highly* unsymmetric, numerically indefinite, not diagonally
-dominant and possibly ill-conditioned. There are many packages for the symmetric
-and mildly unsymmetric case. (In the mildly unsymmetric case, it is acceptable 
-to introduce artificial fill-in to make the sparsity pattern symmetric and 
-then use an algorithm developed for the symmetric case.) 
-I have only found 
+are very sparse but *highly* unsymmetric, numerically indefinite, not diagonally 
+dominant and possibly ill-conditioned. There are many packages for the symmetric 
+and slightly unsymmetric case. (In the slightly unsymmetric case, it is 
+acceptable to introduce artificial fill-in to make the sparsity pattern 
+symmetric and then use a sparse matrix ordering algorithm, developed for the 
+symmetric case.) I have only found 
 [MC33 from the Harwell Subroutine Library](http://www.hsl.rl.ac.uk/catalogue/mc33.html)
 that is applicable in the highly unsymmetric case. Since MC33 is based on a 
 heuristic, it unfortunately fails on those chemical process models that are of 
