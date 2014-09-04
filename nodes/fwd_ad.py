@@ -58,6 +58,16 @@ def idx_str(i, base_vars, con_dag):
     # some intermediate node
     return 't%d' % i
 
+def der_idx(i, base_vars, con_dag):
+    if i in base_vars:
+        return 'w[%d]' % base_vars[i]
+    # a number
+    d = con_dag.node[i]
+    if NodeAttr.number in d:
+        return '0.0'
+    # some intermediate node
+    return 'u%d' % i
+
 def lin_comb_str(n, d, con_dag, base_vars, op='+'):
     # for 1..n: lambda_1*predec_1 op lambda_2*predec_2 ... op lambda_n*predec_n
     #   where op is + or *
@@ -66,14 +76,37 @@ def lin_comb_str(n, d, con_dag, base_vars, op='+'):
         s.append('%s%s' % (lambda_to_str(lam), idx_str(predec, base_vars, con_dag)))
     return (' %s ' % op).join(s)
 
+def der_lin_comb(n, d, con_dag, base_vars):
+    # Differentiation is linear
+    # for 1..n: lambda_1*predec_1' + lambda_2*predec_2' ... + lambda_n*predec_n'
+    s = []
+    for lam, predec  in izip(*inedge_mult(n, d, con_dag)):
+        s.append('%s%s' % (lambda_to_str(lam), der_idx(predec, base_vars, con_dag)))
+    return ' + '.join(s)
+
 def sum_node_str(n, d, con_dag, base_vars):
     d_term = d.get(NodeAttr.d_term, 0.0)
-    return lin_comb_str(n, d, con_dag, base_vars) + add_d_term_str(d_term)
+    body  = lin_comb_str(n, d, con_dag, base_vars) + add_d_term_str(d_term)
+    return body, der_lin_comb(n, d, con_dag, base_vars)
 
 def mul_node_str(n, d, con_dag, base_vars):
     d_term = d.get(NodeAttr.d_term, 1.0)
-    return  lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, base_vars, '*')
+    body  = lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, base_vars, '*')
+    return body, der_mul(n, d, con_dag, base_vars)
 
+def der_mul(n, d, con_dag, base_vars):
+    mult, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    # d*(lam1*x1)*(lam2*x2) -> d*lam1*lam2*(dx1*x2 + x1*dx2)
+    const = d.get(NodeAttr.d_term, 1.0)*mult[0]*mult[1]
+    x1  = idx_str(pred[0], base_vars, con_dag)
+    dx1 = der_idx(pred[0], base_vars, con_dag)
+    x2  = idx_str(pred[1], base_vars, con_dag)
+    dx2 = der_idx(pred[1], base_vars, con_dag)
+    return lmul_d_term_str(const)+'('+dx1+'*'+x2+' + '+x1+'*'+dx2+ ')'
+
+# TODO Why are the asserts outside of inedge? Can I move it there?
 def div_node_str(n, d, con_dag, base_vars):
     mult, pred = inedge_mult(n, d, con_dag)
     assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
@@ -202,13 +235,14 @@ if __name__=='__main__':
     test_dir = '../data/'
     #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
     #              'tunnelDiodes', 'mss20heatBalance' ]
-    test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
-    #test_cases = ['JacobsenTorn.dag']
+    #test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
+    test_cases = ['JacobsenTorn.dag']
     dag_files = [ '{dir}{filename}'.format(dir=test_dir, filename=basename) \
                    for basename in test_cases ]
     for dag_file in dag_files:
         problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
+        partial_code = prepare_evaluation_code(problem) 
         print('===============================================')
-        print(prepare_evaluation_code(problem))
+        dbg_dump_code(partial_code, problem.refsols[0])
         print('===============================================')
 
