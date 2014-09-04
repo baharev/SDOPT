@@ -33,15 +33,16 @@ def parse(f):
             func(p, elems)
     return p
 
-def read_problem(filename, crosscheck_with_ampl=True, to_plot=True):
+def read_problem(filename, plot_dag=True, crosscheck_nl=True, show_sparsity=True):
     with lines_of(filename) as lines:
         problem = parse(lines)
     problem.setup()
-    if crosscheck_with_ampl:
-        bsp = read_flattened_ampl( filename[:-4]+'.nl' ) # .dag -> .nl
+    if crosscheck_nl:
+        nl_filename = filename[:-4]+'.nl' # filename.dag -> filename.nl
+        bsp = read_flattened_ampl(nl_filename, show_sparsity)
         problem.crosscheck_sparsity_pattern(bsp.csr_mat)
         problem.crosscheck_names(bsp.row_names, bsp.col_names)
-    if to_plot:
+    if plot_dag:
         du.plot(problem.dag)
         return None # FIXME Resolve issues with plotting! (Must destroy dictionaries)
     return problem

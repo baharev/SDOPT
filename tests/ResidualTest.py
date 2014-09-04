@@ -25,7 +25,7 @@ class ResidualTest(unittest.TestCase):
 
     def test_files(self):
         for dag_file in dag_files():
-            problem = read_problem(dag_file, to_plot=False)
+            problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
             residual_code = pprinter.prepare_evaluation_code(problem)
             # Dumps the debug code being executed
             # pprinter.dbg_dump_code(residual_code, problem.refsols[0])

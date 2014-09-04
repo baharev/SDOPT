@@ -11,7 +11,7 @@ from util.file_reader import lines_of
 from util.assert_helpers import assertEqual
 import ordering.csr_utils as util
 
-def read_flattened_ampl(filename):
+def read_flattened_ampl(filename, show_sparsity_pattern=True):
     bsp = read_nl(filename)
     bsp.csr_mat = sp.csr_matrix((bsp.csr_data, bsp.csr_indices, bsp.csr_indptr), 
                                 shape=(bsp.nrows,bsp.ncols) ) 
@@ -20,8 +20,9 @@ def read_flattened_ampl(filename):
     bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
-    splot.plot(bsp, plot_permuted=False)
-    splot.plot(bsp, plot_permuted=True, show_coloring=True)
+    if show_sparsity_pattern:
+        splot.plot(bsp, plot_permuted=False)
+        splot.plot(bsp, plot_permuted=True, show_coloring=True)
     return bsp
 
 def read_nl(filename):
