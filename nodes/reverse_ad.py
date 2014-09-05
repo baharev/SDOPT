@@ -6,7 +6,7 @@ import math
 import representation.dag_util as du
 from util.redirect_stdout import redirect_stdout
 from coconut_parser.dag_parser import read_problem
-import os
+#import os
 
 def to_str(number):
     return str(number) if number >= 0 else '({})'.format(number)
@@ -58,53 +58,21 @@ def idx_str(i, base_vars, con_dag):
     # some intermediate node
     return 't%d' % i
 
-def der_idx(i, base_vars, con_dag):
-    if i in base_vars:
-        return 'w[%d]' % base_vars[i]
-    # a number
-    d = con_dag.node[i]
-    if NodeAttr.number in d:
-        return '0.0'
-    # some intermediate node
-    return 'u%d' % i
-
 def lin_comb_str(n, d, con_dag, base_vars, op='+'):
     # for 1..n: lambda_1*predec_1 op lambda_2*predec_2 ... op lambda_n*predec_n
     #   where op is + or *
     s = []
-    for lam, predec  in izip(*inedge_mult(n, d, con_dag)):
+    for lam, predec  in izip(*inedge_mult(n, d, con_dag)): # FIXME itr_inedge_mult
         s.append('%s%s' % (lambda_to_str(lam), idx_str(predec, base_vars, con_dag)))
     return (' %s ' % op).join(s)
 
-def der_lin_comb(n, d, con_dag, base_vars):
-    # Differentiation is linear
-    # for 1..n: lambda_1*predec_1' + lambda_2*predec_2' ... + lambda_n*predec_n'
-    s = []
-    for lam, predec  in izip(*inedge_mult(n, d, con_dag)):
-        s.append('%s%s' % (lambda_to_str(lam), der_idx(predec, base_vars, con_dag)))
-    return ' + '.join(s)
-
 def sum_node_str(n, d, con_dag, base_vars):
     d_term = d.get(NodeAttr.d_term, 0.0)
-    body  = lin_comb_str(n, d, con_dag, base_vars) + add_d_term_str(d_term)
-    return body, der_lin_comb(n, d, con_dag, base_vars)
+    return lin_comb_str(n, d, con_dag, base_vars) + add_d_term_str(d_term)
 
 def mul_node_str(n, d, con_dag, base_vars):
     d_term = d.get(NodeAttr.d_term, 1.0)
-    body  = lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, base_vars, '*')
-    return body, der_mul(n, d, con_dag, base_vars)
-
-def der_mul(n, d, con_dag, base_vars):
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
-    # d*(lam1*x1)*(lam2*x2) -> d*lam1*lam2*(dx1*x2 + x1*dx2)
-    const = d.get(NodeAttr.d_term, 1.0)*mult[0]*mult[1]
-    x1  = idx_str(pred[0], base_vars, con_dag)
-    dx1 = der_idx(pred[0], base_vars, con_dag)
-    x2  = idx_str(pred[1], base_vars, con_dag)
-    dx2 = der_idx(pred[1], base_vars, con_dag)
-    return lmul_d_term_str(const)+'('+dx1+'*'+x2+' + '+x1+'*'+dx2+ ')'
+    return  lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, base_vars, '*')
 
 # TODO Why are the asserts outside of inedge? Can I move it there?
 def div_node_str(n, d, con_dag, base_vars):
@@ -126,6 +94,7 @@ def pow_node_str(n, d, con_dag, base_vars):
     power = lambda_to_str(mult[1]) + idx_str(pred[1], base_vars, con_dag)
     return  'pow(' + base + ', ' + power + ')'
 
+# TODO Can this thing have a d term?
 def exp_node_str(n, d, con_dag, base_vars):
     return 'exp(' + lin_comb_str(n, d, con_dag, base_vars) + ')'
 
@@ -135,21 +104,72 @@ def log_node_str(n, d, con_dag, base_vars):
 def sqr_node_str(n, d, con_dag, base_vars):
     return '(' + lin_comb_str(n, d, con_dag, base_vars) + ')**2'
 
-def var_node_str(n, d, con_dag, base_vars):
-    # Assumes a defined variable
-    assert n not in base_vars
-    assert NodeAttr.input_ord in d, '%d, %s' % (n, d)
-    pred = d[NodeAttr.input_ord]
-    assert len(pred)==1
-    return sum_node_str(n, d, con_dag, base_vars)
-
-def num_node_str(n, d, con_dag, base_vars):
-    return str(d[NodeAttr.number])
-
 def inedge_mult(n, d, con_dag):
     pred = d[NodeAttr.input_ord]
     mult = [con_dag[p][n]['weight'] for p in pred]
     return mult, pred
+
+################################################################################
+
+def assign(seen, node):
+    assign = '+=' if node in seen else '='
+    seen.add(node)
+    return assign     
+
+def sum_node_rev(n, d, con_dag, base_vars, seen):
+    # t_i = lam_p*t_p + lam_q*t_q + ... + lam_z*t_z
+    # u_p (+)= lam_p * u_i
+    # ... 
+    # u_z (+)= lam_z * u_i
+    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+        if NodeAttr.number not in con_dag.node[node]:
+            print('u%d %s %su%d'%(node, assign(seen,node), lmul_d_term_str(lam), n))
+
+def mul_node_rev(n, d, con_dag, base_vars, seen):
+    mult, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    # t_i = d*(lam_r*t_r)*(lam_s*t_s) 
+    # u_r (+)= d*lam_r*lam_s * t_s * u_i
+    # u_s (+)= d*lam_r*lam_s * t_r * u_i    
+    const = lmul_d_term_str(d.get(NodeAttr.d_term, 1.0)*mult[0]*mult[1])
+    r = pred[0]
+    s = pred[1]
+    mul_rev(n, d, con_dag, base_vars, seen, const, r, s)
+    mul_rev(n, d, con_dag, base_vars, seen, const, s, r)    
+        
+def mul_rev(n, d, con_dag, base_vars, seen, const, r, s):
+    if NodeAttr.number in con_dag.node[r]:
+        return
+    s_str = idx_str(s, base_vars, con_dag)
+    # u_r (+)= const * t_s * u_i
+    print('u%d %s %s%s * u%d' % (r, assign(seen,r), const, s_str, n))
+
+def div_node_rev(n, d, con_dag, base_vars, seen):
+    _, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    # t_i = d*(lam_r*t_r)/(lam_s*t_s) 
+    # u_r (+)=  d*lam_r/lam_s * (1/t_s) * u_i
+    # u_s (+)=            t_i *-(1/t_s) * u_i
+    return 
+    # FIXME Continue from here!
+#     const = lmul_d_term_str(d.get(NodeAttr.d_term, 1.0)*mult[0]*mult[1])
+#     r = pred[0]
+#     s = pred[1]
+#     mul_rev(n, d, con_dag, base_vars, seen, const, r, s)
+#     mul_rev(n, d, con_dag, base_vars, seen, const, s, r)  
+
+def exp_node_rev(n, d, con_dag, base_vars, seen):
+    # t_i = exp(lam_j*t_j + ...)
+    # u_j = lam_j*t_i * u_i
+    for lam, node in izip(*inedge_mult(n, d, con_dag)):        
+        print('u%d %s %st%d * u%d'%(node,assign(seen,node),lmul_d_term_str(lam),n,n))    
+
+def print_node(n, d, con_dag, base_vars, seen):
+    fmt = du.get_pretty_type_str(con_dag, n) + '_rev'
+    formatter = globals()[fmt]
+    formatter(n, d, con_dag, base_vars, seen)
 
 ################################################################################
 
@@ -169,11 +189,26 @@ def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
         pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
     # residual
     pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars)
+    ############################################################################
+    # Backward sweep
+    print('u%d = 1.0' % sink_node) # setting the seed
+    seen = set()
+    for n, d in itr_reverse(con_dag, eval_order, base_vars):
+        body = get_body(n, d, con_dag, base_vars)
+        print('# ', end='')
+        pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
+        #
+        print_node(n, d, con_dag, base_vars, seen)
+    print()        
 
 def itr_nodes_to_pprint(con_dag, eval_order, base_vars):
     # Print if NOT a base variable, a number or the last node (residual)
     return ((n, con_dag.node[n]) for n in eval_order[:-1] \
               if n not in base_vars and NodeAttr.number not in con_dag.node[n])
+    
+def itr_reverse(con_dag, eval_order, base_vars):
+    return ((n, con_dag.node[n]) for n in eval_order[::-1] \
+              if n not in base_vars and NodeAttr.number not in con_dag.node[n])    
 
 def get_body(n, d, con_dag, base_vars):
     fmt = du.get_pretty_type_str(con_dag, n) + '_str'
@@ -231,6 +266,16 @@ def dbg_dump_code(residual_code, v):
     print(  '    con = eval(v)')
     print(  '    print con \n\n')
 
+def run_code_gen(problem):
+    for sink_node in problem.con_ends_num:
+        eval_order = problem.con_top_ord[sink_node]
+        con_num = problem.con_ends_num[sink_node]
+        con_dag = problem.dag.subgraph(eval_order)
+        base_vars = problem.base_vars
+        def_var_names = problem.var_num_name
+        print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
+
 if __name__=='__main__':
     test_dir = '../data/'
     #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
@@ -241,8 +286,8 @@ if __name__=='__main__':
                    for basename in test_cases ]
     for dag_file in dag_files:
         problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
-        partial_code = prepare_evaluation_code(problem) 
+        #partial_code = prepare_evaluation_code(problem) 
         print('===============================================')
-        dbg_dump_code(partial_code, problem.refsols[0])
+        run_code_gen(problem)
+        #dbg_dump_code(partial_code, problem.refsols[0])
         print('===============================================')
-
