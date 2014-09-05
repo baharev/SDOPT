@@ -146,20 +146,22 @@ def mul_rev(n, d, con_dag, base_vars, seen, const, r, s):
     print('u%d %s %s%s * u%d' % (r, assign(seen,r), const, s_str, n))
 
 def div_node_rev(n, d, con_dag, base_vars, seen):
-    _, pred = inedge_mult(n, d, con_dag)
+    mult, pred = inedge_mult(n, d, con_dag)
     assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
     assert len(pred)==2, 'Expected exactly two predecessors %s' % d
     # t_i = d*(lam_r*t_r)/(lam_s*t_s) 
     # u_r (+)=  d*lam_r/lam_s * (1/t_s) * u_i
-    # u_s (+)=            t_i *-(1/t_s) * u_i
-    return 
-    # FIXME Continue from here!
-#     const = lmul_d_term_str(d.get(NodeAttr.d_term, 1.0)*mult[0]*mult[1])
-#     r = pred[0]
-#     s = pred[1]
-#     mul_rev(n, d, con_dag, base_vars, seen, const, r, s)
-#     mul_rev(n, d, con_dag, base_vars, seen, const, s, r)  
-
+    # u_s (+)=           -(1/t_s) * t_i * u_i
+    const = lmul_d_term_str(d.get(NodeAttr.d_term, 1.0)*mult[0]/mult[1])
+    r = pred[0]
+    s = pred[1]
+    recip = 'recip_%d_%d' % (n, s)
+    print('%s = 1.0/t%d' % (recip, s))
+    if NodeAttr.number not in con_dag.node[r]:
+        print('u%d %s %s%s * u%d' % (r, assign(seen,r), const, recip, n))
+    if NodeAttr.number not in con_dag.node[s]:
+        print('u%d %s -%s * t%d * u%d'%(s, assign(seen,s), recip, n, n))
+    
 def exp_node_rev(n, d, con_dag, base_vars, seen):
     # t_i = exp(lam_j*t_j + ...)
     # u_j = lam_j*t_i * u_i
