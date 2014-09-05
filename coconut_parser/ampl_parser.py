@@ -9,6 +9,7 @@ import ordering.block_sparsity_pattern as bs
 import ordering.sparse_plot as splot
 from util.file_reader import lines_of
 from util.assert_helpers import assertEqual
+from util.misc import nth
 import ordering.csr_utils as util
 
 def read_flattened_ampl(filename, show_sparsity_pattern=True):
@@ -56,10 +57,6 @@ def check_if_text_format(first_line):
         print('First line: \'%s\'' % first_line)
         msg = 'only ASCII format files can be parsed (give flag g to AMPL)'
         raise RuntimeError(msg)
-
-def nth(iterable, n, default=None):
-    'Returns the nth item or a default value'
-    return next(islice(iterable, n, None), default)
 
 def extract_problem_info(iterable_lines):
     second_line = next(iterable_lines)
