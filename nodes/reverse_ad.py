@@ -7,6 +7,7 @@ import representation.dag_util as du
 from util.redirect_stdout import redirect_stdout
 from coconut_parser.dag_parser import read_problem
 #import os
+from operator import itemgetter
 
 def to_str(number):
     return str(number) if number >= 0 else '({})'.format(number)
@@ -201,7 +202,12 @@ def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
         pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
         #
         print_node(n, d, con_dag, base_vars, seen)
-    print()        
+    # Collect row of the Jacobian
+    basevars = sorted(((n,base_vars[n]) for n in eval_order if n in base_vars),
+                      key=itemgetter(1)) # sort by var_num
+    for n, var_num in basevars:
+        print('jac[%d,%d] = u%d' % (con_num, var_num, n))
+    print()
 
 def itr_nodes_to_pprint(con_dag, eval_order, base_vars):
     # Print if NOT a base variable, a number or the last node (residual)
@@ -236,17 +242,6 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
 
 ################################################################################
 
-# TODO Properly assert nvars == ncons
-preamble = \
-'''from math import exp, log
-
-def eval(v):
-    con = [ float('NaN') ] * len(v)
-
-'''
-
-postamble = '    return con\n'
-
 def prepare_evaluation_code(problem):
     with io.BytesIO() as code: 
         code.write(preamble)
@@ -257,16 +252,35 @@ def prepare_evaluation_code(problem):
 def write_constraint_evaluation_code(problem, code):
     with io.BytesIO() as ostream: 
         with redirect_stdout(ostream):  # Eliminating the nested with would make 
-            problem.pprint_constraints()# debugging harder: stdout is swallowed!
+            # FIXME Hacked here
+            run_code_gen(problem)# debugging harder: stdout is swallowed!
         # prepend indentation, keep line ends
         code.writelines('    %s' % l for l in ostream.getvalue().splitlines(True))
 
-def dbg_dump_code(residual_code, v):
+# TODO Properly assert nvars == ncons
+preamble = \
+'''from math import exp, log
+import numpy as np
+import scipy.sparse as sp
+
+def evaluate(v, ncons, nvars):
+    
+    con = np.empty(ncons, dtype=np.float64)
+    np.copyto(con, float('NaN'), casting='unsafe')
+   
+    jac = sp.dok_matrix((ncons,nvars), dtype=np.float64)
+'''
+
+postamble = '    return con, jac\n'
+
+def dbg_dump_code(residual_code, v, ncons, nvars):
     print(residual_code)
     print('''if __name__=='__main__':''')
     print(  '    v =', v)
-    print(  '    con = eval(v)')
-    print(  '    print con \n\n')
+    print(  '    con, jac = evaluate(v, %d, %d)' % (ncons, nvars))
+    print(  '    print con')
+    print(  '    print ')    
+    print(  '    print str(jac.tocsr()) \n\n') 
 
 def run_code_gen(problem):
     for sink_node in problem.con_ends_num:
@@ -284,12 +298,15 @@ if __name__=='__main__':
     #              'tunnelDiodes', 'mss20heatBalance' ]
     #test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
     test_cases = ['JacobsenTorn.dag']
+    test_cases = ['example.dag']    
     dag_files = [ '{dir}{filename}'.format(dir=test_dir, filename=basename) \
                    for basename in test_cases ]
     for dag_file in dag_files:
         problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
-        #partial_code = prepare_evaluation_code(problem) 
+        partial_code = prepare_evaluation_code(problem) 
         print('===============================================')
-        run_code_gen(problem)
-        #dbg_dump_code(partial_code, problem.refsols[0])
+        #run_code_gen(problem)
+        # FIXME Add nrows to problem?
+        dbg_dump_code(partial_code, problem.refsols[0], \
+                      len(problem.con_ends_num), problem.nvars)
         print('===============================================')
