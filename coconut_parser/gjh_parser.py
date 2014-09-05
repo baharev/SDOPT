@@ -7,6 +7,9 @@ import scipy.sparse as sp
 from util.file_reader import lines_of
 from util.misc import nth
 
+# FIXME: We need the point where we calculated this Jacobian!
+#        Save also the residual values?
+
 def read_gjh(filename):
     with lines_of(filename) as lines:
         return parse(lines)
