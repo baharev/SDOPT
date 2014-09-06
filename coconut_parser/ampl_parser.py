@@ -95,8 +95,8 @@ def extract_index_value(iterable, length):
         yield tuple(line.split())
 
 def numpy_index_value(iterable, length, value_type):
-    dtype = [('index', np.int32), ('value', value_type)]
-    return np.fromiter(extract_index_value(iterable, length), dtype)
+    datatype = [('index', np.int32), ('value', value_type)]
+    return np.fromiter(extract_index_value(iterable, length), datatype)
 
 def J_segment(bsp, iterable, line):
     # J5 2
