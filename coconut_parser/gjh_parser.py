@@ -6,7 +6,7 @@ from util.file_reader import lines_of
 from util.misc import advance, nth, skip_until, import_code
 from coconut_parser.dag_parser import read_problem
 from nodes.reverse_ad import prepare_evaluation_code
-from util.assert_helpers import assertEqual
+from itertools import izip
 
 def read(logfilename):
     x, residuals, name = read_log(logfilename)
@@ -72,20 +72,27 @@ def get_J_shape(lines):
     print('Shape: %dx%d' % (nrows, ncols))
     return nrows, ncols
 
+def assertIntArrayEqual(a, b):
+    indices = np.flatnonzero(a!=b)
+    if indices.size:
+        raise AssertionError('\n%s\n%s\n%s' % (indices, a[indices], b[indices]))
+
 def differs_at(A_dok_mat, B_dok_mat, sign):
+    # Can produce false positives if the sign was bogusly reconstructed or
     a = A_dok_mat.tocsr().tocoo() # TODO A rather inefficient way to order it.
     b = B_dok_mat.tocsr().tocoo()
-    diff = [ ]
-    # FIXME Vectorize with NumPy
+    #
     assert a.nnz == b.nnz
-    for k in xrange(a.nnz):
-        ai, aj, ax = a.row[k], a.col[k], a.data[k]
-        bi, bj, bx = b.row[k], b.col[k], sign[ai]*b.data[k]
-        assertEqual(ai, bi)
-        assertEqual(aj, bj)
-        if not abs(ax-bx) < (1.0e-8 + 1.0e-5*abs(bx)):
-            diff.append( [ai, aj, (ax, bx)] )
-    print('Jacobian diff:\n%s' % diff)
+    # FIXME Make sure that accidental 0s are stored and the indices are ordered!
+    assertIntArrayEqual(a.row, b.row)
+    assertIntArrayEqual(a.col, b.col)
+    #
+    close =  np.isclose(a.data, np.multiply(sign[b.row], b.data))
+    ind = np.flatnonzero(~close)
+    if ind.size:
+        for r, c, x, y in izip(a.row[ind],a.col[ind],a.data[ind],b.data[ind]):
+            print('(%d,%d) %g  %g' % (r, c, x, y))
+        raise AssertionError('See the indices and values printed above!')
 
 if __name__=='__main__':
     x, residuals, jac = read('/home/ali/ampl/JacobsenTorn.log')
@@ -106,6 +113,7 @@ if __name__=='__main__':
     #
     allclose = np.allclose(residuals, np.multiply(sign, con))
     print( 'Residuals all close? {}'.format(allclose) )
+    #
     differs_at(jac, jac_ad, sign)
     print('===============================================')
     

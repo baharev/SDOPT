@@ -9,6 +9,11 @@ from coconut_parser.dag_parser import read_problem
 #import os
 from operator import itemgetter
 
+# TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
+#      - Factor out code multiplication: reverse_ad, gjh_parser, pprinter, and 
+#        unit tests
+#      - Different formatters for Python and C++ code gen
+
 def to_str(number):
     return str(number) if number >= 0 else '({})'.format(number)
 
