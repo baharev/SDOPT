@@ -3,13 +3,7 @@ import unittest
 import os
 from coconut_parser.dag_parser import read_problem
 import nodes.pprinter as pprinter
-
-# http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
-def import_code(code, name):
-    import imp
-    module = imp.new_module(name)
-    exec code in module.__dict__
-    return module
+from util.misc import import_code
 
 def dag_files():
     test_dir = '../data/'
@@ -33,6 +27,7 @@ class ResidualTest(unittest.TestCase):
             f = import_code(residual_code, 'twistedResidualTest')
             residuals = f.eval(problem.refsols[0])
             # print(residuals)
+            # FIXME Use NumPy? NaN-s are treated in counterintuitively
             max_residual = abs(max(residuals, key=abs))
             # TODO If fails, give the violated constraint name
             self.assertLess(max_residual, 1.0e-6, \

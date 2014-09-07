@@ -3,7 +3,10 @@ from os.path import dirname, join
 import numpy as np
 import scipy.sparse as sp
 from util.file_reader import lines_of
-from util.misc import advance, nth, skip_until
+from util.misc import advance, nth, skip_until, import_code
+from coconut_parser.dag_parser import read_problem
+from nodes.reverse_ad import prepare_evaluation_code
+from util.assert_helpers import assertEqual
 
 def read(logfilename):
     x, residuals, name = read_log(logfilename)
@@ -69,5 +72,40 @@ def get_J_shape(lines):
     print('Shape: %dx%d' % (nrows, ncols))
     return nrows, ncols
 
+def differs_at(A_dok_mat, B_dok_mat, sign):
+    a = A_dok_mat.tocsr().tocoo() # TODO A rather inefficient way to order it.
+    b = B_dok_mat.tocsr().tocoo()
+    diff = [ ]
+    # FIXME Vectorize with NumPy
+    assert a.nnz == b.nnz
+    for k in xrange(a.nnz):
+        ai, aj, ax = a.row[k], a.col[k], a.data[k]
+        bi, bj, bx = b.row[k], b.col[k], sign[ai]*b.data[k]
+        assertEqual(ai, bi)
+        assertEqual(aj, bj)
+        if not abs(ax-bx) < (1.0e-8 + 1.0e-5*abs(bx)):
+            diff.append( [ai, aj, (ax, bx)] )
+    print('Jacobian diff:\n%s' % diff)
+
 if __name__=='__main__':
-    read('/home/ali/ampl/log.txt')
+    x, residuals, jac = read('/home/ali/ampl/JacobsenTorn.log')
+    problem = read_problem('../data/JacobsenTorn.dag', plot_dag=False, show_sparsity=False)
+    partial_code = prepare_evaluation_code(problem) 
+    print('===============================================')
+    #run_code_gen(problem)
+    # FIXME Add nrows to problem?
+    #dbg_dump_code(partial_code, list(x), \
+    #              len(problem.con_ends_num), problem.nvars)
+    rev_ad = import_code(partial_code, 'doesThisNameMatterAtAll')
+    con, jac_ad = rev_ad.evaluate(x, len(problem.con_ends_num), problem.nvars)
+    #
+    # A rather messy and risky business to figure out where to flip the signs 
+    sign = np.ones(residuals.size, dtype=np.int32)
+    close = np.isclose(residuals, con)
+    sign[~close] = -1
+    #
+    allclose = np.allclose(residuals, np.multiply(sign, con))
+    print( 'Residuals all close? {}'.format(allclose) )
+    differs_at(jac, jac_ad, sign)
+    print('===============================================')
+    

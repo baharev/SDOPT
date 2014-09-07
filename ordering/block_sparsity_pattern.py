@@ -10,8 +10,6 @@ from ordering.coloring import coloring
 
 DEBUG = True
 
-# TODO Code gen for AD
-
 class BlockSparsityPattern:
     def __init__(self, name, nrows, ncols, nzeros):
         self.name = name

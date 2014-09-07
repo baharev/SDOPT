@@ -257,7 +257,6 @@ def write_constraint_evaluation_code(problem, code):
         # prepend indentation, keep line ends
         code.writelines('    %s' % l for l in ostream.getvalue().splitlines(True))
 
-# TODO Properly assert nvars == ncons
 preamble = \
 '''from math import exp, log
 import numpy as np
