@@ -6,7 +6,6 @@ from util.file_reader import lines_of
 from util.misc import advance, nth, skip_until, import_code
 from coconut_parser.dag_parser import read_problem
 from nodes.reverse_ad import prepare_evaluation_code
-from itertools import izip
 
 def read(logfilename):
     x, residuals, name = read_log(logfilename)
@@ -25,16 +24,19 @@ def read_log(filename):
         # Read the residuals
         ncons = read_one_int(itr)
         residuals = np.fromiter(itr, np.float64, ncons)
-        # Read the gjh file name
-        # <newline> gjh: "/tmp/at3464.gjh" written.  Execute
-        s = nth(lines, 1)
-        beg = s.find('\"') + 1
-        end = s.rfind('\"')
-        name = s[beg:end]
+        # Read the name of the gjh file containing the Jacobian
+        name = read_gjh_filename(lines)
     return x, residuals, name
         
 def read_one_int(itr):
     return int(next(itr))
+
+def read_gjh_filename(lines):
+    # <newline> gjh: "/tmp/at3464.gjh" written.  Execute
+    s = nth(lines, 1)
+    beg = s.find('\"') + 1
+    end = s.rfind('\"')
+    return s[beg:end]
 
 def read_gjh(filename):
     with lines_of(filename) as lines:
@@ -72,48 +74,58 @@ def get_J_shape(lines):
     print('Shape: %dx%d' % (nrows, ncols))
     return nrows, ncols
 
+################################################################################
+# These are Jacobian test, move them to a test file?
+
 def assertIntArrayEqual(a, b):
     indices = np.flatnonzero(a!=b)
     if indices.size:
         raise AssertionError('\n%s\n%s\n%s' % (indices, a[indices], b[indices]))
 
-def differs_at(A_dok_mat, B_dok_mat, sign):
-    # Can produce false positives if the sign was bogusly reconstructed or
-    a = A_dok_mat.tocsr().tocoo() # TODO A rather inefficient way to order it.
-    b = B_dok_mat.tocsr().tocoo()
-    #
+def differs_at(A_spmat, B_spmat, sign):
+    # Can produce false positives if: (1) the sign was bogusly reconstructed,
+    # (2) there are accidental exact zeros in the Jacobian, (3) the indices are
+    # not sorted the way they used to be.
+    a = A_spmat.tocsr().tocoo() # A rather inefficient way to order it.
+    b = B_spmat.tocsr().tocoo()
+    # Indices match
     assert a.nnz == b.nnz
-    # FIXME Make sure that accidental 0s are stored and the indices are ordered!
     assertIntArrayEqual(a.row, b.row)
     assertIntArrayEqual(a.col, b.col)
-    #
+    # Entries are all close; if not, dump the mismatch and raise an error
     close =  np.isclose(a.data, np.multiply(sign[b.row], b.data))
     ind = np.flatnonzero(~close)
     if ind.size:
-        for r, c, x, y in izip(a.row[ind],a.col[ind],a.data[ind],b.data[ind]):
-            print('(%d,%d) %g  %g' % (r, c, x, y))
+        for i in ind:
+            print('(%d,%d) %g  %g' % (a.row[i], a.col[i], a.data[i], b.data[i]))
         raise AssertionError('See the indices and values printed above!')
-
-if __name__=='__main__':
-    x, residuals, jac = read('/home/ali/ampl/JacobsenTorn.log')
-    problem = read_problem('../data/JacobsenTorn.dag', plot_dag=False, show_sparsity=False)
+    
+def test_reverse_ad(logfilename, dagfilename):
+    x, residuals, jac = read(logfilename)
+    problem = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
     partial_code = prepare_evaluation_code(problem) 
     print('===============================================')
     #run_code_gen(problem)
-    # FIXME Add nrows to problem?
     #dbg_dump_code(partial_code, list(x), \
-    #              len(problem.con_ends_num), problem.nvars)
+    #              problem.ncons, problem.nvars)
     rev_ad = import_code(partial_code, 'doesThisNameMatterAtAll')
-    con, jac_ad = rev_ad.evaluate(x, len(problem.con_ends_num), problem.nvars)
-    #
+    con, jac_ad = rev_ad.evaluate(x, problem.ncons, problem.nvars)
+    # Check the residuals first
     # A rather messy and risky business to figure out where to flip the signs 
     sign = np.ones(residuals.size, dtype=np.int32)
     close = np.isclose(residuals, con)
     sign[~close] = -1
-    #
+    # We've hopefully fixed the signs, they should be all close.
+    # Unfortunately false positives are possible.
     allclose = np.allclose(residuals, np.multiply(sign, con))
     print( 'Residuals all close? {}'.format(allclose) )
-    #
+    # Check the Jacobian, raises error if there is a mismatch
     differs_at(jac, jac_ad, sign)
-    print('===============================================')
+    print('===============================================')        
+
+if __name__=='__main__':
+    logfilename = '/home/ali/ampl/JacobsenTorn.log'
+    dagfilename = '../data/JacobsenTorn.dag'
+    test_reverse_ad(logfilename, dagfilename)
+
     

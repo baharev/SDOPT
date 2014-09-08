@@ -42,21 +42,24 @@ class BlockSparsityPattern:
         self.coloring = None # Graph coloring for good seeds in forward mode AD
         self.color_count = 0
         
-def itr_index_block_slice(blx): 
-    for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
-        yield i, slice(*beg_end)
+    @property
+    def n_blocks(self):
+        return self.n_rblx, self.n_cblx
+    
+    @property
+    def n_rblx(self):
+        return len(self.rblx)-1
+    
+    @property
+    def n_cblx(self):
+        return len(self.cblx)-1
 
 def get_block_boundaries(bsp, i, j):
     return bsp.rblx[i], bsp.rblx[i+1], bsp.cblx[j], bsp.cblx[j+1]
-
-def n_blocks(bsp):
-    return n_rblx(bsp), n_cblx(bsp)
-
-def n_rblx(bsp):
-    return len(bsp.rblx)-1
-
-def n_cblx(bsp):
-    return len(bsp.cblx)-1
+        
+def itr_index_block_slice(blx): 
+    for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
+        yield i, slice(*beg_end)
 
 ################################################################################
 # partition: np.array of (index, value) pairs, where value is the block id,
@@ -133,7 +136,7 @@ def set_min_degree_order_and_coloring(bsp):
     # Unpacking bsp
     m, row_p, col_p = bsp.csr_mat, bsp.row_permutation, bsp.col_permutation  
     # Apply minimum degree ordering to each block on the diagonal (i,i)    
-    for i in xrange(n_rblx(bsp)):
+    for i in xrange(bsp.n_rblx):
         min_degree_ordering(m, row_p, col_p, *get_block_boundaries(bsp, i, i))
     set_inverse_permutations(bsp)
     bsp.coloring, bsp.color_count = coloring( m, bsp.inverse_row_perm, 
@@ -152,7 +155,7 @@ def get_permuted_block_profiles(bsp):
     # are in lower triangular form in all the test examples, so the profiles are 
     # currently ignored; we only check if the blocks are really in lower 
     # triangular form 
-    blk_mat = sp.dok_matrix(n_blocks(bsp), dtype=np.int32)
+    blk_mat = sp.dok_matrix(bsp.n_blocks, dtype=np.int32)
     # Same logic as in nonzero plotting
     for i, j in csr_utils.itr_nonzero_indices(bsp.csr_mat):
         r, c = bsp.inverse_row_perm[i], bsp.inverse_col_perm[j]

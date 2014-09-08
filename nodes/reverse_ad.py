@@ -10,7 +10,7 @@ from coconut_parser.dag_parser import read_problem
 from operator import itemgetter
 
 # TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
-#      - Factor out code multiplication: reverse_ad, gjh_parser, pprinter, and 
+#      - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
 #        unit tests
 #      - Different formatters for Python and C++ code gen
 
@@ -310,7 +310,6 @@ if __name__=='__main__':
         partial_code = prepare_evaluation_code(problem) 
         print('===============================================')
         #run_code_gen(problem)
-        # FIXME Add nrows to problem?
         dbg_dump_code(partial_code, problem.refsols[0], \
-                      len(problem.con_ends_num), problem.nvars)
+                      problem.ncons, problem.nvars)
         print('===============================================')

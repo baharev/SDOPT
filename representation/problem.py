@@ -55,6 +55,10 @@ class Problem:
         self.con_top_ord  = { } # con sink node -> con topological order
         self.refsols      = [ ]
 
+    @property
+    def ncons(self):
+        return len(self.con_ends_num)
+
     def setup(self):
         dag = self.dag
         du.dbg_info(dag)
@@ -267,13 +271,13 @@ class Problem:
     
     def check_shape(self, jacobian):
         nrows = jacobian.shape[0]
-        assert nrows == len(self.con_ends_num)
+        assert nrows == self.ncons
         assert self.nvars == jacobian.shape[1]
 
     def crosscheck_names(self, row_names, col_names):
         assert set(row_names) <= set(self.con_num_name.itervalues())
         assert set(col_names) <= set(self.var_num_name.itervalues())
-        assert len(row_names) == len(self.con_ends_num)
+        assert len(row_names) == self.ncons
         assert len(col_names) == self.nvars
 
     def dbg_show_node_types(self):
