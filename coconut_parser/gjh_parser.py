@@ -126,6 +126,8 @@ def test_reverse_ad(logfilename, dagfilename):
 if __name__=='__main__':
     logfilename = '/home/ali/ampl/JacobsenTorn.log'
     dagfilename = '../data/JacobsenTorn.dag'
+    # logfilename = '/home/ali/ampl/homepage.log'
+    # dagfilename = '../data/example.dag'    
     test_reverse_ad(logfilename, dagfilename)
 
     

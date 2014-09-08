@@ -57,16 +57,44 @@ This project is not aiming at creating yet another modeling environment: The
 goal is to plug the tools of this project into well-established modeling 
 systems.
 
+Reverse mode automatic differentiation
+--------------------------------------
+Source code is generated from the DAG representation of the expressions 
+in order to compute the 
+[Jacobian](http://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) 
+with reverse mode 
+[automatic differentiation](http://en.wikipedia.org/wiki/Automatic_differentiation). 
+Currently only Python code is emitted, in the near future, templated C++ code 
+will also be generated. For example, for the above example `exp(3*x+2*y)+4*z`
+the following Python code is generated (hand-edited to improve readability):
+
+```python
+    # f = exp(3*x+2*y)+z
+    # Forward sweep
+    t1 = 3.0*x + 2.0*y
+    t2 = exp(t1)
+    f = 4.0*z + t2 - 1.0
+    # Backward sweep
+    u0 = 1.0
+    u1 = 4.0 * u0  # df/dz
+    u2 = u0
+    u3 = t2 * u2
+    u4 = 3.0 * u3  # df/dx = 3*exp(3*x+2*y)
+    u5 = 2.0 * u3  # df/dy = 2*exp(3*x+2*y)
+```
+The templated C++ version of this code will greatly benefit from code 
+optimization performed by the C++ compiler; I expect the generated code to be 
+as good as hand-written.
+
 Natural block structure
 -----------------------
-The modules of the technical systems partition the 
-[Jacobian](http://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) 
-into blocks in a fairly natural way. This natural block structure plays an
-important role in [structure-driven algorithms](README.md#structure-driven):
-Computing the optimal partitioning and ordering of the smaller subproblems is 
-NP-hard in the general case; one must resort to heuristics in practice. 
-Independent results show that the heuristic which exploits the natural block 
-structure often yields good quality partitioning and ordering. 
+The modules of the technical systems partition the Jacobian into blocks in a 
+fairly natural way. This natural block structure plays an important role in 
+[structure-driven algorithms](README.md#structure-driven): Computing the optimal 
+partitioning and ordering of the smaller subproblems is NP-hard in the general 
+case; one must resort to heuristics in practice. Independent results show that 
+the heuristic which exploits the natural block structure often yields good 
+quality partitioning and ordering.
 
 The current way to pass the natural blocks is rather hackish: Suffixes are 
 used, see *Defining and using suffixes* on page 302 in the 
@@ -95,11 +123,11 @@ interest to me.
 
 Graph coloring
 --------------
-Efficient 
+Depending on the implementation, efficient forward-mode 
 [automatic differentiation](http://en.wikipedia.org/wiki/Automatic_differentiation) 
-(AD) requires a smart selection of seed vectors, which can be computed with 
-[graph coloring](http://en.wikipedia.org/wiki/Graph_coloring). Even though the 
-problem is NP-complete in general, the minimum degree ordering enables an 
+may require well-chosen seed vectors; these seeds can be computed with 
+[graph coloring](http://en.wikipedia.org/wiki/Graph_coloring). Even though graph 
+coloring is NP-complete in general, the minimum degree ordering enables an 
 efficient 
 [greedy coloring heuristic](http://en.wikipedia.org/wiki/Greedy_coloring).
 

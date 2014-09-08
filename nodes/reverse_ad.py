@@ -10,6 +10,8 @@ from coconut_parser.dag_parser import read_problem
 from operator import itemgetter
 
 # TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
+#      - All the test examples should pass the reverse AD test, implement 
+#        missing nodes.
 #      - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
 #        unit tests
 #      - Different formatters for Python and C++ code gen
