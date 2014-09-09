@@ -32,6 +32,7 @@ model_path=$(dirname $model_file)
 model_file=$(basename $model_file)
 model_name=${model_file%.*}
 
+# Keep these extensions in sync with clean_all.py
 rm -f $model_name.col $model_name.row $model_name.nl $model_name.sol $model_name.dag
 
 $AMPL2DAG $model_file
