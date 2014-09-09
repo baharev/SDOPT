@@ -1,41 +1,4 @@
-#################### DESCRIPTION ###############################################
-#
-# Benchmarks extr22 and extr30
-#
-# Last updated: 20 Mar 2010
-#
-# These models have a single solution corresponding to the steady state of an
-# extractive distillation column with 22 and 30 theoretical stages, 
-# respectively. The model (MESH equations) and the notion are discusses in
-# greater detail in:
-# 
-# A. Baharev, T. Achterberg, E. Rév;
-# Computation of an extractive distillation column with affine arithmetic;
-# AIChE Journal, 2009, 55 (7), 1695-1704.
-# (preprint available from http://reliablecomputing.eu)
-# 
-# The above cited paper seems to be the first paper on computing distillation
-# columns with interval methods. More recent results are given in:
-#
-# A. Baharev, L. Kolev, E. Rév;
-# Computing multiple steady states in homogeneous azeotropic and ideal
-# two-product distillation
-# (preprint available from http://reliablecomputing.eu)
-#
-############## PROBLEM STATISTICS ##############################################
-#
-# Presolve eliminates 68 constraints and 68 variables.
-# Substitution eliminates 463 variables.
-# Adjusted problem:
-# 387 variables:
-#	  242 nonlinear variables
-#	  145 linear variables
-# 387 constraints; 1326 nonzeros
-#	  286 nonlinear constraints
-#	  101 linear constraints
-# 0 objectives.
-#
-#
+
 ################## PARAMETERS FROM SPECIFICATION ###############################
 
 # NUMBER OF STAGES
