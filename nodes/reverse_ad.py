@@ -6,8 +6,9 @@ import math
 import representation.dag_util as du
 from util.redirect_stdout import redirect_stdout
 from coconut_parser.dag_parser import read_problem
-#import os
+import os
 from operator import itemgetter
+from nodes.pprinter import lmul_d_term_str
 
 # TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
 #      - All the test examples should pass the reverse AD test, implement 
@@ -164,7 +165,7 @@ def div_node_rev(n, d, con_dag, base_vars, seen):
     r = pred[0]
     s = pred[1]
     recip = 'recip_%d_%d' % (n, s)
-    print('%s = 1.0/t%d' % (recip, s))
+    print('%s = 1.0/(%s)' % (recip, idx_str(s, base_vars, con_dag)))
     if NodeAttr.number not in con_dag.node[r]:
         print('u%d %s %s%s * u%d' % (r, assign(seen,r), const, recip, n))
     if NodeAttr.number not in con_dag.node[s]:
@@ -175,6 +176,40 @@ def exp_node_rev(n, d, con_dag, base_vars, seen):
     # u_j = lam_j*t_i * u_i
     for lam, node in izip(*inedge_mult(n, d, con_dag)):        
         print('u%d %s %st%d * u%d'%(node,assign(seen,node),lmul_d_term_str(lam),n,n))    
+
+def log_node_rev(n, d, con_dag, base_vars, seen):
+    # t_i = log(lam_j*t_j + ...)
+    # lnarg   = lam_j*t_j + ...
+    # u_j  (+)= lam_j*(1/lnarg)*u_i
+    lnarg_recip = 'lnarg_recip_%d' % n
+    print('%s = 1.0/(%s)' % (lnarg_recip, lin_comb_str(n,d,con_dag,base_vars)))
+    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+        args = (node, assign(seen,node), lmul_d_term_str(lam), lnarg_recip, n)
+        print('u%d %s %s%s * u%d' % args)
+        
+def sqr_node_rev(n, d, con_dag, base_vars, seen):
+    # t_i  = sqr(lam_j*t_j + ...)
+    # sqrarg   = lam_j*t_j + ...
+    # u_j (+)= 2.0*lam_j*sqrarg*u_i
+    sqrarg = 'sqrarg_%d' % n
+    print('%s = 2.0*%s' % (sqrarg, lin_comb_str(n,d,con_dag,base_vars)))
+    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+        args = (node, assign(seen,node), lmul_d_term_str(lam), sqrarg, n)
+        print('u%d %s %s%s * u%d' % args)
+
+def pow_node_rev(n, d, con_dag, base_vars, seen):
+    # t_i   = pow(base, power)
+    # u_j (+)= lam_j*power*pow(base, power-1)*u_i
+    mult, pred = inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    d_term = d.get(NodeAttr.d_term, 0.0)
+    base  = lambda_to_str(mult[0]) + idx_str(pred[0], base_vars, con_dag)
+    base += add_d_term_str(d_term)
+    power = lambda_to_str(mult[1]) + idx_str(pred[1], base_vars, con_dag)
+    new_power = power + ' - 1.0'
+    args=(pred[0],assign(seen,pred[0]),lmul_d_term_str(mult[0]),power,base,new_power,n)  
+    print('u%d %s %s(%s) * pow(%s, %s) * u%d' % args)   
 
 def print_node(n, d, con_dag, base_vars, seen):
     fmt = du.get_pretty_type_str(con_dag, n) + '_rev'
@@ -302,9 +337,10 @@ if __name__=='__main__':
     test_dir = '../data/'
     #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
     #              'tunnelDiodes', 'mss20heatBalance' ]
-    #test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
-    test_cases = ['JacobsenTorn.dag']
-    test_cases = ['example.dag']    
+    test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
+    #test_cases = ['JacobsenTorn.dag']
+    #test_cases = ['example.dag']
+    #test_cases = [ 'mssheatBalanceDbg.dag' ]    
     dag_files = [ '{dir}{filename}'.format(dir=test_dir, filename=basename) \
                    for basename in test_cases ]
     for dag_file in dag_files:

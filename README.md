@@ -76,7 +76,7 @@ the following Python code is generated (hand-edited to improve readability):
     f = 4.0*z + t2 - 1.0
     # Backward sweep
     u0 = 1.0
-    u1 = 4.0 * u0  # df/dz
+    u1 = 4.0 * u0  # df/dz = 4
     u2 = u0
     u3 = t2 * u2
     u4 = 3.0 * u3  # df/dx = 3*exp(3*x+2*y)
