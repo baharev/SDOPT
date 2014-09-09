@@ -162,16 +162,6 @@ for {j in 1..N}
 
 ################################################################################
 
-option show_stats 1;
-option presolve 10;
-option substout 1;
-option var_bounds 2;
-option nl_comments 0;
-option nl_permute 0;
-option display_precision 0;
-
-################################################################################
-
 suffix blockid IN, integer;
 
 for {i in 1..C}
@@ -217,6 +207,5 @@ for {k in 1.._snvars} {
 
 ###############################################################################
 
-option solver "/home/ali/ampl/ipopt";
 solve;
 

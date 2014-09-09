@@ -128,21 +128,6 @@ let  F[N_F] := 1.0;
 let  z[N_F] := 0.5;
 let qF[N_F] := F[N_F]*0.1667*exp(-1.087*z[N_F]);
 
-
-###############################################################################
-
-print "Setting options";
-
-option show_stats 1;
-option presolve 10;
-option substout 1;
-option var_bounds 2;
-option nl_comments 0;
-option nl_permute 0;
-option display_precision 0;
-
-option display_precision 0;
-
 ################################################################################
 
 print "Assigning suffixes";
@@ -189,5 +174,4 @@ for {k in 1.._snvars} {
     print "  ",_svarname[k];
 }
 
-option solver "/home/ali/ampl/ipopt";
 solve;

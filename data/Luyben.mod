@@ -98,12 +98,7 @@ tray_component_balances{j in 1..N}:
 
 ##############   OPTIONS, COMMANDS   ###################################
 
-option show_stats 1;
 option presolve 0;
 option substout 0;
-option var_bounds 2;
-option nl_comments 1;
-option nl_permute 0;
 
-option solver "/home/ali/ampl/ipopt";
 solve;

@@ -12,10 +12,7 @@ cubic{i in 1..n}:
   
 recursion{i in 1..n}:
   (if i<n-1 then z[i+1]) - z[i] + x[i] = 0;
-  
-option show_stats 1;
+
 option presolve 0;
 option substout 0;
-
-option solver "/home/ali/ampl/ipopt";
 solve;

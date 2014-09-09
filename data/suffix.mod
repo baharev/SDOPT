@@ -55,27 +55,23 @@ let _con[2].symcon := 2;
 option show_stats 1;
 option presolve 0;
 option substout 0;
-#option var_bounds 2;
 option nl_comments 1;
 option nl_permute 0;
-# option display_precision 0;
 
 # gjh snopt
-option solver gjh, auxfiles acefrsu;
-
-write gsuffix;
+# option solver gjh, auxfiles acefrsu;
+# write gsuffix;
 
 solve;
 
-display x;
-
-display x.ivar;
-display x.bvar;
-display x.fvar;
-display x.symvar;
-
-display _con.icon;
-display _con.bcon;
-display _con.fcon;
-display _con.symcon;
-
+# display x;
+# 
+# display x.ivar;
+# display x.bvar;
+# display x.fvar;
+# display x.symvar;
+# 
+# display _con.icon;
+# display _con.bcon;
+# display _con.fcon;
+# display _con.symcon;

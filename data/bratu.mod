@@ -20,11 +20,6 @@ def_last:
 eq{i in 1..n}:
   x[i+1] - 2*x[i] + x[i-1] + c*exp(x[i]) = 0.0;
 
-option presolve 10;
 option substout 0;
-
-option show_stats 1;
-
-option solver "/home/ali/ampl/ipopt";
 solve;
 

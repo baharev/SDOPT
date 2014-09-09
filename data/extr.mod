@@ -286,14 +286,5 @@ for {j in 1..N}
 let Q_0 := (Q_L + Q_U)/2.0;
 
 ################################################################################
-	
-option show_stats 1;
-option presolve 10;
-option substout 1;
-option var_bounds 2;
-option nl_comments 0;
-option nl_permute 0;
 
-option solver "/home/ali/ampl/ipopt";
 solve;
-

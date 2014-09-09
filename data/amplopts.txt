@@ -1,0 +1,9 @@
+option solver snopt;
+option show_stats 1;
+option presolve 10;
+option substout 1;
+option var_bounds 2;
+option nl_comments 0;
+option nl_permute 0;
+option display_precision 0;
+
