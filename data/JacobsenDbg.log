@@ -1,0 +1,34 @@
+Assigning suffixes
+
+Presolve eliminates 11 constraints and 3 variables.
+Substitution eliminates 17 variables.
+Adjusted problem:
+6 variables, all nonlinear
+6 constraints, all nonlinear; 26 nonzeros
+	6 equality constraints
+0 objectives.
+
+Constraint suffixes missing: 
+Variable suffixes missing: 
+@@@ Variable vector
+6
+0.6092090562543065
+0.1898730530200304
+0.9218920519490184
+3.914311402755085
+2.2114516397967114
+0.6855168735069862
+
+@@@ Residual vector
+6
+-0.7766243147264713
+1.519051667741096
+0.6844591927099102
+0.10966860854825558
+0.6153919669790654
+0.9577016186568685
+
+gjh: "JacobsenDbg.gjh" written.  Execute
+ 
+	include "JacobsenDbg.gjh"
+	remove "JacobsenDbg.gjh";

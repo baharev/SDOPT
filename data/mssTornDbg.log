@@ -1,0 +1,47 @@
+
+Presolve eliminates 9 constraints and 9 variables.
+Substitution eliminates 75 variables.
+Adjusted problem:
+12 variables, all nonlinear
+12 constraints; 57 nonzeros
+	9 nonlinear constraints
+	3 linear constraints
+	12 equality constraints
+0 objectives.
+
+Constraint suffixes missing: 
+Variable suffixes missing: 
+@@@ Variable vector
+12
+0.9334436977519812
+0.1898350784094264
+0.9217076735386286
+0.16262503809390677
+0.10580467473437609
+0.7140634273929861
+0.093750145266908
+0.26318244520282236
+0.3496342327470037
+355.4813145726266
+367.63147303905964
+363.4205205139429
+
+@@@ Residual vector
+12
+-1.5869888256269837
+-0.0671205592658361
+-0.4039356685483971
+-2.2364741944020623
+-0.2801987843823099
+0.1325231789770203
+0.1898188811127961
+-0.44117780165337517
+0.9854053336786184
+0.37527727580383097
+0.07048044575494819
+0.0026705136571179636
+
+gjh: "mssTornDbg.gjh" written.  Execute
+ 
+	include "mssTornDbg.gjh"
+	remove "mssTornDbg.gjh";

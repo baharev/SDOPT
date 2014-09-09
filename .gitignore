@@ -46,7 +46,7 @@ coverage.xml
 .ropeproject
 
 # Django stuff:
-*.log
+#*.log
 *.pot
 
 # Sphinx documentation

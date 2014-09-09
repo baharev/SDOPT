@@ -1,0 +1,28 @@
+@@@ Variable vector
+
+Presolve eliminates 12 constraints and 2 variables.
+Adjusted problem:
+5 variables, all nonlinear
+5 constraints, all nonlinear; 13 nonzeros
+	5 equality constraints
+0 objectives.
+
+5
+3.0460452812715326
+0.9493652651001521
+4.6094602597450915
+4.785778506887712
+0.5286290994917787
+
+@@@ Residual vector
+5
+-4.558502961972735
+5.828554703591882
+-0.6940564994546621
+-1.1058402183501173
+3.7756482200481445
+
+gjh: "bratu.gjh" written.  Execute
+ 
+	include "bratu.gjh"
+	remove "bratu.gjh";
