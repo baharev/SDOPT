@@ -6,10 +6,7 @@ import subprocess
 import sys
 from os.path import join
 from string import Template
-
-TMPDIR = '/tmp/gjh/'
-DATADIR = '/home/ali/ws-pydev/SDOPT/data'
-AMPL = 'ampl'
+from paths import *
 
 gjh_invocation = Template('''###################################################
 option seed 31;
