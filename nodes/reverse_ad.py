@@ -13,6 +13,8 @@ from nodes.pprinter import lmul_d_term_str
 # TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
 #      - All the test examples should pass the reverse AD test, implement 
 #        missing nodes.
+#      - Move all gjh generating scripts to a separate package and use relative
+#        paths and the systems tmp dir?
 #      - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
 #        unit tests
 #      - Different formatters for Python and C++ code gen
