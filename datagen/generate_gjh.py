@@ -8,31 +8,6 @@ from os.path import join
 from string import Template
 from paths import *
 
-gjh_invocation = Template('''###################################################
-option seed 31;
-
-print "@@@ Variable vector";
-print _snvars;
-
-for {j in 1.._snvars} {
-  let _svar[j] := Uniform(_svar[j].lb, _svar[j].ub);
-  print _svar[j];
-}
-print "";
-
-print "@@@ Residual vector";
-print _sncons;
-
-for {i in 1.._sncons} {
-  print _scon[i].body - _scon[i].lb;
-}
-print "";
-
-write g$problem_name;
-option solver gjh;
-solve;
-''')
-
 def main(args):
     if (len(args)==1):
         generate_gjh()
@@ -49,6 +24,7 @@ def clean():
     print('Deleted',len(to_delete),'files')
     
 def generate_gjh():
+    clean()
     shutil.rmtree(TMPDIR, ignore_errors=True)
     os.mkdir(TMPDIR)
     modfiles = sorted(f for f in os.listdir(DATADIR) if f.endswith('.mod'))
@@ -59,14 +35,8 @@ def generate_gjh():
     copy_output()
 
 def create_gjh_input(modfile):
-    src_name = join(DATADIR, modfile)
-    dst_name = join(TMPDIR, modfile)
-    with open(src_name,'r') as src, open(dst_name,'w') as dst:
-        for line in src:
-            if line.startswith('solve;'):
-                break
-            else:
-                dst.write(line)
+    shutil.copy(join(DATADIR, modfile), TMPDIR)
+    with open(join(TMPDIR, modfile), 'a') as dst:
         dst.write(gjh_invocation.substitute(problem_name=modfile[:-4]))
 
 def run_ampl(modfile):
@@ -94,6 +64,31 @@ def gen_gjh_basename_content():
 def get_content(gjh_name):
     with open(join(TMPDIR, gjh_name), 'r') as f:
         return f.read()    
+
+gjh_invocation = Template('''###################################################
+option seed 31;
+
+print "@@@ Variable vector";
+print _snvars;
+
+for {j in 1.._snvars} {
+  let _svar[j] := Uniform(_svar[j].lb, _svar[j].ub);
+  print _svar[j];
+}
+print "";
+
+print "@@@ Residual vector";
+print _sncons;
+
+for {i in 1.._sncons} {
+  print _scon[i].body - _scon[i].lb;
+}
+print "";
+
+write g$problem_name;
+option solver gjh;
+solve;
+''')
 
 if __name__=='__main__':
     main(sys.argv)

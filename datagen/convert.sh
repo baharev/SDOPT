@@ -11,6 +11,7 @@ fi
 
 arg=$1
 
+echo "Running in:"
 pwd
 if [ ! -f "$arg" ]
 then
@@ -19,11 +20,16 @@ then
 fi
 
 CONVERTER_HOME=/home/ali/coconut-converters
-AMPL=/home/ali/ampl-bin/ampl
+
+# Keep in sync with paths.py
+AMPL=ampl
 
 export AMPL
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONVERTER_HOME 
 export CONVERTER_HOME
+
+echo "AMPL config file location"
+echo $OPTIONS_IN
 
 AMPL2DAG="$CONVERTER_HOME/ampl2dag" 
 
@@ -38,8 +44,8 @@ rm -f $model_name.col $model_name.row $model_name.nl $model_name.sol $model_name
 $AMPL2DAG $model_file
 
 if [ $? -ne 0 ]; then
-  if [ -f $model_name.tmp ] 
-    then rm $model_name.tmp 
-  fi
+  #if [ -f $model_name.tmp ] 
+  #  then rm $model_name.tmp 
+  #fi
   exit 1;
 fi

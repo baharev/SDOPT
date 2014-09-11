@@ -1,4 +1,4 @@
-g3 0 1 0	# problem tunnelDiodes
+g7 0 2 0 12 20140524 0 1	# problem tunnelDiodes
  12 12 0 0 12	# vars, constraints, objectives, ranges, eqns
  6 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

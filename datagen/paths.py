@@ -1,4 +1,4 @@
 TMPDIR = '/tmp/gjh/'
 DATADIR = '/home/ali/ws-pydev/SDOPT/data'
-# The convert.sh also knows where the ampl executable lives
-AMPL = 'ampl'
+AMPL = 'ampl' # <- Keep in sync with convert.sh
+# regen_all.py knows where that convert.sh is in the datagen directory

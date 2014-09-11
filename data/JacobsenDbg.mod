@@ -164,4 +164,4 @@ for {k in 1.._snvars} {
     print "  ",_svarname[k];
 }
 
-solve;
+# solve;

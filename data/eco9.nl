@@ -1,4 +1,4 @@
-g9 0 2 0 8 20140224 0 1 0 241	# problem eco9
+g9 0 2 0 8 20140524 0 1 0 241	# problem eco9
  8 8 0 0 8	# vars, constraints, objectives, ranges, eqns
  7 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

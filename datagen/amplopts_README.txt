@@ -9,7 +9,7 @@ $ ampl
 ampl: option OPTIONS_INOUT 'amplopts.txt';
 ampl: quit;
 
-Then add the following line to ~/.bashrc
+Then add the following line to ~/.profile
 
 export OPTIONS_IN=$HOME/ampl/amplopts.txt
 

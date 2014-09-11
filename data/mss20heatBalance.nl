@@ -1,4 +1,4 @@
-g9 2 2 0 119 20140224 0 1 0 241	# problem mss20heatBalance
+g9 2 2 0 119 20140524 0 1 0 241	# problem mss20heatBalance
  119 119 0 0 119	# vars, constraints, objectives, ranges, eqns
  119 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

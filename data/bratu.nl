@@ -1,4 +1,4 @@
-g3 1 1 0	# problem bratu
+g7 1 2 0 5 20140524 0 1	# problem bratu
  5 5 0 0 5	# vars, constraints, objectives, ranges, eqns
  5 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

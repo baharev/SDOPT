@@ -1,4 +1,4 @@
-g9 3 2 0 285 20140224 0 1 0 245	# problem extr
+g9 3 2 0 285 20140524 0 1 0 245	# problem extr
  285 285 0 0 285	# vars, constraints, objectives, ranges, eqns
  208 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

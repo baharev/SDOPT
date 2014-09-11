@@ -1,4 +1,4 @@
-g7 0 1 0 3 20140524 0 1	# problem suffix
+g7 0 2 0 3 20140524 0 1	# problem suffix
  3 3 0 0 3	# vars, constraints, objectives, ranges, eqns
  3 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear
@@ -40,10 +40,14 @@ C2	#eq[3]
 o5	#^
 v2	#x[3]
 n2
-x3	# initial guess
+d3	# initial dual guess
 0 0
 1 0
 2 0
+x3	# initial guess
+0 1
+1 1
+2 1
 r	#3 ranges (rhs's)
 4 3
 4 3

@@ -6,7 +6,9 @@ import os
 from paths import DATADIR
 
 cleanup()
-mods = sorted(f for f in os.listdir('.') if f.endswith('.mod'))
+mods = sorted(f for f in os.listdir(DATADIR) if f.endswith('.mod'))
 for modfile in mods:
     print('Flattening', modfile)
-    subprocess.call(['./convert.sh', modfile], cwd=DATADIR)
+    subprocess.call(['../datagen/convert.sh', modfile], cwd=DATADIR)
+
+# ampl filename.mod coconut.run, coconut.run is shared across all mod files

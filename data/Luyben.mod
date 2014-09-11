@@ -101,4 +101,4 @@ tray_component_balances{j in 1..N}:
 option presolve 0;
 option substout 0;
 
-solve;
+# solve;

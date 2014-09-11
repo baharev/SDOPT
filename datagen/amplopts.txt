@@ -1,4 +1,4 @@
-option solver snopt;
+option solver ipopt;
 option show_stats 1;
 option presolve 10;
 option substout 1;

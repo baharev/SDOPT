@@ -15,4 +15,4 @@ recursion{i in 1..n}:
 
 option presolve 0;
 option substout 0;
-solve;
+

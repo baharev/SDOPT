@@ -1,5 +1,5 @@
 
-var x{1..3} := 0.0;
+var x{1..3} := 1.0;
 
 eq{j in 1..3}:
   x[j]^2 + sum{k in 2..3} x[k] = 3;
@@ -62,7 +62,7 @@ option nl_permute 0;
 # option solver gjh, auxfiles acefrsu;
 # write gsuffix;
 
-solve;
+# solve;
 
 # display x;
 # 

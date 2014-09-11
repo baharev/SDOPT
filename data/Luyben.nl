@@ -1,4 +1,4 @@
-g7 0 2 0 48 20140224 0 1	# problem Luyben
+g7 0 2 0 48 20140524 0 1	# problem Luyben
  48 48 0 0 48	# vars, constraints, objectives, ranges, eqns
  44 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear
@@ -8,412 +8,412 @@ g7 0 2 0 48 20140224 0 1	# problem Luyben
  160 0	# nonzeros in Jacobian, gradients
  27 5	# max name lengths: constraints, variables
  0 0 0 0 0	# common exprs: b,c,o,c1,o1
-C0	#def_F0
+C0
 n0
-C1	#def_PA
-o16	#-
-o44	#exp
-o0	# + 
-o3	#/
+C1
+o16
+o44
+o0
+o3
 n-2818
-o0	# + 
-v3	#TR
+o0
+v3
 n460
 n8.168
-C2	#def_PB
-o16	#-
-o44	#exp
-o0	# + 
-o3	#/
+C2
+o16
+o44
+o0
+o3
 n-2818
-o0	# + 
-v3	#TR
+o0
+v3
 n460
 n8.861
-C3	#def_T1
-o16	#-
-o3	#/
+C3
+o16
+o3
 n-2818
-o1	# - 
-o43	#log
-o3	#/
+o1
+o43
+o3
 n100
-o0	# + 
-v5	#x[1]
+o0
+v5
 n1
 n8.861
-C4	#extent_of_reaction
-o1	# - 
-o2	#*
-o2	#*
+C4
+o1
+o2
+o2
 n8.48e+09
-o44	#exp
-o16	#-
-o3	#/
+o44
+o16
+o3
 n30000
-o2	#*
+o2
 n1.98588
-o0	# + 
-v3	#TR
+o0
+v3
 n460
-v1	#z
-o2	#*
-o2	#*
+v1
+o2
+o2
 n1538
-o44	#exp
-o16	#-
-o3	#/
+o44
+o16
+o3
 n10000
-o2	#*
+o2
 n1.98588
-o0	# + 
-v3	#TR
+o0
+v3
 n460
-o1	# - 
+o1
 n1
-v1	#z
-C5	#reactor_material_balance
-o16	#-
-o2	#*
-v0	#V
-v43	#yB
-C6	#reactor_energy_balance
-o16	#-
-o2	#*
-v0	#V
-v3	#TR
-C7	#reactor_pressure
-o1	# - 
-o16	#-
-o2	#*
-v46	#PB
-v1	#z
-o2	#*
-v45	#PA
-o1	# - 
+v1
+C5
+o16
+o2
+v0
+v43
+C6
+o16
+o2
+v0
+v3
+C7
+o1
+o16
+o2
+v46
+v1
+o2
+v45
+o1
 n1
-v1	#z
-C8	#reactor_bubble_point
-o1	# - 
-o2	#*
-v43	#yB
-v4	#PR
-o2	#*
-v46	#PB
-v1	#z
-C9	#rate_of_vaporization
+v1
+C8
+o1
+o2
+v43
+v4
+o2
+v46
+v1
+C9
 n0
-C10	#equilibrium[1]
-o16	#-
-o3	#/
-o2	#*
+C10
+o16
+o3
+o2
 n2
-v5	#x[1]
-o0	# + 
-v5	#x[1]
+v5
+o0
+v5
 n1
-C11	#equilibrium[2]
-o16	#-
-o3	#/
-o2	#*
+C11
+o16
+o3
+o2
 n2
-v6	#x[2]
-o0	# + 
-v6	#x[2]
+v6
+o0
+v6
 n1
-C12	#equilibrium[3]
-o16	#-
-o3	#/
-o2	#*
+C12
+o16
+o3
+o2
 n2
-v7	#x[3]
-o0	# + 
-v7	#x[3]
+v7
+o0
+v7
 n1
-C13	#equilibrium[4]
-o16	#-
-o3	#/
-o2	#*
+C13
+o16
+o3
+o2
 n2
-v8	#x[4]
-o0	# + 
-v8	#x[4]
+v8
+o0
+v8
 n1
-C14	#equilibrium[5]
-o16	#-
-o3	#/
-o2	#*
+C14
+o16
+o3
+o2
 n2
-v9	#x[5]
-o0	# + 
-v9	#x[5]
+v9
+o0
+v9
 n1
-C15	#equilibrium[6]
-o16	#-
-o3	#/
-o2	#*
+C15
+o16
+o3
+o2
 n2
-v10	#x[6]
-o0	# + 
-v10	#x[6]
+v10
+o0
+v10
 n1
-C16	#equilibrium[7]
-o16	#-
-o3	#/
-o2	#*
+C16
+o16
+o3
+o2
 n2
-v11	#x[7]
-o0	# + 
-v11	#x[7]
+v11
+o0
+v11
 n1
-C17	#equilibrium[8]
-o16	#-
-o3	#/
-o2	#*
+C17
+o16
+o3
+o2
 n2
-v12	#x[8]
-o0	# + 
-v12	#x[8]
+v12
+o0
+v12
 n1
-C18	#equilibrium[9]
-o16	#-
-o3	#/
-o2	#*
+C18
+o16
+o3
+o2
 n2
-v13	#x[9]
-o0	# + 
-v13	#x[9]
+v13
+o0
+v13
 n1
-C19	#equilibrium[10]
-o16	#-
-o3	#/
-o2	#*
+C19
+o16
+o3
+o2
 n2
-v14	#x[10]
-o0	# + 
-v14	#x[10]
+v14
+o0
+v14
 n1
-C20	#equilibrium[11]
-o16	#-
-o3	#/
-o2	#*
+C20
+o16
+o3
+o2
 n2
-v15	#x[11]
-o0	# + 
-v15	#x[11]
+v15
+o0
+v15
 n1
-C21	#equilibrium[12]
-o16	#-
-o3	#/
-o2	#*
+C21
+o16
+o3
+o2
 n2
-v16	#x[12]
-o0	# + 
-v16	#x[12]
+v16
+o0
+v16
 n1
-C22	#equilibrium[13]
-o16	#-
-o3	#/
-o2	#*
+C22
+o16
+o3
+o2
 n2
-v17	#x[13]
-o0	# + 
-v17	#x[13]
+v17
+o0
+v17
 n1
-C23	#equilibrium[14]
-o16	#-
-o3	#/
-o2	#*
+C23
+o16
+o3
+o2
 n2
-v18	#x[14]
-o0	# + 
-v18	#x[14]
+v18
+o0
+v18
 n1
-C24	#equilibrium[15]
-o16	#-
-o3	#/
-o2	#*
+C24
+o16
+o3
+o2
 n2
-v19	#x[15]
-o0	# + 
-v19	#x[15]
+v19
+o0
+v19
 n1
-C25	#equilibrium[16]
-o16	#-
-o3	#/
-o2	#*
+C25
+o16
+o3
+o2
 n2
-v20	#x[16]
-o0	# + 
-v20	#x[16]
+v20
+o0
+v20
 n1
-C26	#equilibrium[17]
-o16	#-
-o3	#/
-o2	#*
+C26
+o16
+o3
+o2
 n2
-v21	#x[17]
-o0	# + 
-v21	#x[17]
+v21
+o0
+v21
 n1
-C27	#equilibrium[18]
-o16	#-
-o3	#/
-o2	#*
+C27
+o16
+o3
+o2
 n2
-v22	#x[18]
-o0	# + 
-v22	#x[18]
+v22
+o0
+v22
 n1
-C28	#total_condenser
+C28
 n0
-C29	#reactor_is_stage_0
+C29
 n0
-C30	#tray_component_balances[1]
-o1	# - 
-o2	#*
-v0	#V
-v25	#y[1]
-o2	#*
-v0	#V
-v24	#y[0]
-C31	#tray_component_balances[2]
-o1	# - 
-o2	#*
-v0	#V
-v26	#y[2]
-o2	#*
-v0	#V
-v25	#y[1]
-C32	#tray_component_balances[3]
-o1	# - 
-o2	#*
-v0	#V
-v27	#y[3]
-o2	#*
-v0	#V
-v26	#y[2]
-C33	#tray_component_balances[4]
-o1	# - 
-o2	#*
-v0	#V
-v28	#y[4]
-o2	#*
-v0	#V
-v27	#y[3]
-C34	#tray_component_balances[5]
-o1	# - 
-o2	#*
-v0	#V
-v29	#y[5]
-o2	#*
-v0	#V
-v28	#y[4]
-C35	#tray_component_balances[6]
-o1	# - 
-o2	#*
-v0	#V
-v30	#y[6]
-o2	#*
-v0	#V
-v29	#y[5]
-C36	#tray_component_balances[7]
-o1	# - 
-o2	#*
-v0	#V
-v31	#y[7]
-o2	#*
-v0	#V
-v30	#y[6]
-C37	#tray_component_balances[8]
-o1	# - 
-o2	#*
-v0	#V
-v32	#y[8]
-o2	#*
-v0	#V
-v31	#y[7]
-C38	#tray_component_balances[9]
-o1	# - 
-o2	#*
-v0	#V
-v33	#y[9]
-o2	#*
-v0	#V
-v32	#y[8]
-C39	#tray_component_balances[10]
-o1	# - 
-o2	#*
-v0	#V
-v34	#y[10]
-o2	#*
-v0	#V
-v33	#y[9]
-C40	#tray_component_balances[11]
-o1	# - 
-o2	#*
-v0	#V
-v35	#y[11]
-o2	#*
-v0	#V
-v34	#y[10]
-C41	#tray_component_balances[12]
-o1	# - 
-o2	#*
-v0	#V
-v36	#y[12]
-o2	#*
-v0	#V
-v35	#y[11]
-C42	#tray_component_balances[13]
-o1	# - 
-o2	#*
-v0	#V
-v37	#y[13]
-o2	#*
-v0	#V
-v36	#y[12]
-C43	#tray_component_balances[14]
-o1	# - 
-o2	#*
-v0	#V
-v38	#y[14]
-o2	#*
-v0	#V
-v37	#y[13]
-C44	#tray_component_balances[15]
-o1	# - 
-o2	#*
-v0	#V
-v39	#y[15]
-o2	#*
-v0	#V
-v38	#y[14]
-C45	#tray_component_balances[16]
-o1	# - 
-o2	#*
-v0	#V
-v40	#y[16]
-o2	#*
-v0	#V
-v39	#y[15]
-C46	#tray_component_balances[17]
-o1	# - 
-o2	#*
-v0	#V
-v41	#y[17]
-o2	#*
-v0	#V
-v40	#y[16]
-C47	#tray_component_balances[18]
-o1	# - 
-o2	#*
-v0	#V
-v42	#y[18]
-o2	#*
-v0	#V
-v41	#y[17]
-d48	# initial dual guess
+C30
+o1
+o2
+v0
+v25
+o2
+v0
+v24
+C31
+o1
+o2
+v0
+v26
+o2
+v0
+v25
+C32
+o1
+o2
+v0
+v27
+o2
+v0
+v26
+C33
+o1
+o2
+v0
+v28
+o2
+v0
+v27
+C34
+o1
+o2
+v0
+v29
+o2
+v0
+v28
+C35
+o1
+o2
+v0
+v30
+o2
+v0
+v29
+C36
+o1
+o2
+v0
+v31
+o2
+v0
+v30
+C37
+o1
+o2
+v0
+v32
+o2
+v0
+v31
+C38
+o1
+o2
+v0
+v33
+o2
+v0
+v32
+C39
+o1
+o2
+v0
+v34
+o2
+v0
+v33
+C40
+o1
+o2
+v0
+v35
+o2
+v0
+v34
+C41
+o1
+o2
+v0
+v36
+o2
+v0
+v35
+C42
+o1
+o2
+v0
+v37
+o2
+v0
+v36
+C43
+o1
+o2
+v0
+v38
+o2
+v0
+v37
+C44
+o1
+o2
+v0
+v39
+o2
+v0
+v38
+C45
+o1
+o2
+v0
+v40
+o2
+v0
+v39
+C46
+o1
+o2
+v0
+v41
+o2
+v0
+v40
+C47
+o1
+o2
+v0
+v42
+o2
+v0
+v41
+d48
 0 0
 1 0
 2 0
@@ -462,7 +462,7 @@ d48	# initial dual guess
 45 0
 46 0
 47 0
-x48	# initial guess
+x48
 0 277.7328698504927
 1 0.5861813495489135
 2 0.08608275842391994
@@ -511,7 +511,7 @@ x48	# initial guess
 45 32.35852262877177
 46 64.70752086750426
 47 137.00282597216855
-r	#48 ranges (rhs's)
+r
 4 -172.51
 4 0
 4 0
@@ -560,7 +560,7 @@ r	#48 ranges (rhs's)
 4 0
 4 0
 4 0
-b	#48 bounds (on variables)
+b
 2 172.51
 0 0 1
 2 0
@@ -609,7 +609,7 @@ b	#48 bounds (on variables)
 3
 3
 3
-k47	#intermediate Jacobian column lengths
+k47
 22
 25
 28

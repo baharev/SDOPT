@@ -21,5 +21,5 @@ eq{i in 1..n}:
   x[i+1] - 2*x[i] + x[i-1] + c*exp(x[i]) = 0.0;
 
 option substout 0;
-solve;
+# solve;
 
