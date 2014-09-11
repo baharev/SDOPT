@@ -6,7 +6,7 @@ import subprocess
 import sys
 from os.path import join
 from string import Template
-from paths import *
+from paths import AMPL, DATADIR, TMPDIR
 
 def main(args):
     if (len(args)==1):
