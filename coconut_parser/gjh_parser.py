@@ -6,6 +6,9 @@ from util.file_reader import lines_of
 from util.misc import advance, nth, skip_until, import_code
 from coconut_parser.dag_parser import read_problem
 from nodes.reverse_ad import prepare_evaluation_code
+from datagen.paths import DATADIR
+import os
+from util.assert_helpers import assertEqual
 
 def read(logfilename):
     x, residuals, name = read_log(logfilename)
@@ -89,7 +92,7 @@ def differs_at(A_spmat, B_spmat, sign):
     a = A_spmat.tocsr().tocoo() # A rather inefficient way to order it.
     b = B_spmat.tocsr().tocoo()
     # Indices match
-    assert a.nnz == b.nnz
+    assertEqual(a.nnz, b.nnz)
     assertIntArrayEqual(a.row, b.row)
     assertIntArrayEqual(a.col, b.col)
     # Entries are all close; if not, dump the mismatch and raise an error
@@ -124,10 +127,14 @@ def test_reverse_ad(logfilename, dagfilename):
     print('===============================================')        
 
 if __name__=='__main__':
-    logfilename = '/home/ali/ampl/JacobsenTorn.log'
-    dagfilename = '../data/JacobsenTorn.dag'
+    #logfilename = '/home/ali/ampl/JacobsenTorn.log'
+    #dagfilename = '../data/JacobsenTorn.dag'
     # logfilename = '/home/ali/ampl/homepage.log'
-    # dagfilename = '../data/example.dag'    
-    test_reverse_ad(logfilename, dagfilename)
+    # dagfilename = '../data/example.dag'
+    logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log'))
+    for logfile in logs:
+        logfilename = join(DATADIR, logfile)
+        dagfilename = join(DATADIR, logfile[:-4] + '.dag')
+        test_reverse_ad(logfilename, dagfilename)
 
     

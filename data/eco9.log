@@ -1,4 +1,3 @@
-@@@ Variable vector
 
 8 variables, all nonlinear
 8 constraints; 55 nonzeros
@@ -7,6 +6,8 @@
 	8 equality constraints
 0 objectives.
 
+constraints: 8 variables: 8
+@@@ Variable vector
 8
 21.841811250861312
 -62.02538939599392

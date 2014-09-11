@@ -68,6 +68,9 @@ def get_content(gjh_name):
 gjh_invocation = Template('''###################################################
 option seed 31;
 
+# Force model generation, otherwise the log may become messed up
+print "constraints:", _sncons, "variables:", _snvars;
+
 print "@@@ Variable vector";
 print _snvars;
 

@@ -1,4 +1,3 @@
-@@@ Variable vector
 
 Presolve eliminates 16 constraints and 16 variables.
 Substitution eliminates 101 variables.
@@ -8,6 +7,8 @@ Adjusted problem:
 	17 equality constraints
 0 objectives.
 
+constraints: 17 variables: 17
+@@@ Variable vector
 17
 0.6092090562543065
 0.1898730530200304
