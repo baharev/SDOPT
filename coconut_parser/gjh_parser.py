@@ -13,6 +13,7 @@ from util.assert_helpers import assertEqual
 def read(logfilename):
     x, residuals, nonzeros, name = read_log(logfilename)
     jac = read_gjh(join(dirname(logfilename), name), nonzeros)
+    print('Jacobian:\n%s' % jac)
     return x, residuals, jac
     
 def read_log(filename):
@@ -44,8 +45,10 @@ def read_gjh(filename, nonzeros):
         return parse(lines, nonzeros)
 
 def parse(lines, nonzeros):
+    # Construct the Jacobian in coordinate format
+    ai, aj = np.zeros(nonzeros,np.int32), np.zeros(nonzeros,np.int32)
+    ra, k  = np.zeros(nonzeros, np.float64), 0
     nrows, ncols = get_J_shape(lines)
-    jac = sp.dok_matrix((nrows,ncols), dtype=np.float64)
     lines_from_first_row = skip_until(lambda s: s.startswith('['), lines) 
     for line in lines_from_first_row:
         if line[0]=='[':
@@ -56,11 +59,11 @@ def parse(lines, nonzeros):
             # data in row: <tab> col index <tab> entry
             col_idx, data = line.split()
             col, data = int(col_idx)-1, float(data)
-            jac[row,col] = data
+            ai[k], aj[k], ra[k] = row, col, data
+            k += 1
         else:
             break
-    print('Jacobian:\n%s' % jac.tocsr())
-    return jac
+    return sp.coo_matrix((ra, (ai,aj)), shape=(nrows,ncols))
 
 def get_J_shape(lines):
     # It's on the 3rd line, something like: 
@@ -87,8 +90,8 @@ def differs_at(A_spmat, B_spmat, sign):
     # Can produce false positives if: (1) the sign was bogusly reconstructed,
     # (2) there are accidental exact zeros in the Jacobian, (3) the indices are
     # not sorted the way they used to be.
-    a = A_spmat.tocsr().tocoo() # A rather inefficient way to order it.
-    b = B_spmat.tocsr().tocoo()
+    a = A_spmat 
+    b = B_spmat.tocsr().tocoo() # A rather inefficient way to order it.
     # Indices match
     assertEqual(a.nnz, b.nnz)
     assertIntArrayEqual(a.row, b.row)
@@ -131,7 +134,7 @@ if __name__=='__main__':
     #dagfilename = '../data/JacobsenTorn.dag'
     # logfilename = '/home/ali/ampl/homepage.log'
     # dagfilename = '../data/example.dag'
-    exclude = set(['mss20heatBalance.log'])
+    exclude = set(['mss20heatBalance.log', 'mssheatBalanceDbg.log'])
     logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log') and f not in exclude)
     for logfile in logs:
         logfilename = join(DATADIR, logfile)
