@@ -11,9 +11,10 @@ Adjusted problem:
 	285 equality constraints
 0 objectives.
 
-constraints: 285 variables: 285
-@@@ Variable vector
-285
+ignore this line 972
+@@@ Problem statistics
+constraints: 285 variables: 285 nonzeros: 972
+Variable vector:
 0.9675183063878359
 0.19030343386097032
 0.9201263757931712
@@ -300,8 +301,7 @@ constraints: 285 variables: 285
 332.1880003101803
 327.4813858839149
 
-@@@ Residual vector
-285
+Residual vector:
 0.014742719298882268
 -0.023382860295911523
 -0.017245308785596755

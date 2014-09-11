@@ -7,9 +7,10 @@ Adjusted problem:
 	119 equality constraints
 0 objectives.
 
-constraints: 119 variables: 119
-@@@ Variable vector
-119
+ignore this line 1097
+@@@ Problem statistics
+constraints: 119 variables: 119 nonzeros: 1097
+Variable vector:
 0.6092090562543065
 0.1898730530200304
 0.9218920519490184
@@ -130,8 +131,7 @@ constraints: 119 variables: 119
 337.10662477543207
 360.1646416531273
 
-@@@ Residual vector
-119
+Residual vector:
 1.8453178266031678
 1.2957117280547166
 0.9389254535537798

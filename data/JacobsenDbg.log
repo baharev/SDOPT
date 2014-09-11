@@ -10,9 +10,10 @@ Adjusted problem:
 
 Constraint suffixes missing: 
 Variable suffixes missing: 
-constraints: 6 variables: 6
-@@@ Variable vector
-6
+ignore this line 26
+@@@ Problem statistics
+constraints: 6 variables: 6 nonzeros: 26
+Variable vector:
 0.6092090562543065
 0.1898730530200304
 0.9218920519490184
@@ -20,8 +21,7 @@ constraints: 6 variables: 6
 2.2114516397967114
 0.6855168735069862
 
-@@@ Residual vector
-6
+Residual vector:
 -0.7766243147264713
 1.519051667741096
 0.6844591927099102

@@ -11,28 +11,26 @@ import os
 from util.assert_helpers import assertEqual
 
 def read(logfilename):
-    x, residuals, name = read_log(logfilename)
-    jac = read_gjh(join(dirname(logfilename), name))
+    x, residuals, nonzeros, name = read_log(logfilename)
+    jac = read_gjh(join(dirname(logfilename), name), nonzeros)
     return x, residuals, jac
     
 def read_log(filename):
     with lines_of(filename) as lines:
-        # Read the variables
-        itr = skip_until(lambda s: s=='@@@ Variable vector', lines)
+        # Read problem statistics first: rows, cols, nonzeros
+        itr = skip_until(lambda s: s=='@@@ Problem statistics', lines)
         itr = advance(itr, 1)
-        nvars = read_one_int(itr) 
+        data = next(itr).split()
+        ncons, nvars, nonzeros = (int(data[i]) for i in (1, 3, 5))
+        # Read the variables 
+        itr = advance(itr, 1) # skip line 'Variable vector:'
         x = np.fromiter(itr, np.float64, nvars)
-        # Skip two lines, an empty one and '@@@ Residual vector'
+        # Skip two lines, an empty one and 'Residual vector:'
         itr = advance(lines, 2)
-        # Read the residuals
-        ncons = read_one_int(itr)
         residuals = np.fromiter(itr, np.float64, ncons)
         # Read the name of the gjh file containing the Jacobian
         name = read_gjh_filename(lines)
-    return x, residuals, name
-        
-def read_one_int(itr):
-    return int(next(itr))
+    return x, residuals, nonzeros, name
 
 def read_gjh_filename(lines):
     # <newline> gjh: "/tmp/at3464.gjh" written.  Execute
@@ -41,11 +39,11 @@ def read_gjh_filename(lines):
     end = s.rfind('\"')
     return s[beg:end]
 
-def read_gjh(filename):
+def read_gjh(filename, nonzeros):
     with lines_of(filename) as lines:
-        return parse(lines)
+        return parse(lines, nonzeros)
 
-def parse(lines):
+def parse(lines, nonzeros):
     nrows, ncols = get_J_shape(lines)
     jac = sp.dok_matrix((nrows,ncols), dtype=np.float64)
     lines_from_first_row = skip_until(lambda s: s.startswith('['), lines) 
@@ -102,6 +100,8 @@ def differs_at(A_spmat, B_spmat, sign):
         for i in ind:
             print('(%d,%d) %g  %g' % (a.row[i], a.col[i], a.data[i], b.data[i]))
         raise AssertionError('See the indices and values printed above!')
+    else:
+        print('Jacobian test passed!')
     
 def test_reverse_ad(logfilename, dagfilename):
     x, residuals, jac = read(logfilename)
@@ -131,7 +131,8 @@ if __name__=='__main__':
     #dagfilename = '../data/JacobsenTorn.dag'
     # logfilename = '/home/ali/ampl/homepage.log'
     # dagfilename = '../data/example.dag'
-    logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log'))
+    exclude = set(['mss20heatBalance.log'])
+    logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log') and f not in exclude)
     for logfile in logs:
         logfilename = join(DATADIR, logfile)
         dagfilename = join(DATADIR, logfile[:-4] + '.dag')

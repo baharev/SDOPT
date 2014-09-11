@@ -67,12 +67,13 @@ def get_content(gjh_name):
 
 gjh_invocation = Template('''###################################################
 option seed 31;
+# Force model generation, otherwise the log becomes messed up
+print "ignore this line", _snzcons;
 
-# Force model generation, otherwise the log may become messed up
-print "constraints:", _sncons, "variables:", _snvars;
+print "@@@ Problem statistics";
+print "constraints:", _sncons, "variables:", _snvars, "nonzeros:", _snzcons;
 
-print "@@@ Variable vector";
-print _snvars;
+print "Variable vector:";
 
 for {j in 1.._snvars} {
   let _svar[j] := Uniform(_svar[j].lb, _svar[j].ub);
@@ -80,8 +81,7 @@ for {j in 1.._snvars} {
 }
 print "";
 
-print "@@@ Residual vector";
-print _sncons;
+print "Residual vector:";
 
 for {i in 1.._sncons} {
   print _scon[i].body - _scon[i].lb;

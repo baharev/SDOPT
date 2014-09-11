@@ -6,9 +6,10 @@
 	8 equality constraints
 0 objectives.
 
-constraints: 8 variables: 8
-@@@ Variable vector
-8
+ignore this line 55
+@@@ Problem statistics
+constraints: 8 variables: 8 nonzeros: 55
+Variable vector:
 21.841811250861312
 -62.02538939599392
 84.37841038980366
@@ -18,8 +19,7 @@ constraints: 8 variables: 8
 10.306413741941057
 -47.37298555654683
 
-@@@ Residual vector
-8
+Residual vector:
 -9479.135169765172
 -9457.987942856174
 15281.272049671346

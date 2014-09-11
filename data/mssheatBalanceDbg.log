@@ -7,9 +7,10 @@ Adjusted problem:
 	17 equality constraints
 0 objectives.
 
-constraints: 17 variables: 17
-@@@ Variable vector
-17
+ignore this line 128
+@@@ Problem statistics
+constraints: 17 variables: 17 nonzeros: 128
+Variable vector:
 0.6092090562543065
 0.1898730530200304
 0.9218920519490184
@@ -28,8 +29,7 @@ constraints: 17 variables: 17
 371.888681626646
 357.4998334758156
 
-@@@ Residual vector
-17
+Residual vector:
 -1.3426895880762442
 2.4088363756582103
 -0.1336463908759889
