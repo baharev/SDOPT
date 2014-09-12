@@ -10,12 +10,7 @@ import os
 from operator import itemgetter
 from nodes.pprinter import lmul_d_term_str
 
-# TODO - Issues: do not use dok_matrix (doesn't store 0s), csr_matrix instead?
-#      - All the test examples should pass the reverse AD test, implement 
-#        missing nodes.
-#      - Move all gjh generating scripts to a separate package and use relative
-#        paths and the systems tmp dir?
-#      - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
+# TODO - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
 #        unit tests
 #      - Different formatters for Python and C++ code gen
 
@@ -250,7 +245,7 @@ def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
     basevars = sorted(((n,base_vars[n]) for n in eval_order if n in base_vars),
                       key=itemgetter(1)) # sort by var_num
     for n, var_num in basevars:
-        print('jac[%d,%d] = u%d' % (con_num, var_num, n))
+        print('jac.append(%d, %d, u%d)' % (con_num, var_num, n))
     print()
 
 def itr_nodes_to_pprint(con_dag, eval_order, base_vars):
@@ -306,24 +301,39 @@ preamble = \
 import numpy as np
 import scipy.sparse as sp
 
-def evaluate(v, ncons, nvars):
+class jac_coo_arrays:
+    def __init__(self, nonzeros):
+        self.k = 0
+        self.ai = np.zeros(nonzeros,np.int32) 
+        self.aj = np.zeros(nonzeros,np.int32)
+        self.ra = np.zeros(nonzeros, np.float64)
+    def append(self, i, j, a):
+        k = self.k
+        self.ai[k], self.aj[k], self.ra[k] = i, j, a
+        self.k += 1
+
+def evaluate(v, ncons, nvars, nzeros):
     
     con = np.empty(ncons, dtype=np.float64)
     np.copyto(con, float('NaN'), casting='unsafe')
-   
-    jac = sp.dok_matrix((ncons,nvars), dtype=np.float64)
+    
+    jac = jac_coo_arrays(nzeros)
 '''
 
-postamble = '    return con, jac\n'
+postamble = '''
+    jacobian = sp.coo_matrix((jac.ra, (jac.ai, jac.aj)), shape=(ncons,nvars))
 
-def dbg_dump_code(residual_code, v, ncons, nvars):
+    return con, jacobian\n
+'''
+
+def dbg_dump_code(residual_code, v, ncons, nvars, nzeros):
     print(residual_code)
     print('''if __name__=='__main__':''')
     print(  '    v =', v)
-    print(  '    con, jac = evaluate(v, %d, %d)' % (ncons, nvars))
+    print(  '    con, jac = evaluate(v, %d, %d, %d)' % (ncons, nvars, nzeros))
     print(  '    print con')
     print(  '    print ')    
-    print(  '    print str(jac.tocsr()) \n\n') 
+    print(  '    print str(jac) \n\n') 
 
 def run_code_gen(problem):
     for sink_node in problem.con_ends_num:
@@ -351,5 +361,5 @@ if __name__=='__main__':
         print('===============================================')
         #run_code_gen(problem)
         dbg_dump_code(partial_code, problem.refsols[0], \
-                      problem.ncons, problem.nvars)
+                      problem.ncons, problem.nvars, problem.nzeros)
         print('===============================================')

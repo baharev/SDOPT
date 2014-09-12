@@ -86,13 +86,12 @@ def assertIntArrayEqual(a, b):
     if indices.size:
         raise AssertionError('\n%s\n%s\n%s' % (indices, a[indices], b[indices]))
 
-def differs_at(A_spmat, B_spmat, sign):
+def differs_at(a, b_unordered, sign):
     # Can produce false positives if: (1) the sign was bogusly reconstructed,
     # (2) there are accidental exact zeros in the Jacobian, (3) the indices are
     # not sorted the way they used to be.
-    a = A_spmat 
-    b = B_spmat.tocsr().tocoo() # A rather inefficient way to order it.
-    # Indices match
+    # Test whether indices match
+    b = b_unordered.tocsr().tocoo() # An ugly way to order row-wise
     assertEqual(a.nnz, b.nnz)
     assertIntArrayEqual(a.row, b.row)
     assertIntArrayEqual(a.col, b.col)
@@ -108,14 +107,14 @@ def differs_at(A_spmat, B_spmat, sign):
     
 def test_reverse_ad(logfilename, dagfilename):
     x, residuals, jac = read(logfilename)
-    problem = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
-    partial_code = prepare_evaluation_code(problem) 
+    prob = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
+    partial_code = prepare_evaluation_code(prob) 
     print('===============================================')
-    #run_code_gen(problem)
+    #run_code_gen(prob)
     #dbg_dump_code(partial_code, list(x), \
-    #              problem.ncons, problem.nvars)
+    #              prob.ncons, prob.nvars)
     rev_ad = import_code(partial_code, 'doesThisNameMatterAtAll')
-    con, jac_ad = rev_ad.evaluate(x, problem.ncons, problem.nvars)
+    con, jac_ad = rev_ad.evaluate(x, prob.ncons, prob.nvars, prob.nzeros)
     # Check the residuals first
     # A rather messy and risky business to figure out where to flip the signs 
     sign = np.ones(residuals.size, dtype=np.int32)
@@ -130,15 +129,8 @@ def test_reverse_ad(logfilename, dagfilename):
     print('===============================================')        
 
 if __name__=='__main__':
-    #logfilename = '/home/ali/ampl/JacobsenTorn.log'
-    #dagfilename = '../data/JacobsenTorn.dag'
-    # logfilename = '/home/ali/ampl/homepage.log'
-    # dagfilename = '../data/example.dag'
-    exclude = set(['mss20heatBalance.log', 'mssheatBalanceDbg.log'])
-    logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log') and f not in exclude)
+    logs = sorted(f for f in os.listdir(DATADIR) if f.endswith('.log'))
     for logfile in logs:
         logfilename = join(DATADIR, logfile)
         dagfilename = join(DATADIR, logfile[:-4] + '.dag')
         test_reverse_ad(logfilename, dagfilename)
-
-    
