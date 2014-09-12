@@ -53,11 +53,9 @@ class Problem:
         self.model_name   = '(none)'
         self.nvars        = int(-1) # number of variables
         self.con_top_ord  = { } # con sink node -> con topological order
+        self.ncons  = None
+        self.nzeros = None        
         self.refsols      = [ ]
-
-    @property
-    def ncons(self):
-        return len(self.con_ends_num)
 
     def setup(self):
         dag = self.dag
@@ -242,6 +240,15 @@ class Problem:
             con_dag = dag.subgraph(dependencies)
             eval_order = du.deterministic_topological_sort(con_dag)
             self.con_top_ord[sink_node] = eval_order
+        self.ncons = len(self.con_ends_num)
+        self.set_nzeros()
+    
+    def set_nzeros(self):
+        nzeros = 0
+        sink_nodes = (n for n in self.dag if du.is_sink(self.dag, n))
+        for n in sink_nodes:
+            nzeros += len( self.base_var_nums_in_con(n) )
+        self.nzeros = nzeros
 
     def pprint_constraints(self):
         for sink_node in self.con_ends_num:
