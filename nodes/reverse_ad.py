@@ -10,11 +10,7 @@ from util.misc import get_all_files
 from coconut_parser.dag_parser import read_problem
 from datagen.paths import DATADIR
 
-FWD_ONLY = False # Temporary hack
-
-# TODO - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
-#        unit tests
-#      - Different formatters for Python and C++ code gen
+# TODO Different formatters for Python and C++ code gen
 
 def to_str(number):
     return str(number) if number >= 0 else '({})'.format(number)
@@ -230,13 +226,12 @@ def print_node(n, d, con_dag, base_vars, seen):
 
 ################################################################################
 
-def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
+def fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
     # Handle silly edge case first: apparently just variable bounds
     d_sink = con_dag.node[sink_node]
     if len(eval_order)==1:
         print(d_sink[NodeAttr.display], 'in', d_sink[NodeAttr.bounds],'\n')
         return
-    #
     # Pretty-print well-behaving constraint
     # name
     print('#', d_sink[NodeAttr.name])
@@ -246,11 +241,6 @@ def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
         pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
     # residual
     pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars)
-    if FWD_ONLY:
-        return
-    ############################################################################
-    # Backward sweep
-    bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
 
 def bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
     print('u%d = 1.0' % sink_node) # setting the seed
@@ -302,29 +292,32 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
 ################################################################################
 
 # TODO This iteration logic belongs to the Problem class
-def run_code_gen(problem):
+def run_code_gen(problem, only_forward=False):
     for sink_node in problem.con_ends_num:
         eval_order = problem.con_top_ord[sink_node]
         con_num = problem.con_ends_num[sink_node]
         con_dag = problem.dag.subgraph(eval_order)
         base_vars = problem.base_vars
         def_var_names = problem.var_num_name
-        print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
+        fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
+        if not only_forward:
+            bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
                                                                   def_var_names)
 
-def prepare_evaluation_code(prob):
+def prepare_evaluation_code(prob, only_forward=False):
     with io.BytesIO() as code: 
         code.write(preamble)
-        write_constraint_evaluation_code(prob, code)
+        write_constraint_evaluation_code(prob, code, only_forward)
         code.write(postamble)
         code.write( main_func.substitute(v=prob.refsols[0], ncons =prob.ncons,
                                          nvars=prob.nvars, nzeros=prob.nzeros) )
         return code.getvalue()
 
-def write_constraint_evaluation_code(problem, code):
+def write_constraint_evaluation_code(problem, code, only_forward):
     with io.BytesIO() as ostream: 
         with redirect_stdout(ostream):  # Eliminating the nested with would make 
-            run_code_gen(problem)       # debugging harder: stdout is swallowed!
+            run_code_gen(problem, only_forward) # debugging harder: stdout is swallowed!
         # prepend indentation, keep line ends
         code.writelines('    %s' % l for l in ostream.getvalue().splitlines(True))
 
@@ -351,6 +344,7 @@ def evaluate(v, ncons, nvars, nzeros):
     np.copyto(con, float('NaN'), casting='unsafe')
     
     jac = jac_coo_arrays(nzeros)
+    
 '''
 
 postamble = '''
