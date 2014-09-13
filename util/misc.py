@@ -1,4 +1,5 @@
 from itertools import islice, dropwhile
+import os
 
 def advance(itr, n):
     return islice(itr, n, None)
@@ -16,3 +17,7 @@ def import_code(code, name):
     module = imp.new_module(name)
     exec code in module.__dict__
     return module
+
+def get_all_files(directory, extension):
+    files = sorted(f for f in os.listdir(directory) if f.endswith(extension))
+    return [ os.path.join(directory, filename) for filename in files ]

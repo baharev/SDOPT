@@ -1,14 +1,16 @@
 from __future__ import print_function
+import io, math
+from operator import itemgetter
+from string import Template
 from nodes.attributes import NodeAttr
 from itertools import izip
-import io
-import math
 import representation.dag_util as du
 from util.redirect_stdout import redirect_stdout
+from util.misc import get_all_files
 from coconut_parser.dag_parser import read_problem
-import os
-from operator import itemgetter
-from nodes.pprinter import lmul_d_term_str
+from datagen.paths import DATADIR
+
+FWD_ONLY = False # Temporary hack
 
 # TODO - Factor out code duplications: reverse_ad, gjh_parser, pprinter, and 
 #        unit tests
@@ -109,6 +111,19 @@ def log_node_str(n, d, con_dag, base_vars):
 
 def sqr_node_str(n, d, con_dag, base_vars):
     return '(' + lin_comb_str(n, d, con_dag, base_vars) + ')**2'
+
+### Why are these two needed?
+def var_node_str(n, d, con_dag, base_vars):
+    # Assumes a defined variable
+    assert n not in base_vars
+    assert NodeAttr.input_ord in d, '%d, %s' % (n, d)
+    pred = d[NodeAttr.input_ord]
+    assert len(pred)==1
+    return sum_node_str(n, d, con_dag, base_vars)
+
+def num_node_str(n, d, con_dag, base_vars):
+    return str(d[NodeAttr.number])
+###
 
 def inedge_mult(n, d, con_dag):
     pred = d[NodeAttr.input_ord]
@@ -231,8 +246,13 @@ def print_con(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
         pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
     # residual
     pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars)
+    if FWD_ONLY:
+        return
     ############################################################################
     # Backward sweep
+    bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
+
+def bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
     print('u%d = 1.0' % sink_node) # setting the seed
     seen = set()
     for n, d in itr_reverse(con_dag, eval_order, base_vars):
@@ -252,7 +272,7 @@ def itr_nodes_to_pprint(con_dag, eval_order, base_vars):
     # Print if NOT a base variable, a number or the last node (residual)
     return ((n, con_dag.node[n]) for n in eval_order[:-1] \
               if n not in base_vars and NodeAttr.number not in con_dag.node[n])
-    
+
 def itr_reverse(con_dag, eval_order, base_vars):
     return ((n, con_dag.node[n]) for n in eval_order[::-1] \
               if n not in base_vars and NodeAttr.number not in con_dag.node[n])    
@@ -281,23 +301,36 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
 
 ################################################################################
 
-def prepare_evaluation_code(problem):
+# TODO This iteration logic belongs to the Problem class
+def run_code_gen(problem):
+    for sink_node in problem.con_ends_num:
+        eval_order = problem.con_top_ord[sink_node]
+        con_num = problem.con_ends_num[sink_node]
+        con_dag = problem.dag.subgraph(eval_order)
+        base_vars = problem.base_vars
+        def_var_names = problem.var_num_name
+        print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
+
+def prepare_evaluation_code(prob):
     with io.BytesIO() as code: 
         code.write(preamble)
-        write_constraint_evaluation_code(problem, code)
+        write_constraint_evaluation_code(prob, code)
         code.write(postamble)
+        code.write( main_func.substitute(v=prob.refsols[0], ncons =prob.ncons,
+                                         nvars=prob.nvars, nzeros=prob.nzeros) )
         return code.getvalue()
 
 def write_constraint_evaluation_code(problem, code):
     with io.BytesIO() as ostream: 
         with redirect_stdout(ostream):  # Eliminating the nested with would make 
-            # FIXME Hacked here
-            run_code_gen(problem)# debugging harder: stdout is swallowed!
+            run_code_gen(problem)       # debugging harder: stdout is swallowed!
         # prepend indentation, keep line ends
         code.writelines('    %s' % l for l in ostream.getvalue().splitlines(True))
 
 preamble = \
-'''from math import exp, log
+'''from __future__ import print_function
+from math import exp, log
 import numpy as np
 import scipy.sparse as sp
 
@@ -323,43 +356,21 @@ def evaluate(v, ncons, nvars, nzeros):
 postamble = '''
     jacobian = sp.coo_matrix((jac.ra, (jac.ai, jac.aj)), shape=(ncons,nvars))
 
-    return con, jacobian\n
+    return con, jacobian
 '''
 
-def dbg_dump_code(residual_code, v, ncons, nvars, nzeros):
-    print(residual_code)
-    print('''if __name__=='__main__':''')
-    print(  '    v =', v)
-    print(  '    con, jac = evaluate(v, %d, %d, %d)' % (ncons, nvars, nzeros))
-    print(  '    print con')
-    print(  '    print ')    
-    print(  '    print str(jac) \n\n') 
-
-def run_code_gen(problem):
-    for sink_node in problem.con_ends_num:
-        eval_order = problem.con_top_ord[sink_node]
-        con_num = problem.con_ends_num[sink_node]
-        con_dag = problem.dag.subgraph(eval_order)
-        base_vars = problem.base_vars
-        def_var_names = problem.var_num_name
-        print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
-                                                                  def_var_names)
+main_func = Template('''
+if __name__=='__main__':
+    v = $v
+    con, jac = evaluate(v, $ncons, $nvars, $nzeros)
+    print(con)
+    print()    
+    print(str(jac))
+''')
 
 if __name__=='__main__':
-    test_dir = '../data/'
-    #test_cases = ['JacobsenDbg', 'mssTornDbg', 'Luyben', 'eco9', 'bratu',
-    #              'tunnelDiodes', 'mss20heatBalance' ]
-    test_cases = sorted(f for f in os.listdir(test_dir) if f.endswith('.dag'))
-    #test_cases = ['JacobsenTorn.dag']
-    #test_cases = ['example.dag']
-    #test_cases = [ 'mssheatBalanceDbg.dag' ]    
-    dag_files = [ '{dir}{filename}'.format(dir=test_dir, filename=basename) \
-                   for basename in test_cases ]
-    for dag_file in dag_files:
+    for dag_file in get_all_files(DATADIR, '.dag'):
         problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
-        partial_code = prepare_evaluation_code(problem) 
         print('===============================================')
-        #run_code_gen(problem)
-        dbg_dump_code(partial_code, problem.refsols[0], \
-                      problem.ncons, problem.nvars, problem.nzeros)
+        print( prepare_evaluation_code(problem) )
         print('===============================================')

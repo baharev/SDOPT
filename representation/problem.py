@@ -5,7 +5,6 @@ import networkx as nx
 import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
-import nodes.pprinter as pp
 import ordering.csr_utils as util
 
 # TODO: - Clean up test, improve coverage
@@ -80,7 +79,7 @@ class Problem:
         #-------------------------------------------
         self.collect_constraint_topological_orders()
         #-------------------------------------------
-        #self.pprint_constraints()
+        # TODO pretty print constraints
         #-------------------------------------------
         du.dbg_info(dag)
 
@@ -249,16 +248,6 @@ class Problem:
         for n in sink_nodes:
             nzeros += len( self.base_var_nums_in_con(n) )
         self.nzeros = nzeros
-
-    def pprint_constraints(self):
-        for sink_node in self.con_ends_num:
-            eval_order = self.con_top_ord[sink_node]
-            con_num = self.con_ends_num[sink_node]
-            con_dag = self.dag.subgraph(eval_order)
-            base_vars = self.base_vars
-            def_var_names = self.var_num_name
-            pp.print_con(sink_node, con_num, con_dag, eval_order, base_vars, \
-                                                                  def_var_names)
 
     def base_var_nums_in_con(self, sink_node): 
         var_nums = (self.base_vars[n] for n in self.con_top_ord[sink_node] \
