@@ -254,8 +254,7 @@ def crosscheck_names(prob, row_names, col_names):
     assert len(row_names) == prob.ncons
     assert len(col_names) == prob.nvars
 
-def dbg_show_node_types(prob):
-    dag = prob.dag
+def dbg_show_node_types(dag):
     for n in dag:
         print('%d  %s' % (n, du.get_pretty_type_str(dag, n)))
     print()
