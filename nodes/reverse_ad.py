@@ -10,7 +10,7 @@ from itertools import izip
 from representation.dag_util import get_pretty_type_str
 from util.redirect_stdout import redirect_stdout
 from util.misc import get_all_files
-from coconut_parser.dag_parser import read_problem
+from parsers.dag_parser import read_problem
 from datagen.paths import DATADIR
 
 # TODO Different formatters for Python and C++ code gen

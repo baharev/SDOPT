@@ -1,7 +1,7 @@
 from __future__ import print_function
 import unittest
 import numpy as np
-from coconut_parser.dag_parser import read_problem
+from parsers.dag_parser import read_problem
 from datagen.paths import DATADIR
 from util.misc import import_code, get_all_files
 from nodes.reverse_ad import prepare_evaluation_code

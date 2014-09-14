@@ -2,8 +2,8 @@ from __future__ import print_function
 import os, unittest
 from os.path import join
 import numpy as np
-from coconut_parser.dag_parser import read_problem
-from coconut_parser.gjh_parser import read
+from parsers.dag_parser import read_problem
+from parsers.gjh_parser import read
 from nodes.reverse_ad import prepare_evaluation_code
 from datagen.paths import DATADIR
 from util.assert_helpers import assertEqual

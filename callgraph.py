@@ -4,7 +4,7 @@ from pycallgraph import GlobbingFilter
 from pycallgraph.output import GraphvizOutput
 
 from nodes.reverse_ad import prepare_evaluation_code
-from coconut_parser.dag_parser import read_problem
+from parsers.dag_parser import read_problem
 
 
 config = Config(max_depth=5)
