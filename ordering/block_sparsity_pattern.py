@@ -14,6 +14,10 @@ from ordering.coloring import coloring
 DEBUG = True
 
 class BlockSparsityPattern:
+    '''Use read_flattened_ampl from parsers.ampl_parser to create an instance of
+    BlockSparsityPattern. Factory function is not provided here to avoid cyclic
+    imports.
+    '''
     def __init__(self, name, nrows, ncols, nzeros):
         self.name = name
         self.nrows = nrows
@@ -56,6 +60,8 @@ class BlockSparsityPattern:
     @property
     def n_cblx(self):
         return len(self.cblx)-1
+    
+################################################################################
 
 def get_block_boundaries(bsp, i, j):
     return bsp.rblx[i], bsp.rblx[i+1], bsp.cblx[j], bsp.cblx[j+1]

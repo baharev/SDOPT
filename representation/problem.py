@@ -10,14 +10,15 @@ from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 import ordering.csr_utils as util
 
-# TODO: - Somehow export only module entry points
-#       - In the simplifier, reconstruct exact integer powers (e.g. x**3)
+# TODO: - In the simplifier, reconstruct exact integer powers (e.g. x**3)
 #       - dbg_info: constraint types 
 #       - color given nodes on the plot yellow (selected ones for debugging,
 #             sinks, def var nodes, etc.)
 
 class Problem:
-
+    '''Use read_problem from parsers.dag_parser to create an instance of 
+    Problem. Factory function is not provided here to avoid cyclic imports.
+    '''
     def __init__(self):
         self.dag = nx.DiGraph()
         self.con_ends_num = { } # con sink node -> con num (in AMPL)
