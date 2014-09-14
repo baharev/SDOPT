@@ -25,14 +25,14 @@ def test_reverse_ad(logfilename, dagfilename):
     prob = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
     partial_code = prepare_evaluation_code(prob) 
     print('===============================================')
-    rev_ad = import_code(partial_code, 'doesThisNameMatterAtAll')
+    rev_ad = import_code(partial_code)
     con, jac_ad = rev_ad.evaluate(x, prob.ncons, prob.nvars, prob.nzeros)
     # Check the residuals first
     # A rather messy and risky business to figure out where to flip the signs 
     sign = np.ones(residuals.size, dtype=np.int32)
     close = np.isclose(residuals, con)
     sign[~close] = -1
-    # We've hopefully fixed the signs, they should be all close.
+    # We've hopefully fixed the signs; the residuals should be all close now.
     # Unfortunately false positives are possible.
     allclose = np.allclose(residuals, np.multiply(sign, con))
     print( 'Residuals all close? {}'.format(allclose) )
@@ -41,9 +41,6 @@ def test_reverse_ad(logfilename, dagfilename):
     print('===============================================')   
 
 def differs_at(a, b_unordered, sign):
-    # Can produce false positives if: (1) the sign was bogusly reconstructed,
-    # (2) there are accidental exact zeros in the Jacobian, (3) the indices are
-    # not sorted the way they used to be.
     # Test whether indices match
     b = b_unordered.tocsr().tocoo() # An ugly way to order row-wise
     assertEqual(a.nnz, b.nnz)
@@ -58,9 +55,10 @@ def assertNotCloseIndicesAreEmpty(ind, a, b, sign):
         print('Jacobian test passed!')
         return
     # The test failed; dump the mismatch and raise an error.
+    # Can produce false positives if the sign was bogusly reconstructed!
     bdata = np.multiply(sign[b.row], b.data)
     for i in ind:
-        print('(%d,%d) %g  %g' % (a.row[i],a.col[i],a.data[i], bdata[i]))
+        print('(%d,%d) %g  %g' % (a.row[i], a.col[i], a.data[i], bdata[i]))
     raise AssertionError('See the indices and values printed above!')
 
 def assertIntArrayEqual(a, b):

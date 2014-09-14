@@ -12,9 +12,9 @@ def nth(iterable, n, default=None):
     return next(islice(iterable, n, None), default)
 
 # http://code.activestate.com/recipes/82234-importing-a-dynamically-generated-module/
-def import_code(code, name):
+def import_code(code):
     import imp
-    module = imp.new_module(name)
+    module = imp.new_module('someFakeName')
     exec code in module.__dict__
     return module
 
