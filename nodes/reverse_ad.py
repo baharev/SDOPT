@@ -1,10 +1,13 @@
 from __future__ import print_function
+
+__all__ = [ 'prepare_evaluation_code' ]
+
 import io, math
 from operator import itemgetter
 from string import Template
 from nodes.attributes import NodeAttr
 from itertools import izip
-import representation.dag_util as du
+from representation.dag_util import get_pretty_type_str
 from util.redirect_stdout import redirect_stdout
 from util.misc import get_all_files
 from coconut_parser.dag_parser import read_problem
@@ -220,7 +223,7 @@ def pow_node_rev(n, d, con_dag, base_vars, seen):
     print('u%d %s %s(%s) * pow(%s, %s) * u%d' % args)   
 
 def print_node(n, d, con_dag, base_vars, seen):
-    fmt = du.get_pretty_type_str(con_dag, n) + '_rev'
+    fmt = get_pretty_type_str(con_dag, n) + '_rev'
     formatter = globals()[fmt]
     formatter(n, d, con_dag, base_vars, seen)
 
@@ -268,7 +271,7 @@ def itr_reverse(con_dag, eval_order, base_vars):
               if n not in base_vars and NodeAttr.number not in con_dag.node[n])    
 
 def get_body(n, d, con_dag, base_vars):
-    fmt = du.get_pretty_type_str(con_dag, n) + '_str'
+    fmt = get_pretty_type_str(con_dag, n) + '_str'
     formatter = globals()[fmt]
     return formatter(n, d, con_dag, base_vars)
 
@@ -276,7 +279,7 @@ def pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names):
     if NodeAttr.var_num in d:
         print('t%d =' % n, body, ' # %s' % def_var_names[d[NodeAttr.var_num]])
     else:
-        print('t%d =' % n, body,' #', du.get_pretty_type_str(con_dag,n))
+        print('t%d =' % n, body,' #', get_pretty_type_str(con_dag,n))
 
 def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
     body = get_body(sink_node, d_sink, con_dag, base_vars)
@@ -290,20 +293,6 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
     print()
 
 ################################################################################
-
-# TODO This iteration logic belongs to the Problem class
-def run_code_gen(problem, only_forward=False):
-    for sink_node in problem.con_ends_num:
-        eval_order = problem.con_top_ord[sink_node]
-        con_num = problem.con_ends_num[sink_node]
-        con_dag = problem.dag.subgraph(eval_order)
-        base_vars = problem.base_vars
-        def_var_names = problem.var_num_name
-        fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
-                                                                  def_var_names)
-        if not only_forward:
-            bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
-                                                                  def_var_names)
 
 def prepare_evaluation_code(prob, only_forward=False):
     with io.BytesIO() as code: 
@@ -320,6 +309,20 @@ def write_constraint_evaluation_code(problem, code, only_forward):
             run_code_gen(problem, only_forward) # debugging harder: stdout is swallowed!
         # prepend indentation, keep line ends
         code.writelines('    %s' % l for l in ostream.getvalue().splitlines(True))
+
+# TODO This iteration logic belongs to the Problem class
+def run_code_gen(problem, only_forward=False):
+    for sink_node in problem.con_ends_num:
+        eval_order = problem.con_top_ord[sink_node]
+        con_num = problem.con_ends_num[sink_node]
+        con_dag = problem.dag.subgraph(eval_order)
+        base_vars = problem.base_vars
+        def_var_names = problem.var_num_name
+        fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
+        if not only_forward:
+            bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
+                                                                  def_var_names)
 
 preamble = \
 '''from __future__ import print_function

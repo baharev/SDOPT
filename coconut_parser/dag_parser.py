@@ -1,15 +1,29 @@
-'''
-Use only read_problem, ignore all other functions.
-'''
 from __future__ import print_function
+
+__all__ = [ 'read_problem' ]
+
 import edge_line
 import hint_line
 import info_line
 import node_line
 from ampl_parser import read_flattened_ampl
 from representation.problem import Problem
-import representation.dag_util as du
+from representation.dag_util import plot
 from util.file_reader import lines_of
+
+def read_problem(filename, plot_dag=True, crosscheck_nl=True, show_sparsity=True):
+    with lines_of(filename) as lines:
+        problem = parse(lines)
+    problem.setup()
+    if crosscheck_nl:
+        nl_filename = filename[:-4]+'.nl' # filename.dag -> filename.nl
+        bsp = read_flattened_ampl(nl_filename, show_sparsity)
+        problem.crosscheck_sparsity_pattern(bsp.csr_mat)
+        problem.crosscheck_names(bsp.row_names, bsp.col_names)
+    if plot_dag:
+        plot(problem.dag)
+        return None # FIXME Resolve issues with plotting! (Must destroy dictionaries)
+    return problem
 
 def lines(iterable):
     for line in iterable:
@@ -32,17 +46,3 @@ def parse(f):
         if func:
             func(p, elems)
     return p
-
-def read_problem(filename, plot_dag=True, crosscheck_nl=True, show_sparsity=True):
-    with lines_of(filename) as lines:
-        problem = parse(lines)
-    problem.setup()
-    if crosscheck_nl:
-        nl_filename = filename[:-4]+'.nl' # filename.dag -> filename.nl
-        bsp = read_flattened_ampl(nl_filename, show_sparsity)
-        problem.crosscheck_sparsity_pattern(bsp.csr_mat)
-        problem.crosscheck_names(bsp.row_names, bsp.col_names)
-    if plot_dag:
-        du.plot(problem.dag)
-        return None # FIXME Resolve issues with plotting! (Must destroy dictionaries)
-    return problem

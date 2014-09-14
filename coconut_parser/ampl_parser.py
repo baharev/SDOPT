@@ -1,7 +1,7 @@
-'''
-Use only read_flattened_ampl, ignore all other functions.
-'''
 from __future__ import print_function
+
+__all__ = [ 'read_flattened_ampl' ]
+
 from itertools import islice
 import numpy as np
 import scipy.sparse as sp

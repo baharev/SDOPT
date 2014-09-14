@@ -1,4 +1,7 @@
 from __future__ import print_function
+
+__all__ = [ 'plot' ]
+
 from math import floor
 import numpy as np
 import scipy.sparse as sp

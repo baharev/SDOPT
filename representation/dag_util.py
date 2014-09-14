@@ -1,4 +1,7 @@
 from __future__ import print_function
+
+__all__ = [ ] # meant to be private
+
 from array import array
 from collections import defaultdict
 import networkx as nx
@@ -6,8 +9,9 @@ import nodes
 from nodes.attributes import NodeAttr
 from matplotlib import pyplot as plt
 
-def dbg_info(dag):
+def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')
+    if optional_callable: optional_callable()
     # TODO Why does this crash?
     #print('Is connected?', nx.is_connected(dag.to_undirected()))
     print('Nodes: %d, edges: %d'%(dag.number_of_nodes(),dag.number_of_edges()) )

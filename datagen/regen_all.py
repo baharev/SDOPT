@@ -12,3 +12,5 @@ for modfile in mods:
     subprocess.call(['../datagen/convert.sh', modfile], cwd=DATADIR)
 
 # ampl filename.mod coconut.run, coconut.run is shared across all mod files
+# and calls solve so that the reference solution ends up in the .dag file as a 
+# tracepoint

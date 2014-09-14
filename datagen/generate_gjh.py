@@ -8,14 +8,6 @@ from os.path import join
 from string import Template
 from paths import AMPL, DATADIR, TMPDIR
 
-def main(args):
-    if (len(args)==1):
-        generate_gjh()
-    elif (args[1] == '--clean'):
-        clean()
-    else:
-        print('Usage: call with no arguments or with --clean', file=sys.stderr)
-        
 def clean():
     ext = ('.gjh', '.log')
     to_delete = sorted(f for f in os.listdir(DATADIR) if f.endswith(ext))
@@ -94,4 +86,4 @@ solve;
 ''')
 
 if __name__=='__main__':
-    main(sys.argv)
+    generate_gjh()

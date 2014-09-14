@@ -7,36 +7,11 @@ from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 import ordering.csr_utils as util
 
-# TODO: - Clean up test, improve coverage
-#       - naming issue: named vars should be base vars;
-#             for base vars: var_num < nvars; OK, now fixed, but the code could
-#             be improved; there is no need to track the base and defined
-#             variables, it *should* be easy to identify base vars
-#             (var_num < nvars) and everything else should be defined var
-#       - try to get defined variable names -> they have appeared!!!
-#                                              print them, where appropriate
+# TODO: - Somehow export only module entry points
 #       - In the simplifier, reconstruct exact integer powers (e.g. x**3)
-#       - import sparsity pattern and suffixes from AMPL
-#       - dbg_info; problem properties: show nvars, ncons, cons type, 
-#                                       num of ref sols, model name
-#       - report / fix plotting bugs
-#       - consider iterators when iterating over a set of nodes, return tuples
-#       - code generation for AD and constraint propagation
-#       - Where are the var bounds? -> For base ones, at the definition,
-#                                      CSEs *must* not have any, assert inserted
+#       - dbg_info: constraint types 
 #       - color given nodes on the plot yellow (selected ones for debugging,
 #             sinks, def var nodes, etc.)
-#
-#       - defined var topological orders should be stored as well
-#         not clear how to avoid recomputations, maybe removing
-#         aliases wasn't the best idea? -> Cut corners, ignore inefficiencies
-#                                          for now; def vars won't be that
-#                                          common anyway with connected units
-#
-#       - Put solution to tracepoint in AMPL automatically, maybe .sol file to
-#             converter?  -> set the solver and call solve at the end of the
-#                            .mod file; the solution appears in the .nl file as
-#                            a tracepoint
 
 class Problem:
 
@@ -81,7 +56,7 @@ class Problem:
         #-------------------------------------------
         # TODO pretty print constraints
         #-------------------------------------------
-        du.dbg_info(dag)
+        du.dbg_info(dag, self.dbg_problem_statistics)
 
     def setup_constraint_names(self):
         for node_id, con_num in self.con_ends_num.iteritems():
@@ -281,4 +256,8 @@ class Problem:
         for n in dag:
             print('%d  %s' % (n, du.get_pretty_type_str(dag, n)))
         print()
-
+        
+    def dbg_problem_statistics(self):
+        fmt = 'Constraints: %d, variables: %d, nonzeros: %d'
+        print(fmt % (self.ncons, self.nvars, self.nzeros))
+        print('Number of reference solutions:', len(self.refsols))

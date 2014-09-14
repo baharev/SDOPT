@@ -1,4 +1,7 @@
 from __future__ import print_function
+
+__all__ = [ 'BlockSparsityPattern' ]
+
 from future_builtins import zip
 import numpy as np
 import scipy.sparse as sp
