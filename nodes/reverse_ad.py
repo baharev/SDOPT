@@ -69,7 +69,7 @@ def lin_comb_str(n, d, con_dag, base_vars, op='+'):
     # for 1..n: lambda_1*predec_1 op lambda_2*predec_2 ... op lambda_n*predec_n
     #   where op is + or *
     s = []
-    for lam, predec  in izip(*inedge_mult(n, d, con_dag)): # FIXME itr_inedge_mult
+    for lam, predec in gen_inedge_mult(n, d, con_dag):
         s.append('%s%s' % (lambda_to_str(lam), idx_str(predec, base_vars, con_dag)))
     return (' %s ' % op).join(s)
 
@@ -124,6 +124,9 @@ def num_node_str(n, d, con_dag, base_vars):
     return str(d[NodeAttr.number])
 ###
 
+def gen_inedge_mult(n, d, con_dag):
+    return izip(*inedge_mult(n, d, con_dag)) 
+
 def inedge_mult(n, d, con_dag):
     pred = d[NodeAttr.input_ord]
     mult = [con_dag[p][n]['weight'] for p in pred]
@@ -141,7 +144,7 @@ def sum_node_rev(n, d, con_dag, base_vars, seen):
     # u_p (+)= lam_p * u_i
     # ... 
     # u_z (+)= lam_z * u_i
-    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+    for lam, node in gen_inedge_mult(n, d, con_dag):
         if NodeAttr.number not in con_dag.node[node]:
             print('u%d %s %su%d'%(node, assign(seen,node), lmul_d_term_str(lam), n))
 
@@ -185,7 +188,7 @@ def div_node_rev(n, d, con_dag, base_vars, seen):
 def exp_node_rev(n, d, con_dag, base_vars, seen):
     # t_i = exp(lam_j*t_j + ...)
     # u_j = lam_j*t_i * u_i
-    for lam, node in izip(*inedge_mult(n, d, con_dag)):        
+    for lam, node in gen_inedge_mult(n, d, con_dag):        
         print('u%d %s %st%d * u%d'%(node,assign(seen,node),lmul_d_term_str(lam),n,n))    
 
 def log_node_rev(n, d, con_dag, base_vars, seen):
@@ -194,7 +197,7 @@ def log_node_rev(n, d, con_dag, base_vars, seen):
     # u_j  (+)= lam_j*(1/lnarg)*u_i
     lnarg_recip = 'lnarg_recip_%d' % n
     print('%s = 1.0/(%s)' % (lnarg_recip, lin_comb_str(n,d,con_dag,base_vars)))
-    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+    for lam, node in gen_inedge_mult(n, d, con_dag):
         args = (node, assign(seen,node), lmul_d_term_str(lam), lnarg_recip, n)
         print('u%d %s %s%s * u%d' % args)
         
@@ -204,7 +207,7 @@ def sqr_node_rev(n, d, con_dag, base_vars, seen):
     # u_j (+)= 2.0*lam_j*sqrarg*u_i
     sqrarg = 'sqrarg_%d' % n
     print('%s = 2.0*%s' % (sqrarg, lin_comb_str(n,d,con_dag,base_vars)))
-    for lam, node in izip(*inedge_mult(n, d, con_dag)):
+    for lam, node in gen_inedge_mult(n, d, con_dag):
         args = (node, assign(seen,node), lmul_d_term_str(lam), sqrarg, n)
         print('u%d %s %s%s * u%d' % args)
 
