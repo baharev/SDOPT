@@ -83,18 +83,14 @@ def mul_node_str(n, d, con_dag, base_vars):
 
 # TODO Why are the asserts outside of inedge? Can I move it there?
 def div_node_str(n, d, con_dag, base_vars):
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    mult, pred = binary_node_inedge_mult(n, d, con_dag)
     nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], base_vars, con_dag)
     denom  = lambda_to_str(mult[1]) + idx_str(pred[1], base_vars, con_dag)
     d_term = d.get(NodeAttr.d_term, 1.0)
     return lmul_d_term_str(d_term) + '(' + nomin + ')/(' + denom + ')'
 
 def pow_node_str(n, d, con_dag, base_vars):
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    mult, pred = binary_node_inedge_mult(n, d, con_dag)
     d_term = d.get(NodeAttr.d_term, 0.0)
     base  = lambda_to_str(mult[0]) + idx_str(pred[0], base_vars, con_dag)
     base += add_d_term_str(d_term)
@@ -124,12 +120,18 @@ def num_node_str(n, d, con_dag, base_vars):
     return str(d[NodeAttr.number])
 ###
 
-def gen_inedge_mult(n, d, con_dag):
-    return izip(*inedge_mult(n, d, con_dag)) 
-
-def inedge_mult(n, d, con_dag):
+def unchecked_inedge_mult(n, d, con_dag):
     pred = d[NodeAttr.input_ord]
     mult = [con_dag[p][n]['weight'] for p in pred]
+    return mult, pred
+
+def gen_inedge_mult(n, d, con_dag):
+    return izip(*unchecked_inedge_mult(n, d, con_dag)) 
+
+def binary_node_inedge_mult(n, d, con_dag):
+    mult, pred = unchecked_inedge_mult(n, d, con_dag)
+    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n%s'%(pred,con_dag.pred[n])
+    assert len(pred)==2, 'Expected exactly two predecessors %s' % d    
     return mult, pred
 
 ################################################################################
@@ -149,9 +151,7 @@ def sum_node_rev(n, d, con_dag, base_vars, seen):
             print('u%d %s %su%d'%(node, assign(seen,node), lmul_d_term_str(lam), n))
 
 def mul_node_rev(n, d, con_dag, base_vars, seen):
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    mult, pred = binary_node_inedge_mult(n, d, con_dag)
     # t_i = d*(lam_r*t_r)*(lam_s*t_s) 
     # u_r (+)= d*lam_r*lam_s * t_s * u_i
     # u_s (+)= d*lam_r*lam_s * t_r * u_i    
@@ -169,9 +169,7 @@ def mul_rev(n, d, con_dag, base_vars, seen, const, r, s):
     print('u%d %s %s%s * u%d' % (r, assign(seen,r), const, s_str, n))
 
 def div_node_rev(n, d, con_dag, base_vars, seen):
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    mult, pred = binary_node_inedge_mult(n, d, con_dag)
     # t_i = d*(lam_r*t_r)/(lam_s*t_s) 
     # u_r (+)=  d*lam_r/lam_s * (1/t_s) * u_i
     # u_s (+)=           -(1/t_s) * t_i * u_i
@@ -214,9 +212,7 @@ def sqr_node_rev(n, d, con_dag, base_vars, seen):
 def pow_node_rev(n, d, con_dag, base_vars, seen):
     # t_i   = pow(base, power)
     # u_j (+)= lam_j*power*pow(base, power-1)*u_i
-    mult, pred = inedge_mult(n, d, con_dag)
-    assert sorted(pred)==sorted(con_dag.pred[n]),'%s\n %s'%(pred,con_dag.pred[n])
-    assert len(pred)==2, 'Expected exactly two predecessors %s' % d
+    mult, pred = binary_node_inedge_mult(n, d, con_dag)
     d_term = d.get(NodeAttr.d_term, 0.0)
     base  = lambda_to_str(mult[0]) + idx_str(pred[0], base_vars, con_dag)
     base += add_d_term_str(d_term)
