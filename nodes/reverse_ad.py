@@ -81,7 +81,6 @@ def mul_node_str(n, d, con_dag, base_vars):
     d_term = d.get(NodeAttr.d_term, 1.0)
     return  lmul_d_term_str(d_term) + lin_comb_str(n, d, con_dag, base_vars, '*')
 
-# TODO Why are the asserts outside of inedge? Can I move it there?
 def div_node_str(n, d, con_dag, base_vars):
     mult, pred = binary_node_inedge_mult(n, d, con_dag)
     nomin  = lambda_to_str(mult[0]) + idx_str(pred[0], base_vars, con_dag)
