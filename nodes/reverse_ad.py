@@ -292,13 +292,14 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
 
 ################################################################################
 
-def prepare_evaluation_code(prob, only_forward=False):
+def prepare_evaluation_code(prob, tracepoint=[ ], only_forward=False):
     with io.BytesIO() as code: 
         code.write(preamble)
         write_constraint_evaluation_code(prob, code, only_forward)
         code.write(postamble)
-        code.write( main_func.substitute(v=prob.refsols[0], ncons =prob.ncons,
-                                         nvars=prob.nvars, nzeros=prob.nzeros) )
+        code.write( main_func.substitute(v=prob.refsols[0], tp=list(tracepoint), 
+                                         ncons =prob.ncons, nvars=prob.nvars, 
+                                         nzeros=prob.nzeros) )
         return code.getvalue()
 
 def write_constraint_evaluation_code(problem, code, only_forward):
@@ -351,11 +352,14 @@ def evaluate(v, ncons, nvars, nzeros):
 postamble = '''
     jacobian = sp.coo_matrix((jac.ra, (jac.ai, jac.aj)), shape=(ncons,nvars))
 
-    return con, jacobian
+    return con, jacobian.tocsr().tocoo() # A hideous way to order by rows
 '''
 
 main_func = Template('''
 if __name__=='__main__':
+    # trace point:
+    # v = $tp
+    # reference solution:
     v = $v
     con, jac = evaluate(v, $ncons, $nvars, $nzeros)
     print(con)

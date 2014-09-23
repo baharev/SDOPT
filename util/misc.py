@@ -1,3 +1,4 @@
+from __future__ import print_function
 from itertools import islice, dropwhile
 import os
 
@@ -15,7 +16,11 @@ def nth(iterable, n, default=None):
 def import_code(code):
     import imp
     module = imp.new_module('someFakeName')
-    exec code in module.__dict__
+    try:
+        exec code in module.__dict__
+    except:
+        print(code)
+        raise
     return module
 
 def get_all_files(directory, extension):
