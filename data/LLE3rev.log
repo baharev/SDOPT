@@ -21,15 +21,15 @@ Variable vector:
 0.5515320687097053
 
 Residual vector:
-648.2347741880928
-318.26910729537406
 468.82803610548626
+318.26910729537406
+648.2347741880928
 36.989076374822304
 760.6912417779909
 371.3641372507757
 1068.9208063465912
 
-gjh: "LLE3.gjh" written.  Execute
+gjh: "LLE3rev.gjh" written.  Execute
  
-	include "LLE3.gjh"
-	remove "LLE3.gjh";
+	include "LLE3rev.gjh"
+	remove "LLE3rev.gjh";
