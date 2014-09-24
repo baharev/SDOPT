@@ -22,21 +22,27 @@ def generate_gjh():
     modfiles = sorted(f for f in os.listdir(DATADIR) if f.endswith('.mod'))
     for modfile in modfiles:
         print('Generating gjh file for', modfile)
-        create_gjh_input(modfile)
-        run_ampl(modfile)
+        try_generation(modfile)
     copy_output()
+    
+def try_generation(modfile):
+    SEEDS = [1, 31, 42, 13, 26, 87, 59, 64, 77, 95]    
+    for seed in SEEDS:
+        create_gjh_input(modfile, seed)
+        ret = run_ampl(modfile)
+        if ret==0:
+            return
+    sys.exit(ret)        
 
-def create_gjh_input(modfile):
+def create_gjh_input(modfile, seed):
     shutil.copy(join(DATADIR, modfile), TMPDIR)
     with open(join(TMPDIR, modfile), 'a') as dst:
-        dst.write(gjh_invocation.substitute(problem_name=modfile[:-4]))
+        dst.write(gjh_run.substitute(problem_name=modfile[:-4], seed=seed))
 
 def run_ampl(modfile):
     logfile_name = join(TMPDIR, modfile[:-4]+'.log')
     with open(logfile_name, 'w') as logfile:
-        ret = subprocess.call([AMPL, modfile], cwd=TMPDIR, stdout=logfile)
-    if ret:
-        sys.exit(ret)
+        return subprocess.call([AMPL, modfile], cwd=TMPDIR, stdout=logfile)
 
 def copy_output():
     for basename, content in gen_gjh_basename_content():
@@ -57,8 +63,8 @@ def get_content(gjh_name):
     with open(join(TMPDIR, gjh_name), 'r') as f:
         return f.read()    
 
-gjh_invocation = Template('''###################################################
-option seed 31;
+gjh_run = Template('''##########################################################
+option randseed $seed;
 # Force model generation, otherwise the log becomes messed up
 print "ignore this line", _snzcons;
 

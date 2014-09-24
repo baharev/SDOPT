@@ -17,8 +17,8 @@ def diagnostics(basename):
     print('Condition number estimate:', cond(jac_ad.todense()))
 
 if __name__ == '__main__':
-    diagnostics('LLE3rev')
-    diagnostics('LLE3revtriv')    
+    diagnostics('LLE3dis')
+    diagnostics('LLE3disOrig')    
     
      
     

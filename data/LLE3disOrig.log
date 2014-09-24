@@ -1,0 +1,35 @@
+
+Substitution eliminates 42 variables.
+Adjusted problem:
+7 variables, all nonlinear
+7 constraints; 30 nonzeros
+	5 nonlinear constraints
+	2 linear constraints
+	7 equality constraints
+0 objectives.
+
+ignore this line 30
+@@@ Problem statistics
+constraints: 7 variables: 7 nonzeros: 30
+Variable vector:
+0.6092090562543065
+0.1898730530200304
+0.9218920519490184
+0.9571557013775424
+0.10572581989835575
+0.7141062486427147
+0.5515320687097053
+
+Residual vector:
+135.65441599616986
+1011.1416151229043
+-409.78186747837526
+565.2519683921223
+-247.86428254184918
+776.9877699186127
+720.9741612233552
+
+gjh: "LLE3disOrig.gjh" written.  Execute
+ 
+	include "LLE3disOrig.gjh"
+	remove "LLE3disOrig.gjh";
