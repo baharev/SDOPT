@@ -20,16 +20,3 @@ Eq3:
 let p[1] := 0.8872045157371093;
 let p[2] := 0.6267544694440679;
 let one  := 1; 
-
-options ipopt_options "acceptable_tol=1.0e-14";
-
-option auxfiles rc;
-
-option nl_comments 1;
-write gnegate;
-solve;
-
-display x;
-
-display _svar;
-
