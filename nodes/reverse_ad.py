@@ -239,9 +239,8 @@ def fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
     # evaluation in topologically sorted order
     for n, d in itr_nodes_to_pprint(con_dag, eval_order, base_vars):
         body = get_body(n, d, con_dag, base_vars)
-        pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
-    # residual
-    pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars)
+        assignment_with_comment(n, d, body, con_dag, def_var_names)
+    # residual printed separately
 
 def bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names):
     print('u%d = 1.0' % sink_node) # setting the seed
@@ -249,7 +248,7 @@ def bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, def_var_names)
     for n, d in itr_reverse(con_dag, eval_order, base_vars):
         body = get_body(n, d, con_dag, base_vars)
         print('# ', end='')
-        pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names)
+        assignment_with_comment(n, d, body, con_dag, def_var_names)
         #
         print_node(n, d, con_dag, base_vars, seen)
     # Collect row of the Jacobian
@@ -273,13 +272,14 @@ def get_body(n, d, con_dag, base_vars):
     formatter = globals()[fmt]
     return formatter(n, d, con_dag, base_vars)
 
-def pprint_node_assignment_with_comment(n, d, body, con_dag, def_var_names):
+def assignment_with_comment(n, d, body, con_dag, def_var_names):
     if NodeAttr.var_num in d:
         print('t%d =' % n, body, ' # %s' % def_var_names[d[NodeAttr.var_num]])
     else:
         print('t%d =' % n, body,' #', get_pretty_type_str(con_dag,n))
 
-def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
+def pprint_residual(sink_node, con_num, con_dag, base_vars):
+    d_sink = con_dag.node[sink_node]
     body = get_body(sink_node, d_sink, con_dag, base_vars)
     lb, ub = d_sink[NodeAttr.bounds]
     if lb == ub == 0.0:
@@ -289,6 +289,23 @@ def pprint_residual(sink_node, d_sink, con_num, con_dag, base_vars):
     else:
         print('%g <= (%s) <= %g  # t%d' % (lb, body, ub, sink_node))
     print()
+    
+def ugly_residual(sink_node, con_num, con_dag, base_vars, def_var_names):
+    # Mostly the same as the above pprint_residual for pretty printing the 
+    # residual but since reverse AD may reference the constraint node itself,
+    # it must be written out. That extra node is omitted if we only do 
+    # forward evaluation.
+    d_sink = con_dag.node[sink_node]
+    body = get_body(sink_node, d_sink, con_dag, base_vars)
+    assignment_with_comment(sink_node, d_sink, body, con_dag, def_var_names)
+    lb, ub = d_sink[NodeAttr.bounds]
+    if lb == ub == 0.0:
+        print('con[%d] = t%d' % (con_num, sink_node))
+    elif lb == ub:
+        print('con[%d] = t%d - %s' % (con_num, sink_node, to_str(lb)))
+    else:
+        raise NotImplementedError('Inequalities are not implemented yet')
+    print()    
 
 ################################################################################
 
@@ -319,7 +336,10 @@ def run_code_gen(problem, only_forward=False):
         def_var_names = problem.var_num_name
         fwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
                                                                   def_var_names)
-        if not only_forward:
+        if only_forward:
+            pprint_residual(sink_node, con_num, con_dag, base_vars)
+        else:
+            ugly_residual(sink_node, con_num, con_dag, base_vars, def_var_names)
             bwd_sweep(sink_node, con_num, con_dag, eval_order, base_vars, \
                                                                   def_var_names)
 
