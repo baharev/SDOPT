@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, unittest
+import os, traceback, unittest
 from os.path import join
 from tempfile import gettempdir
 import numpy as np
@@ -26,8 +26,7 @@ def test_reverse_ad(logfilename, dagfilename):
     prob = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
     partial_code = prepare_evaluation_code(prob, tracepoint=x) 
     print('===============================================')
-    rev_ad = import_code(partial_code)
-    con, jac_ad = rev_ad.evaluate(x, prob.ncons, prob.nvars, prob.nzeros)
+    con, jac_ad = evaluate(partial_code, prob, x, logfilename)
     # Check the residuals first
     # A rather messy and risky business to figure out where to flip the signs 
     sign = np.ones(residuals.size, dtype=np.int32)
@@ -49,6 +48,15 @@ def test_reverse_ad(logfilename, dagfilename):
         # Can produce false positives if the sign was bogusly reconstructed!
         raise AssertionError('See the debug code location, and the mismatching '
                              'indices and values printed above!')
+        
+def evaluate(partial_code, prob, x, logfilename):
+    rev_ad = import_code(partial_code)
+    try:
+        return rev_ad.evaluate(x, prob.ncons, prob.nvars, prob.nzeros)
+    except:
+        print('\n', traceback.format_exc()[:-1])
+        dump_code(partial_code, logfilename)
+        raise AssertionError('The offending code has been dumped, see above!')
 
 def differs_at(a, b, sign):
     # Returns indices where a and b are suspiciously different

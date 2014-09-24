@@ -1,5 +1,5 @@
-from nodes import div_node, exp_node, log_node, mul_node, num_node, pow_node, \
-                  sqr_node, sum_node, var_node
+from nodes import div_node, exp_node, log_node, mul_node, neg_node, num_node,  \
+                  pow_node, sqr_node, sum_node, var_node
 from nodes.attributes import NodeAttr, Bounds
 
 def parse(problem, elems):
@@ -43,8 +43,15 @@ def constant(node_id, elems, attr):
     attr[NodeAttr.type] = num_node
 
 def sumnode(node_id, elems, attr):
+    # Update negate below *and* neg_node if the implementation changes
     attr[NodeAttr.operation] = '+'
     attr[NodeAttr.type] = sum_node
+
+def negate(node_id, elems, attr):
+    # Update if sumnode changes
+    # symbol in .dag file: -#
+    attr[NodeAttr.operation] = '-'
+    attr[NodeAttr.type] = neg_node
 
 def mul(node_id, elems, attr):
     attr[NodeAttr.operation] = '*'
@@ -83,6 +90,7 @@ lookup_table = {  'b':   bounds,
                   'n':   n_term,
                   's':   coconut_simplifier_ignored,
                   '+':   sumnode,
+                  '-#':  negate,
                   '*':   mul,
                   '/':   div,
                   'exp': exp,
