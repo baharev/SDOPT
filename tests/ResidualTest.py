@@ -18,7 +18,7 @@ def check_residuals():
         # ignore the returned Jacobian, which is still empty in forward mode
         residuals, _  = f.evaluate( problem.refsols[0], problem.ncons, 
                                     problem.nvars,      problem.nzeros )
-        approx_zero = np.isclose(residuals, 0.0, atol=1.0e-6)
+        approx_zero = np.isclose(residuals, 0.0, atol=4.0e-6)
         # TODO If fails, give the violated constraint name
         assert np.all(approx_zero), 'Large constraint violation\n%s' % residuals
         print('PASSED:', dag_file)

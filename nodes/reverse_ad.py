@@ -349,7 +349,7 @@ from math import exp, log
 import numpy as np
 import scipy.sparse as sp
 
-class jac_coo_arrays:
+class jac_coo_matrix:
     def __init__(self, nonzeros):
         self.k = 0
         self.ai = np.zeros(nonzeros,np.int32) 
@@ -365,7 +365,7 @@ def evaluate(v, ncons, nvars, nzeros):
     con = np.empty(ncons, dtype=np.float64)
     np.copyto(con, float('NaN'), casting='unsafe')
     
-    jac = jac_coo_arrays(nzeros)
+    jac = jac_coo_matrix(nzeros)
     
 '''
 
