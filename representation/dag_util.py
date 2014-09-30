@@ -7,7 +7,6 @@ from collections import defaultdict
 import networkx as nx
 import nodes
 from nodes.attributes import NodeAttr
-from matplotlib import pyplot as plt
 
 def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')
@@ -115,6 +114,9 @@ def deterministic_topological_sort(dag):
     return list(reversed(order))
 
 def plot(dag):
+    # TODO Ugly that import error is ignored and let propagated
+    from matplotlib import pyplot as plt
+    
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
 

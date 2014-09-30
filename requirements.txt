@@ -1,0 +1,4 @@
+numpy
+scipy
+enum34
+networkx

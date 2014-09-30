@@ -6,7 +6,6 @@ from itertools import islice
 import numpy as np
 import scipy.sparse as sp
 import ordering.block_sparsity_pattern as bs
-import ordering.sparse_plot as splot
 from util.file_reader import lines_of
 from util.assert_helpers import assertEqual
 from util.misc import nth
@@ -21,9 +20,7 @@ def read_flattened_ampl(filename, show_sparsity_pattern=True):
     bs.set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
-    if show_sparsity_pattern:
-        splot.plot(bsp, plot_permuted=False)
-        splot.plot(bsp, plot_permuted=True, show_coloring=True)
+    plot_sparsity(bsp, show_sparsity_pattern)
     return bsp
 
 def read_nl(filename):
@@ -35,6 +32,13 @@ def read_names(filename, kind, count):
         names = [line for line in lines]
     assertEqual(len(names), count)
     return names
+
+def plot_sparsity(bsp, show_sparsity_pattern):
+    if show_sparsity_pattern:
+        # TODO Ugly that import error is ignored and let propagated
+        import ordering.sparse_plot as splot
+        splot.plot(bsp, plot_permuted=False)
+        splot.plot(bsp, plot_permuted=True, show_coloring=True)    
 
 def parse(f):
     bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
