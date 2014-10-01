@@ -8,7 +8,7 @@ import scipy.sparse as sp
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
-import csr_utils as util
+from . import csr_utils as util
 
 def plot(bsp, plot_permuted, show_coloring=False):
     # Unpack bsp
