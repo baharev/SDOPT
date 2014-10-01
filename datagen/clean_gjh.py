@@ -1,4 +1,8 @@
 #!/usr/bin/env python
 import generate_gjh
 
-generate_gjh.clean()
+def cleanup():
+    generate_gjh.clean()
+
+if __name__=='__main__':
+    cleanup()
