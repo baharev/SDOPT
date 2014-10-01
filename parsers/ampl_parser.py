@@ -156,7 +156,7 @@ def dbg_show_jacobian(m):
         print('%d: %s' % (r, cols))
 
 def dbg_show_S_segm(suffix_dict):
-    for name, index_value in sorted(suffix_dict.iteritems()):
+    for name, index_value in sorted(suffix_dict.items()):
         print( '  %s: %s' % (name, index_value) )
 
 if __name__ == '__main__':

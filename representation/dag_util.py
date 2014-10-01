@@ -7,6 +7,7 @@ from collections import defaultdict
 import networkx as nx
 import nodes
 from nodes.attributes import NodeAttr
+import six
 
 def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')
@@ -29,7 +30,7 @@ def dbg_pprint_source_sink_types(dag):
     dbg_pprint_kind_nodeids(sink_types)
     
 def dbg_pprint_kind_nodeids(kind_nodeids):
-    for kind, nodeids in kind_nodeids.iteritems():
+    for kind, nodeids in kind_nodeids.items():
         count = len(nodeids)
         print(' ', kind, nodeids if count <= 20 else '', '(count=%d)' % count)
 
@@ -150,7 +151,7 @@ def reparent(dag, new_parent, node_to_del):
     assert new_parent in dag, '{}, {}'.format(new_parent, node_to_del)
     assert_source(dag, node_to_del)
     remove_node(dag, node_to_del)
-    for child_id, edge_dict in out_edges.iteritems():
+    for child_id, edge_dict in six.iteritems(out_edges):
         dag.add_edge(new_parent, child_id, edge_dict)
         replace(dag.node[child_id][NodeAttr.input_ord], node_to_del, new_parent)
 

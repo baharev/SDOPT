@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
-import minimum_degree as md
+from . import minimum_degree as md
 from ordering.csr_utils import cols_in_row
 from ordering.misc_utils import invert_permutation
 

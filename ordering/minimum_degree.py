@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
-import csr_utils as util
+from . import csr_utils as util
 
 DEBUG = False
 

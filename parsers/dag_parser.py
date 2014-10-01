@@ -2,11 +2,11 @@ from __future__ import print_function
 
 __all__ = [ 'read_problem' ]
 
-import edge_line
-import hint_line
-import info_line
-import node_line
-from ampl_parser import read_flattened_ampl
+from . import edge_line
+from . import hint_line
+from . import info_line
+from . import node_line
+from .ampl_parser import read_flattened_ampl
 from representation.problem import Problem, setup, crosscheck_sparsity_pattern,\
                                                    crosscheck_names
 from representation.dag_util import plot

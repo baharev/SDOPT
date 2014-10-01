@@ -1,6 +1,7 @@
 from __future__ import print_function
 from itertools import islice, dropwhile
 import os
+from six import exec_
 
 def advance(itr, n):
     return islice(itr, n, None)
@@ -17,7 +18,7 @@ def import_code(code):
     import imp
     module = imp.new_module('someFakeName')
     try:
-        exec code in module.__dict__
+        exec_(code, module.__dict__)
     except:
         print(code)
         raise

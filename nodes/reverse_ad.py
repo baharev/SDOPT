@@ -6,7 +6,7 @@ import io, math
 from operator import itemgetter
 from string import Template
 from nodes.attributes import NodeAttr
-from itertools import izip
+from six.moves import zip
 from representation.dag_util import get_pretty_type_str
 from util.redirect_stdout import redirect_stdout
 from util.misc import get_all_files
@@ -125,7 +125,7 @@ def unchecked_inedge_mult(n, d, con_dag):
     return mult, pred
 
 def gen_inedge_mult(n, d, con_dag):
-    return izip(*unchecked_inedge_mult(n, d, con_dag)) 
+    return zip(*unchecked_inedge_mult(n, d, con_dag)) 
 
 def binary_node_inedge_mult(n, d, con_dag):
     mult, pred = unchecked_inedge_mult(n, d, con_dag)

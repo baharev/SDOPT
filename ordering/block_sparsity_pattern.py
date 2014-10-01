@@ -2,11 +2,11 @@ from __future__ import print_function
 
 __all__ = [ 'BlockSparsityPattern' ]
 
-from future_builtins import zip
+from six.moves import zip
 import numpy as np
 import scipy.sparse as sp
-import csr_utils
-import misc_utils as util
+from . import csr_utils
+from . import misc_utils as util
 from util.assert_helpers import assertEqual, assertEqLength
 from ordering.minimum_degree import min_degree_ordering
 from ordering.coloring import coloring

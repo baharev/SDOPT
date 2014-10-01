@@ -5,10 +5,11 @@ __all__ = [ 'Problem' ]
 from collections import OrderedDict
 import numpy as np
 import networkx as nx
-import dag_util as du
+from . import dag_util as du
 from nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
 import ordering.csr_utils as util
+import six
 
 # TODO: - In the simplifier, reconstruct exact integer powers (e.g. x**3)
 #       - dbg_info: constraint types 
@@ -44,11 +45,11 @@ def setup(prob):
     setup_constraint_names(prob)
     setup_nodes(prob)
     # for base vars: setup_nodes() only stores the smallest id in var_num_id
-    prob.base_vars = { v : k for k, v in prob.var_num_id.iteritems() }
+    prob.base_vars = { v : k for k, v in six.iteritems(prob.var_num_id) }
     # The followings are simplifications
     #-------------------------------------------
     # remove bogus base var aliasing
-    prob.var_node_ids.difference_update(prob.base_vars.viewkeys())
+    prob.var_node_ids.difference_update(six.iterkeys(prob.base_vars))
     # the rest assumes that base var nodes are no longer in var_node_ids!
     remove_var_aliases(prob)
     #-------------------------------------------
@@ -65,7 +66,7 @@ def setup(prob):
     du.dbg_info(prob.dag, lambda : dbg_problem_statistics(prob))
 
 def setup_constraint_names(prob):
-    for node_id, con_num in prob.con_ends_num.iteritems():
+    for node_id, con_num in six.iteritems(prob.con_ends_num):
         d = prob.dag.node[node_id]
         d[NodeAttr.name] = prob.con_num_name.get(con_num, '_c%d' % con_num)
         d[NodeAttr.con_num] = con_num
@@ -77,10 +78,11 @@ def setup_nodes(prob):
 def remove_var_aliases(prob):
     var_aliases = get_var_aliases(prob)
     dag = prob.dag
-    for aliasing_var_node, base_var_node in var_aliases.iteritems():
+    for aliasing_var_node, base_var_node in six.iteritems(var_aliases):
         du.assert_source(dag, base_var_node)
         du.reparent(dag, base_var_node, aliasing_var_node)
-    prob.var_node_ids -= var_aliases.viewkeys()
+    # difference_update is -=
+    prob.var_node_ids.difference_update(six.iterkeys(var_aliases))
 
 def get_var_aliases(prob):
     var_aliases = { } # alias node id -> base var aliased
@@ -103,13 +105,13 @@ def get_unnamed_constraints(prob):
 
 def eliminate_def_vars(prob, con_ends):
     #  defined variable := its defining constraint
-    print('cons: ', sorted(prob.con_ends_num.viewkeys()))
+    print('cons: ', sorted(six.iterkeys(prob.con_ends_num)))
     for sum_node_id in con_ends:
         var_node_id = sum_node_id + 1 # already asserted that it is true
         du.reverse_edge_to_get_def_var(prob.dag, sum_node_id, var_node_id)
         prob.con_ends_num.pop(sum_node_id) # safe: iterating on a copy
         prob.defined_vars.add(var_node_id)
-    print('cons: ', sorted(prob.con_ends_num.viewkeys()))
+    print('cons: ', sorted(six.iterkeys(prob.con_ends_num)))
 
 def remove_CSE_aliases(prob, con_ends):
     dag = prob.dag
@@ -150,7 +152,7 @@ def delete_sinks_recursively(dag, reverse_order):
 def remove_identity_sum_nodes(prob):
     dag = prob.dag
     to_delete = get_identity_sum_nodes(dag)
-    for n, (pred, succ) in to_delete.iteritems():
+    for n, (pred, succ) in six.iteritems(to_delete):
         du.remove_node(dag, n)
         d = dag.node[succ] # may need it to transfer var_num to new parent
         du.reparent(dag, pred, succ)
@@ -189,7 +191,7 @@ def update_defined_var_bookkeeping(prob, new_def_var, old_def_var, d):
 def remove_def_var_aliasing_another_node(prob):
     dag = prob.dag
     to_delete = get_def_var_aliasing_another_node(prob)
-    for n, pred in to_delete.iteritems():
+    for n, pred in six.iteritems(to_delete):
         d = dag.node[n]  # need it to transfer var_num to new parent
         dag.remove_edge(pred, n)
         du.reparent(dag, pred, n)
