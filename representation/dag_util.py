@@ -89,7 +89,7 @@ def get_single_succ(dag, n):
     return next(iter(dag.succ[n]))
 
 def deterministic_topological_sort(dag):
-    # This function is stolen from networkx/algorithms/dag.py, topological_sort;
+    # This function is stolen from networkx.algorithms.dag.topological_sort
     # made the returned order deterministic by pre-sorting the nodes by their ID
     seen = set()
     order = []

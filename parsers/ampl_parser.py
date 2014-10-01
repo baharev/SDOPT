@@ -160,7 +160,9 @@ def dbg_show_S_segm(suffix_dict):
         print( '  %s: %s' % (name, index_value) )
 
 if __name__ == '__main__':
-    read_flattened_ampl('../data/Luyben.nl')
-    read_flattened_ampl('../data/suffix.nl')
-    read_flattened_ampl('../data/JacobsenDbg.nl')
-    read_flattened_ampl('../data/mssTornDbg.nl')
+    from datagen.paths import DATADIR
+    from os.path import join
+    read_flattened_ampl(join(DATADIR, 'Luyben.nl'))
+    read_flattened_ampl(join(DATADIR, 'suffix.nl'))
+    read_flattened_ampl(join(DATADIR, 'JacobsenDbg.nl'))
+    read_flattened_ampl(join(DATADIR, 'mssTornDbg.nl'))

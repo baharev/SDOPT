@@ -22,5 +22,6 @@ def check_residuals():
         # TODO If fails, give the violated constraint name
         assert np.all(approx_zero), 'Large constraint violation\n%s' % residuals
         print('PASSED:', dag_file)
-    #read_problem('../data/ex9_2_8.txt', crosscheck_sparsity_nl=False)
-
+    # Enable these if coverage is measured:
+    #from os.path import join
+    #read_problem(join(DATADIR,'ex9_2_8.txt'), crosscheck_nl=False)        
