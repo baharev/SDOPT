@@ -82,6 +82,12 @@ def itr_siso_sum_nodes(dag):
 def itr_single_input_nodes(dag, node_ids):
     return (n for n in node_ids if len(dag.pred[n])==1)
 
+def get_single_pred(dag, n):
+    return next(iter(dag.pred[n]))
+
+def get_single_succ(dag, n):
+    return next(iter(dag.succ[n]))
+
 def deterministic_topological_sort(dag):
     # This function is stolen from networkx/algorithms/dag.py, topological_sort;
     # made the returned order deterministic by pre-sorting the nodes by their ID
@@ -101,7 +107,7 @@ def deterministic_topological_sort(dag):
             seen.add(w)     # mark as seen
             # Check successors for cycles and for new nodes
             new_nodes = []
-            for n in sorted(dag[w].iterkeys()):                     # <-- SORTED
+            for n in sorted(six.iterkeys(dag[w])):                  # <-- SORTED
                 if n not in explored:
                     if n in seen: #CYCLE !!
                         raise nx.NetworkXUnfeasible("Graph contains a cycle.")

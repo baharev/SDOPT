@@ -2,7 +2,8 @@ from __future__ import print_function
 
 __all__ = [ 'BlockSparsityPattern' ]
 
-from six.moves import zip
+from six.moves import zip as izip
+from six.moves import range as irange
 import numpy as np
 import scipy.sparse as sp
 from . import csr_utils
@@ -67,7 +68,7 @@ def get_block_boundaries(bsp, i, j):
     return bsp.rblx[i], bsp.rblx[i+1], bsp.cblx[j], bsp.cblx[j+1]
         
 def itr_index_block_slice(blx): 
-    for i, beg_end in enumerate(zip(blx[:-1],blx[1:])):
+    for i, beg_end in enumerate(izip(blx[:-1],blx[1:])):
         yield i, slice(*beg_end)
 
 ################################################################################
@@ -145,7 +146,7 @@ def set_min_degree_order_and_coloring(bsp):
     # Unpacking bsp
     m, row_p, col_p = bsp.csr_mat, bsp.row_permutation, bsp.col_permutation  
     # Apply minimum degree ordering to each block on the diagonal (i,i)    
-    for i in xrange(bsp.n_rblx):
+    for i in irange(bsp.n_rblx):
         min_degree_ordering(m, row_p, col_p, *get_block_boundaries(bsp, i, i))
     set_inverse_permutations(bsp)
     bsp.coloring, bsp.color_count = coloring( m, bsp.inverse_row_perm, 

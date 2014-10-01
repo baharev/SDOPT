@@ -2,6 +2,7 @@ from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
 from . import csr_utils as util
+from six.moves import range as irange
 
 DEBUG = False
 
@@ -13,7 +14,7 @@ DEBUG = False
 
 def min_degree_ordering(m, row_p, col_p, rbeg, rend, cbeg, cend):
     dbg_show_permuted_matrix(m, row_p, col_p)
-    for rbeg in xrange(rbeg, rend):
+    for rbeg in irange(rbeg, rend):
         # get the rows and cols in the active submatrix (asm)
         rows, cols = row_p[rbeg:rend], col_p[cbeg:cend]
         r, cmask = find_row_with_min_count(m, rows, cols)

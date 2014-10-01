@@ -163,8 +163,8 @@ def get_identity_sum_nodes(dag):
     # This function could be moved to dag_util?
     remove = { }
     for n in du.itr_siso_sum_nodes(dag):
-        pred = dag.pred[n].keys()[0]
-        succ = dag.succ[n].keys()[0]
+        pred = du.get_single_pred(dag, n)
+        succ = du.get_single_succ(dag, n)
         in_mul  = dag.edge[pred][n]['weight']
         out_mul = dag.edge[n][succ]['weight']
         d = dag.node[n]
@@ -202,7 +202,7 @@ def get_def_var_aliasing_another_node(prob):
     dag = prob.dag
     to_delete = { }
     for n in du.itr_single_input_nodes(dag, prob.defined_vars):
-        pred = dag.pred[n].keys()[0]
+        pred = du.get_single_pred(dag, n)
         in_mul  = dag.edge[pred][n]['weight']
         d = dag.node[n]
         d_term  = d.get(NodeAttr.d_term, 0.0)
@@ -251,8 +251,8 @@ def check_shape(prob, jacobian):
     assert prob.nvars == jacobian.shape[1]
 
 def crosscheck_names(prob, row_names, col_names):
-    assert set(row_names) <= set(prob.con_num_name.itervalues())
-    assert set(col_names) <= set(prob.var_num_name.itervalues())
+    assert set(row_names) <= set(six.itervalues(prob.con_num_name))
+    assert set(col_names) <= set(six.itervalues(prob.var_num_name))
     assert len(row_names) == prob.ncons
     assert len(col_names) == prob.nvars
 

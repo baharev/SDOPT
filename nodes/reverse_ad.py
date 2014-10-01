@@ -2,11 +2,13 @@ from __future__ import print_function
 
 __all__ = [ 'prepare_evaluation_code' ]
 
-import io, math
+import math
 from operator import itemgetter
 from string import Template
+from contextlib import closing
 from nodes.attributes import NodeAttr
-from six.moves import zip
+from six.moves import zip as izip
+from util.stringIO import stringIO
 from representation.dag_util import get_pretty_type_str
 from util.redirect_stdout import redirect_stdout
 from util.misc import get_all_files
@@ -125,7 +127,7 @@ def unchecked_inedge_mult(n, d, con_dag):
     return mult, pred
 
 def gen_inedge_mult(n, d, con_dag):
-    return zip(*unchecked_inedge_mult(n, d, con_dag)) 
+    return izip(*unchecked_inedge_mult(n, d, con_dag)) 
 
 def binary_node_inedge_mult(n, d, con_dag):
     mult, pred = unchecked_inedge_mult(n, d, con_dag)
@@ -310,7 +312,7 @@ def ugly_residual(sink_node, con_num, con_dag, base_vars, def_var_names):
 ################################################################################
 
 def prepare_evaluation_code(prob, tracepoint=[ ], only_forward=False):
-    with io.BytesIO() as code: 
+    with closing(stringIO()) as code: 
         code.write(preamble)
         write_constraint_evaluation_code(prob, code, only_forward)
         code.write(postamble)
@@ -320,7 +322,7 @@ def prepare_evaluation_code(prob, tracepoint=[ ], only_forward=False):
         return code.getvalue()
 
 def write_constraint_evaluation_code(problem, code, only_forward):
-    with io.BytesIO() as ostream: 
+    with closing(stringIO()) as ostream: 
         with redirect_stdout(ostream):  # Eliminating the nested with would make 
             run_code_gen(problem, only_forward) # debugging harder: stdout is swallowed!
         # prepend indentation, keep line ends

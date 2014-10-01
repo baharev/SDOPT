@@ -4,6 +4,7 @@ import scipy.sparse as sp
 from . import minimum_degree as md
 from ordering.csr_utils import cols_in_row
 from ordering.misc_utils import invert_permutation
+from six.moves import range as irange
 
 def rows_in_col(m, c):
     assert isinstance(m, sp.csc_matrix)
@@ -25,7 +26,7 @@ def coloring(m, inv_row_p, inv_col_p):
     # Initially, "color" 0 is available 
     color_available = np.ones(1, np.int8)
     # Iterate through the columns backwards, from right to left
-    for c in reversed(xrange(ncols)):
+    for c in reversed(irange(ncols)):
         # All rows containing c
         for r in rows_in_col(col_major, c):
             # All other columns in those rows, c's "neighbors"
