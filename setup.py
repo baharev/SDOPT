@@ -2,18 +2,15 @@
 from __future__ import print_function
 from distutils.core import setup
 
-from glob import glob
 from os import listdir
 from os.path import join, isfile
 
-#df = glob(join('data', '*'))
-#print(df)
-
-#d = '.'
-#pkgs = sorted(o for o in listdir(d) if isfile(join(d,o,'__init__.py')))
-# print(pkgs)
-
 descr = 'Structure-driven optimization methods for modular technical systems'
+
+topdir = join('.','sdopt')
+
+pkgs = ['sdopt'] + sorted('sdopt.'+d for d in listdir(topdir) 
+                             if isfile(join(topdir,d,'__init__.py')))
 
 setup(
     name='SDOPT',
@@ -31,7 +28,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Topic :: Scientific/Engineering :: Mathematics',
     ],
-    py_modules=['main'],
-    packages=sorted(d for d in listdir('.') if isfile(join('.',d,'__init__.py'))),
-    data_files=[('data', glob(join('data', '*')))]
+    packages=pkgs,
+    package_data={'sdopt.datagen': [join('data','*')]},
 )
