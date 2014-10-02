@@ -1,7 +1,4 @@
 from __future__ import print_function
-
-__all__ = [ ] # meant to be private
-
 from array import array
 from collections import defaultdict
 import networkx as nx
