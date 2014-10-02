@@ -116,8 +116,8 @@ else:
 
 import mock
  
-MOCK_MODULES = ['numpy', 'scipy', 'scipy.sparse', 'networkx', 
-                'networkx.algorithms.dag', 'networkx.algorithms'
+MOCK_MODULES = ['enum', 'numpy', 'scipy', 'scipy.sparse', 'networkx', 
+                'networkx.algorithms', 'networkx.algorithms.dag'
                ]
 
 for mod_name in MOCK_MODULES:
