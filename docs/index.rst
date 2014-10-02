@@ -162,16 +162,13 @@ efficient
 
 Documentation generated with sphinx.ext.autodoc
 -----------------------------------------------
-    
+
 Contents:
 
 .. toctree::
    :maxdepth: 4
 
-   main
-   ordering
-   parsers
-   representation
+   sdopt
 
 
 Indices and tables
