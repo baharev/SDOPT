@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Structure-Driven OPTimization methods for modular technical systems
+Structure-driven optimization methods for modular technical systems
 ===================================================================
 
 .. _structure-driven:
@@ -41,6 +41,8 @@ under the 3-clause BSD license.
 
    <font color="red"><center><b>THIS PROJECT IS A WORK IN PROGRESS.</b></center></font>
 
+-----
+
 Input
 -----
 
@@ -74,6 +76,8 @@ accessed through the
 This project is not aiming at creating yet another modeling environment: The 
 goal is to plug the tools of this project into well-established modeling 
 systems.
+
+-----
 
 
 Reverse mode automatic differentiation
