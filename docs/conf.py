@@ -19,6 +19,8 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
+#FIXME 
+sys.path.insert(0, os.path.abspath(os.path.join('..','sdopt')))
 
 # -- General configuration ------------------------------------------------
 
@@ -98,6 +100,7 @@ pygments_style = 'sphinx'
 
 autosummary_generate=True
 add_module_names = False
+modindex_common_prefix=['sdopt.']
 mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML'
 
 
