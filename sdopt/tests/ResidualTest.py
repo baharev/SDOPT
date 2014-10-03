@@ -1,10 +1,10 @@
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import unittest
 import numpy as np
-from parsers.dag_parser import read_problem
-from datagen.paths import DATADIR
-from util.misc import import_code, get_all_files
-from nodes.reverse_ad import prepare_evaluation_code
+from ..parsers.dag_parser import read_problem
+from ..datagen.paths import DATADIR
+from ..util.misc import import_code, get_all_files
+from ..nodes.reverse_ad import prepare_evaluation_code
 
 class ResidualTest(unittest.TestCase):
     def test_files(self):
