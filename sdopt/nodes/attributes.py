@@ -1,5 +1,5 @@
 from collections import namedtuple
-from util.autoenum import AutoNumber
+from ..util.autoenum import AutoNumber
 
 class Bounds(namedtuple('Bounds', 'l u')):
         __slots__ = ()

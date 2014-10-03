@@ -6,14 +6,11 @@ import math
 from operator import itemgetter
 from string import Template
 from contextlib import closing
-from nodes.attributes import NodeAttr
 from six.moves import zip as izip
-from util.stringIO import stringIO
-from representation.dag_util import get_pretty_type_str
-from util.redirect_stdout import redirect_stdout
-from util.misc import get_all_files
-from parsers.dag_parser import read_problem
-from datagen.paths import DATADIR
+from ..nodes.attributes import NodeAttr
+from ..representation.dag_util import get_pretty_type_str
+from ..util.stringIO import stringIO
+from ..util.redirect_stdout import redirect_stdout
 
 # TODO Different formatters for Python and C++ code gen
 
@@ -388,10 +385,3 @@ if __name__=='__main__':
     print()    
     print(str(jac))
 ''')
-
-if __name__=='__main__':
-    for dag_file in get_all_files(DATADIR, '.dag'):
-        problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
-        print('===============================================')
-        print( prepare_evaluation_code(problem) )
-        print('===============================================')

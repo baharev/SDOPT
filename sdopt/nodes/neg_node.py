@@ -1,5 +1,5 @@
-from nodes.attributes import NodeAttr
-from nodes import sum_node
+from ..nodes.attributes import NodeAttr
+from ..nodes import sum_node
 
 def setup(node_id, d, problem):
     # Flip the sign of all inedges

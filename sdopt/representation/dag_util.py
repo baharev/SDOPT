@@ -2,8 +2,8 @@ from __future__ import print_function
 from array import array
 from collections import defaultdict
 import networkx as nx
-import nodes
-from nodes.attributes import NodeAttr
+from .. import nodes
+from ..nodes.attributes import NodeAttr
 import six
 
 def dbg_info(dag, optional_callable=None):
@@ -55,7 +55,8 @@ def is_sink(dag, node_id):
 
 def get_pretty_type_str(dag, n):
     the_name = dag.node[n][NodeAttr.type].__name__
-    return the_name.rsplit('.')[1]
+    dotpos = the_name.rfind('.')
+    return the_name[dotpos+1:]
 
 # TODO Would be a nice addition to nx
 def iter_attr(G, nbunch, name):

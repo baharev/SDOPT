@@ -1,4 +1,4 @@
-from nodes.attributes import NodeAttr
+from ..nodes.attributes import NodeAttr
 
 def setup(node_id, d, problem):
     # neg_node also calls this

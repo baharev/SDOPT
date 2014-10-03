@@ -1,6 +1,6 @@
-from nodes import div_node, exp_node, log_node, mul_node, neg_node, num_node,  \
+from ..nodes import div_node, exp_node, log_node, mul_node, neg_node, num_node,\
                   pow_node, sqr_node, sum_node, var_node
-from nodes.attributes import NodeAttr, Bounds
+from ..nodes.attributes import NodeAttr, Bounds
 
 def parse(problem, elems):
     node_id = elems.pop()

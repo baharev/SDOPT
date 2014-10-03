@@ -2,8 +2,8 @@ from __future__ import print_function
 from os.path import dirname, join
 import numpy as np
 import scipy.sparse as sp
-from util.file_reader import lines_of
-from util.misc import advance, nth, skip_until
+from ..util.file_reader import lines_of
+from ..util.misc import advance, nth, skip_until
 
 def read(logfilename):
     x, residuals, nonzeros, name = read_log(logfilename)

@@ -6,9 +6,9 @@ from collections import OrderedDict
 import numpy as np
 import networkx as nx
 from . import dag_util as du
-from nodes.attributes import NodeAttr
+from ..nodes.attributes import NodeAttr
 from networkx.algorithms.dag import ancestors, topological_sort
-import ordering.csr_utils as util
+from ..ordering.csr_utils import cols_in_row
 import six
 
 # TODO: - In the simplifier, reconstruct exact integer powers (e.g. x**3)
@@ -17,9 +17,13 @@ import six
 #             sinks, def var nodes, etc.)
 
 class Problem:
-    '''Use read_problem from parsers.dag_parser to create an instance of 
-    Problem. Factory function is not provided here to avoid cyclic imports.
-    '''
+    
+    @staticmethod
+    def createFrom(dagfilename, plot_dag=True, crosscheck_nl=True, 
+                   show_sparsity=True):
+        from ..parsers.dag_parser import read_problem
+        return read_problem(dagfilename, plot_dag, crosscheck_nl, show_sparsity)
+
     def __init__(self):
         self.dag = nx.DiGraph()
         self.con_ends_num = { } # con sink node -> con num (in AMPL)
@@ -240,7 +244,7 @@ def crosscheck_sparsity_pattern(prob, jacobian):
     checked = [False] * jacobian.shape[0]
     for con_num, n in du.itr_sink_con_num_nodeid(prob.dag):
         base_vars = np.array(base_var_nums_in_con(prob, n), np.int32)
-        cols = util.cols_in_row(jacobian, con_num)
+        cols = cols_in_row(jacobian, con_num)
         assert np.all(cols==base_vars)
         checked[con_num] = True
     assert all(checked)

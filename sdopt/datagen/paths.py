@@ -1,6 +1,6 @@
 from tempfile import gettempdir
 from os.path import join
-from sdopt import _ROOT
+from .. import _ROOT
 
 TMPDIR  = join(gettempdir(), 'gjh') # /tmp/gjh on Linux
 DATADIR = join(_ROOT, 'datagen', 'data')

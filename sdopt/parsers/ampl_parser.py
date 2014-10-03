@@ -1,15 +1,13 @@
 from __future__ import print_function
-
-__all__ = [ 'read_flattened_ampl' ]
-
 from itertools import islice
 import numpy as np
 import scipy.sparse as sp
-import ordering.block_sparsity_pattern as bs
-from util.file_reader import lines_of
-from util.assert_helpers import assertEqual
-from util.misc import nth
-import ordering.csr_utils as util
+from ..ordering.block_sparsity_pattern \
+    import  set_permutation_with_block_boundaries, BlockSparsityPattern
+from ..util.file_reader import lines_of
+from ..util.assert_helpers import assertEqual
+from ..util.misc import nth
+from ..ordering.csr_utils import itr_col_indices, itr_col_indices_with_row_index
 
 def read_flattened_ampl(filename, show_sparsity_pattern=True):
     bsp = read_nl(filename)
@@ -17,7 +15,7 @@ def read_flattened_ampl(filename, show_sparsity_pattern=True):
                                 shape=(bsp.nrows,bsp.ncols) ) 
     check_J_segment(bsp)
     dbg_info(bsp)
-    bs.set_permutation_with_block_boundaries(bsp)
+    set_permutation_with_block_boundaries(bsp)
     bsp.row_names = read_names(filename, 'row', bsp.nrows)
     bsp.col_names = read_names(filename, 'col', bsp.ncols)
     plot_sparsity(bsp, show_sparsity_pattern)
@@ -36,12 +34,12 @@ def read_names(filename, kind, count):
 def plot_sparsity(bsp, show_sparsity_pattern):
     if show_sparsity_pattern:
         # TODO Ugly that import error is ignored and let propagated
-        import ordering.sparse_plot as splot
-        splot.plot(bsp, plot_permuted=False)
-        splot.plot(bsp, plot_permuted=True, show_coloring=True)    
+        from ..ordering.sparse_plot import plot
+        plot(bsp, plot_permuted=False)
+        plot(bsp, plot_permuted=True, show_coloring=True)    
 
 def parse(f):
-    bsp = bs.BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
+    bsp = BlockSparsityPattern(get_problem_name(f), *extract_problem_info(f))
     segments = { 'J': J_segment,
                  'k': k_segment,
                  'S': S_segment }
@@ -134,7 +132,7 @@ def check_J_segment(bsp):
     assertEqual(bsp.nrows, bsp.csr_mat.shape[0])
     assertEqual(bsp.ncols, bsp.csr_mat.shape[1])
     count = np.zeros(bsp.ncols, np.int32)
-    for cols in util.itr_col_indices(bsp.csr_mat):
+    for cols in itr_col_indices(bsp.csr_mat):
         count[cols] += 1
     accum = np.add.accumulate(count) 
     assert np.all(accum[:-1] == bsp.col_len)
@@ -152,17 +150,9 @@ def dbg_info(bsp):
     dbg_show_S_segm(bsp.col_suffixes)
 
 def dbg_show_jacobian(m):
-    for r, cols in util.itr_col_indices_with_row_index(m):
+    for r, cols in itr_col_indices_with_row_index(m):
         print('%d: %s' % (r, cols))
 
 def dbg_show_S_segm(suffix_dict):
     for name, index_value in sorted(suffix_dict.items()):
         print( '  %s: %s' % (name, index_value) )
-
-if __name__ == '__main__':
-    from datagen.paths import DATADIR
-    from os.path import join
-    read_flattened_ampl(join(DATADIR, 'Luyben.nl'))
-    read_flattened_ampl(join(DATADIR, 'suffix.nl'))
-    read_flattened_ampl(join(DATADIR, 'JacobsenDbg.nl'))
-    read_flattened_ampl(join(DATADIR, 'mssTornDbg.nl'))

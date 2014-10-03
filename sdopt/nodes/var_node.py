@@ -1,5 +1,5 @@
-from nodes.attributes import NodeAttr
-from representation.dag_util import add_keep_smaller_value
+from ..nodes.attributes import NodeAttr
+from ..representation.dag_util import add_keep_smaller_value
 
 def setup(node_id, d, problem):
     var_num = d[NodeAttr.var_num]

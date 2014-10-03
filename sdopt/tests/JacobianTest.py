@@ -3,12 +3,12 @@ import os, traceback, unittest
 from os.path import join
 from tempfile import gettempdir
 import numpy as np
-from parsers.dag_parser import read_problem
-from parsers.gjh_parser import read
-from nodes.reverse_ad import prepare_evaluation_code
-from datagen.paths import DATADIR
-from util.assert_helpers import assertEqual
-from util.misc import import_code
+from sdopt.parsers.dag_parser import read_problem
+from sdopt.parsers.gjh_parser import read
+from sdopt.nodes.reverse_ad import prepare_evaluation_code
+from sdopt.datagen.paths import DATADIR
+from sdopt.util.assert_helpers import assertEqual
+from sdopt.util.misc import import_code
 
 class Test(unittest.TestCase):
     def test_reverse_ad(self):

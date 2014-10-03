@@ -1,4 +1,5 @@
-from representation.dag_util import add_edge
+from __future__ import absolute_import
+from ..representation.dag_util import add_edge
 
 def parse(problem, elems):
     l = elems[0]

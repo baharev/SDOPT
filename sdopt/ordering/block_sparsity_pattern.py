@@ -8,17 +8,19 @@ import numpy as np
 import scipy.sparse as sp
 from . import csr_utils
 from . import misc_utils as util
-from util.assert_helpers import assertEqual, assertEqLength
-from ordering.minimum_degree import min_degree_ordering
-from ordering.coloring import coloring
+from ..util.assert_helpers import assertEqual, assertEqLength
+from ..ordering.minimum_degree import min_degree_ordering
+from ..ordering.coloring import coloring
 
 DEBUG = True
 
 class BlockSparsityPattern:
-    '''Use read_flattened_ampl from parsers.ampl_parser to create an instance of
-    BlockSparsityPattern. Factory function is not provided here to avoid cyclic
-    imports.
-    '''
+    
+    @staticmethod
+    def createFrom(nl_file_name, show_sparsity_pattern=True):
+        from ..parsers.ampl_parser import read_flattened_ampl
+        return read_flattened_ampl(nl_file_name, show_sparsity_pattern)
+    
     def __init__(self, name, nrows, ncols, nzeros):
         self.name = name
         self.nrows = nrows
