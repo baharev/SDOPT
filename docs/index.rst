@@ -41,7 +41,7 @@ under the 3-clause BSD license.
 
    <font color="red"><center><b>THIS PROJECT IS A WORK IN PROGRESS.</b></center></font>
 
------
+--------------------------------------------------------------------------------
 
 Input
 -----
@@ -77,8 +77,7 @@ This project is not aiming at creating yet another modeling environment: The
 goal is to plug the tools of this project into well-established modeling 
 systems.
 
------
-
+--------------------------------------------------------------------------------
 
 Reverse mode automatic differentiation
 --------------------------------------
@@ -108,6 +107,8 @@ The templated C++ version of this code will greatly benefit from code
 optimization performed by the C++ compiler; I expect the generated code to be 
 as good as hand-written.
 
+--------------------------------------------------------------------------------
+
 Natural block structure
 -----------------------
 The modules of the technical systems partition the Jacobian into blocks in a 
@@ -123,6 +124,8 @@ used, see *Defining and using suffixes* on page 302 in the
 `AMPL book <http://ampl.github.io/ampl-book.pdf>`_. In the future, component-based
 modeling tools will hopefully allow programmatic access to the natural block 
 structure.
+
+--------------------------------------------------------------------------------
 
 Minimum degree ordering
 -----------------------
@@ -145,6 +148,8 @@ that is applicable in the highly unsymmetric case. Since MC33 is based on a
 heuristic, it unfortunately fails on those chemical process models that are of 
 interest to me.
 
+--------------------------------------------------------------------------------
+
 Graph coloring
 --------------
 Depending on the implementation, efficient forward-mode 
@@ -158,7 +163,8 @@ efficient
 .. image:: ./pics/coloring.png
    :alt: graph coloring
    :align: center
-    
+
+--------------------------------------------------------------------------------
 
 Documentation generated with sphinx.ext.autodoc
 -----------------------------------------------
@@ -177,4 +183,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

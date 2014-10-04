@@ -14,7 +14,7 @@ from ..ordering.coloring import coloring
 
 DEBUG = True
 
-class BlockSparsityPattern:
+class BlockSparsityPattern(object):
     
     @staticmethod
     def createFrom(nl_file_name, show_sparsity_pattern=True):
