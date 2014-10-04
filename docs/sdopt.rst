@@ -7,16 +7,15 @@ Subpackages
 .. toctree::
 
     sdopt.ordering
-    sdopt.parsers
     sdopt.representation
 
 Submodules
 ----------
 
-sdopt.main module
+sdopt.demo module
 -----------------
 
-.. automodule:: sdopt.main
+.. automodule:: sdopt.demo
     :members:
     :undoc-members:
     :show-inheritance:
