@@ -2,9 +2,9 @@ from __future__ import print_function
 from array import array
 from collections import defaultdict
 import networkx as nx
+import six
 from .. import nodes
 from ..nodes.attributes import NodeAttr
-import six
 
 def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')

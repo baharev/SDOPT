@@ -5,11 +5,11 @@ __all__ = [ 'Problem' ]
 from collections import OrderedDict
 import numpy as np
 import networkx as nx
+from networkx.algorithms.dag import ancestors, topological_sort
+import six
 from . import dag_util as du
 from ..nodes.attributes import NodeAttr
-from networkx.algorithms.dag import ancestors, topological_sort
 from ..ordering.csr_utils import cols_in_row
-import six
 
 # TODO: - In the simplifier, reconstruct exact integer powers (e.g. x**3)
 #       - dbg_info: constraint types 

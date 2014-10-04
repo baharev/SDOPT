@@ -1,10 +1,10 @@
 from __future__ import print_function
 import numpy as np
 import scipy.sparse as sp
+from six.moves import range as irange
 from . import minimum_degree as md
 from ..ordering.csr_utils import cols_in_row
 from ..ordering.misc_utils import invert_permutation
-from six.moves import range as irange
 
 def rows_in_col(m, c):
     assert isinstance(m, sp.csc_matrix)
