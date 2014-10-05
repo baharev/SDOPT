@@ -6,7 +6,7 @@ class Bounds(namedtuple('Bounds', 'l u')):
             return '[%g,%g]' % (self.l, self.u)
 
 # AutoNumber, derived from Enum gave all sorts of weird "Error when calling the 
-# metaclass bases" errors, crashing the problem. Interestingly, the test also 
+# metaclass bases" errors, crashing the problem. Interestingly, the tests also 
 # run 25% faster now...
 
 class NodeAttr:

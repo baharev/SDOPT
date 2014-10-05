@@ -1,7 +1,6 @@
 six
 numpy
 scipy
-enum34
 networkx
 # optional packages:
 # matplotlib

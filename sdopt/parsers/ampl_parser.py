@@ -33,7 +33,6 @@ def read_names(filename, kind, count):
 
 def plot_sparsity(bsp, show_sparsity_pattern):
     if show_sparsity_pattern:
-        # TODO Ugly that import error is ignored and let propagated
         from ..ordering.sparse_plot import plot
         plot(bsp, plot_permuted=False)
         plot(bsp, plot_permuted=True, show_coloring=True)    

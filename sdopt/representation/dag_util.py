@@ -9,7 +9,7 @@ from ..nodes.attributes import NodeAttr
 def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')
     if optional_callable: optional_callable()
-    # TODO Why does this crash?
+    # TODO Why does this crash? Most likely due to deep copying a module
     #print('Is connected?', nx.is_connected(dag.to_undirected()))
     print('Nodes: %d, edges: %d'%(dag.number_of_nodes(),dag.number_of_edges()) )
     print('Is DAG?', nx.is_directed_acyclic_graph(dag))
@@ -119,18 +119,17 @@ def deterministic_topological_sort(dag):
     return list(reversed(order))
 
 def plot(dag):
-    # TODO Ugly that import error is ignored and let propagated
     from matplotlib import pyplot as plt
     
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
 
-    # TODO Why does this crash?
+    # TODO Why does this crash? Most likely due to deep copying a module
     #dag_copy = dag.to_directed()
     #for _, d in dag_copy.nodes_iter(data=True):
     for _, d in dag.nodes_iter(data=True):
         d.clear()
-    # TODO Why does this try to copy attributes that it cannot?
+    # ??? Why does this try to copy attributes that it cannot?
     positions = nx.graphviz_layout(dag, prog='dot')
 
     nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
