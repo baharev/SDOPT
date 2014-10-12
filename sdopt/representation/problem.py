@@ -9,6 +9,7 @@ from networkx.algorithms.dag import ancestors, topological_sort
 import six
 from . import dag_util as du
 from ..nodes.attributes import NodeAttr
+from ..nodes.setup import setup as node_setup
 from ..ordering.csr_utils import cols_in_row
 
 # TODO: - In the simplifier, reconstruct exact integer powers (e.g. x**3)
@@ -19,10 +20,9 @@ from ..ordering.csr_utils import cols_in_row
 class Problem:
     
     @staticmethod
-    def createFrom(dagfilename, plot_dag=True, crosscheck_nl=True, 
-                   show_sparsity=True):
+    def createFrom(dagfilename, crosscheck_nl=True, show_sparsity=True):
         from ..parsers.dag_parser import read_problem
-        return read_problem(dagfilename, plot_dag, crosscheck_nl, show_sparsity)
+        return read_problem(dagfilename, crosscheck_nl, show_sparsity)
 
     def __init__(self):
         self.dag = nx.DiGraph()
@@ -77,7 +77,7 @@ def setup_constraint_names(prob):
 
 def setup_nodes(prob):
     for node_id, d in prob.dag.nodes_iter(data=True):
-        d[NodeAttr.type].setup(node_id, d, prob)
+        node_setup(node_id, d, prob)
 
 def remove_var_aliases(prob):
     var_aliases = get_var_aliases(prob)

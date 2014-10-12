@@ -1,11 +1,10 @@
-from ..nodes import div_node, exp_node, log_node, mul_node, neg_node, num_node,\
-                  pow_node, sqr_node, sum_node, var_node
+from ..nodes.types import ntype, is_var_node
 from ..nodes.attributes import NodeAttr, Bounds
 
 def parse(problem, elems):
     node_id = elems.pop()
     node_dict = create_node(node_id, elems)
-    if node_dict[NodeAttr.type] == var_node:
+    if is_var_node(node_dict):
         problem.var_node_ids.add(node_id)
     problem.dag.add_node(node_id, node_dict)
 
@@ -35,47 +34,47 @@ def n_term(unused1, elems, attr):
 def var_number(node_id, elems, attr):
     # V 2
     attr[NodeAttr.var_num] = int(elems[1])
-    attr[NodeAttr.type] = var_node
+    attr[NodeAttr.type] = ntype.VAR
 
 def constant(node_id, elems, attr):
     # C 0.1
     attr[NodeAttr.number] = float(elems[1])
-    attr[NodeAttr.type] = num_node
+    attr[NodeAttr.type] = ntype.NUM
 
 def sumnode(node_id, elems, attr):
     # Update negate below *and* neg_node if the implementation changes
     attr[NodeAttr.operation] = '+'
-    attr[NodeAttr.type] = sum_node
+    attr[NodeAttr.type] = ntype.SUM
 
 def negate(node_id, elems, attr):
     # Update if sumnode changes
     # symbol in .dag file: -#
     attr[NodeAttr.operation] = '-'
-    attr[NodeAttr.type] = neg_node
+    attr[NodeAttr.type] = ntype.NEG
 
 def mul(node_id, elems, attr):
     attr[NodeAttr.operation] = '*'
-    attr[NodeAttr.type] = mul_node
+    attr[NodeAttr.type] = ntype.MUL
 
 def div(node_id, elems, attr):
     attr[NodeAttr.operation] = '/'
-    attr[NodeAttr.type] = div_node
+    attr[NodeAttr.type] = ntype.DIV
 
 def exp(node_id, elems, attr):
     attr[NodeAttr.operation] = 'exp'
-    attr[NodeAttr.type] = exp_node
+    attr[NodeAttr.type] = ntype.EXP
 
 def log(node_id, elems, attr):
     attr[NodeAttr.operation] = 'log'
-    attr[NodeAttr.type] = log_node
+    attr[NodeAttr.type] = ntype.LOG
 
 def power(node_id, elems, attr):
     attr[NodeAttr.operation] = 'pow'
-    attr[NodeAttr.type] = pow_node
+    attr[NodeAttr.type] = ntype.POW
 
 def square(node_id, elems, attr):
     attr[NodeAttr.operation] = 'sqr'
-    attr[NodeAttr.type] = sqr_node
+    attr[NodeAttr.type] = ntype.SQR
 
 def coconut_simplifier_ignored(node_id, elems, attr):
     pass

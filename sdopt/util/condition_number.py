@@ -10,7 +10,7 @@ from ..tests.JacobianTest import dump_code
 
 def diagnostics(basename):
     dagfilename = join(DATADIR, basename+'.dag')
-    prob = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
+    prob = read_problem(dagfilename, show_sparsity=False)
     partial_code = prepare_evaluation_code(prob) 
     rev_ad = import_code(partial_code)
     con, jac_ad = rev_ad.evaluate(prob.refsols[0], prob.ncons, prob.nvars, prob.nzeros)

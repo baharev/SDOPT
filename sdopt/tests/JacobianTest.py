@@ -23,7 +23,7 @@ def check_reverse_ad():
 
 def test_reverse_ad(logfilename, dagfilename):
     x, residuals, jac = read(logfilename)
-    prob = read_problem(dagfilename, plot_dag=False, show_sparsity=False)
+    prob = read_problem(dagfilename, show_sparsity=False)
     partial_code = prepare_evaluation_code(prob, tracepoint=x) 
     print('===============================================')
     con, jac_ad = evaluate(partial_code, prob, x, logfilename)

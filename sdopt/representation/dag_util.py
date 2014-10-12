@@ -3,14 +3,12 @@ from array import array
 from collections import defaultdict
 import networkx as nx
 import six
-from .. import nodes
+from ..nodes.types import is_sum_node, is_var_node
 from ..nodes.attributes import NodeAttr
 
 def dbg_info(dag, optional_callable=None):
     print('-------------------------------------------------------------------')
     if optional_callable: optional_callable()
-    # TODO Why does this crash? Most likely due to deep copying a module
-    #print('Is connected?', nx.is_connected(dag.to_undirected()))
     print('Nodes: %d, edges: %d'%(dag.number_of_nodes(),dag.number_of_edges()) )
     print('Is DAG?', nx.is_directed_acyclic_graph(dag))
     nwcc = nx.number_weakly_connected_components(dag)
@@ -53,10 +51,9 @@ def is_source(dag, node_id):
 def is_sink(dag, node_id):
     return len(dag.succ[node_id])==0
 
+# FIXME Part of the dispatching mechanism, revise!
 def get_pretty_type_str(dag, n):
-    the_name = dag.node[n][NodeAttr.type].__name__
-    dotpos = the_name.rfind('.')
-    return the_name[dotpos+1:]
+    return dag.node[n][NodeAttr.type] + '_node'
 
 # TODO Would be a nice addition to nx
 def iter_attr(G, nbunch, name):
@@ -71,7 +68,7 @@ def itr_sinks(dag, nbunch):
     return (n for n in nbunch if is_sink(dag, n))
 
 def itr_sum_nodes(dag):
-    return (n for n in dag if dag.node[n][NodeAttr.type]==nodes.sum_node)
+    return (n for n in dag if is_sum_node(dag.node[n]))
 
 def itr_siso_sum_nodes(dag):
     return (n for n in itr_sum_nodes(dag) if  len(dag.pred[n])==1
@@ -124,13 +121,11 @@ def plot(dag):
     node_labels = nx.get_node_attributes(dag, NodeAttr.display)
     edge_labels = nx.get_edge_attributes(dag, 'weight')
 
-    # TODO Why does this crash? Most likely due to deep copying a module
-    #dag_copy = dag.to_directed()
-    #for _, d in dag_copy.nodes_iter(data=True):
-    for _, d in dag.nodes_iter(data=True):
+    dag_copy = dag.to_directed()
+    for _, d in dag_copy.nodes_iter(data=True):
         d.clear()
-    # ??? Why does this try to copy attributes that it cannot?
-    positions = nx.graphviz_layout(dag, prog='dot')
+    # FIXME Why does this try to copy attributes that it cannot?
+    positions = nx.graphviz_layout(dag_copy, prog='dot')
 
     nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
     nx.draw_networkx(dag, pos=positions, labels=node_labels, node_size=800)
@@ -207,15 +202,14 @@ def assert_CSE_defining_constraints(dag, con_ends, base_vars):
     for n in con_ends:
         # check the sum_node
         d = dag.node[n]
-        assert d[NodeAttr.type]==nodes.sum_node,'expected a sum_node, found: %s'%d
+        assert is_sum_node(d), 'expected a sum_node, found: %s' % d
         assert NodeAttr.bounds in d,'Should have bounds, node: %s' % d
         lb, ub = d[NodeAttr.bounds]
         assert lb==ub,'rhs expected to be a constant, node: %s' % d
         # check the var_node
         assert n+1 in dag,'expected a var_node; not CSE defining constraint: %s'%d
         def_var = dag.node[n+1]
-        assert def_var[NodeAttr.type]==nodes.var_node, \
-                                 'expected a var_node, found: %s' % def_var
+        assert is_var_node(def_var), 'expected a var_node, found: %s' % def_var
         assert n+1 not in base_vars,'expected a defined var, found %s' % def_var
         assert NodeAttr.bounds not in def_var, \
                             'CSEs must not have bounds, found\n  %s' % def_var

@@ -12,7 +12,7 @@ class ResidualTest(unittest.TestCase):
 
 def check_residuals():
     for dag_file in get_all_files(DATADIR, '.dag'):
-        problem = read_problem(dag_file, plot_dag=False, show_sparsity=False)
+        problem = read_problem(dag_file, show_sparsity=False)
         residual_code = prepare_evaluation_code(problem, only_forward=True)
         f = import_code(residual_code)
         # ignore the returned Jacobian, which is still empty in forward mode

@@ -266,6 +266,7 @@ def itr_reverse(con_dag, eval_order, base_vars):
     return ((n, con_dag.node[n]) for n in eval_order[::-1] \
               if n not in base_vars and NodeAttr.number not in con_dag.node[n])    
 
+# Dispatch mechanism here
 def get_body(n, d, con_dag, base_vars):
     fmt = get_pretty_type_str(con_dag, n) + '_str'
     formatter = globals()[fmt]
