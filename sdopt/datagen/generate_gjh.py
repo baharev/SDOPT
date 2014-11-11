@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import shutil
 import subprocess
-import sys
+from sys import stderr
 from os.path import join
 from string import Template
 from paths import AMPL, DATADIR, TMPDIR
@@ -32,7 +32,7 @@ def try_generation(modfile):
         ret = run_ampl(modfile)
         if ret==0:
             return
-    sys.exit(ret)        
+    os._exit(ret)        
 
 def create_gjh_input(modfile, seed):
     shutil.copy(join(DATADIR, modfile), TMPDIR)
@@ -55,7 +55,7 @@ def gen_gjh_basename_content():
     for gjh_name in to_copy:
         content = get_content(gjh_name)
         if 'NaN' in content or 'Infinity' in content:
-            print(gjh_name,'has NaN or Inf in it, skipping it',file=sys.stderr)
+            print(gjh_name,'has NaN or Inf in it, skipping it',file=stderr)
         else:
             yield gjh_name[:-4], content
 
