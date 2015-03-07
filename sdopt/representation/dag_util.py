@@ -130,6 +130,8 @@ def plot(dag):
     nx.draw_networkx_edge_labels(dag, positions, edge_labels, rotate=False)
     nx.draw_networkx(dag, pos=positions, labels=node_labels, node_size=800)
     mng = plt.get_current_fig_manager()
+    # TODO Post a wrapper to Code Review?
+    #mng.full_screen_toggle()   
     mng.resize(1865,1025)
     plt.show()
 
