@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+===================================================================
 Structure-driven optimization methods for modular technical systems
 ===================================================================
 
@@ -87,7 +88,7 @@ in order to compute the
 with reverse mode 
 `automatic differentiation <http://en.wikipedia.org/wiki/Automatic_differentiation>`_. 
 Currently only Python code is emitted, in the near future, templated C++ code 
-will also be generated. For example, for the above example `exp(3*x+2*y)+4*z`
+will also be generated. For example, for the above example ``exp(3*x+2*y)+4*z``
 the following Python code is generated (hand-edited to improve readability)::
 
     # f = exp(3*x+2*y)+z
@@ -135,7 +136,8 @@ natural block structure.
 .. image:: ./pics/ordering.png
    :alt: minimum degree ordering
    :align: center
-
+   :scale: 75%
+   
 My primary interest is chemical process modeling. The Jacobian of these models 
 are very sparse but *highly* unsymmetric, numerically indefinite, not diagonally 
 dominant and possibly ill-conditioned. There are many packages for the symmetric 
@@ -163,22 +165,24 @@ efficient
 .. image:: ./pics/coloring.png
    :alt: graph coloring
    :align: center
+   :scale: 75%
 
 --------------------------------------------------------------------------------
 
+..
+    Documentation generated with sphinx.ext.autodoc
+    -----------------------------------------------
+    
+    Contents:
+    
+    toctree::
+    :maxdepth: 4
+    
+    sdopt
+
+
 Documentation generated with sphinx.ext.autodoc
------------------------------------------------
-
-Contents:
-
-.. toctree::
-   :maxdepth: 4
-
-   sdopt
-
-
-Indices and tables
-==================
+===============================================
 
 * :ref:`genindex`
 * :ref:`modindex`
